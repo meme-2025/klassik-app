@@ -1,0 +1,11 @@
+# Local env and secrets
+.env
+deploy/klassik.env
+/etc/klassik/klassik.env
+
+# Node
+node_modules/
+
+# Logs
+npm-debug.log
+yarn-error.log
