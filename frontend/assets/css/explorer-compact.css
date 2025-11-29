@@ -61,10 +61,34 @@
     color: #00D9C5;
 }
 
+
+/* ===== Section Styles ===== */
+section {
+  padding: var(--spacing-3xl) 0;
+  position: relative;
+  min-height: 10vh;
+  display: flex;
+  align-items: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
 /* Search Bar Etherscan */
 .search-bar-etherscan {
-    padding: 100px 20px 30px;
+    padding: 5px 0 5px 0;
     background: rgba(0, 217, 197, 0.02);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+/* ===== Container ===== */
+.compact-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .title-etherscan {
@@ -75,7 +99,7 @@
 }
 
 .search-wrapper-etherscan {
-    max-width: 800px;
+    max-width: 600px;
     display: flex;
     background: rgba(15, 23, 42, 0.6);
     border: 2px solid rgba(0, 217, 197, 0.3);
@@ -183,13 +207,13 @@
 
 /* Main Content Etherscan */
 .main-content-etherscan {
-    padding: 30px 0 60px;
+    padding: 10px 0 20px;
 }
 
 .content-columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 12px;
 }
 
 .column-half {
@@ -197,24 +221,25 @@
 }
 
 .panel-etherscan {
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 217, 197, 0.2);
-    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 217, 197, 0.15);
+    border-radius: 8px;
     overflow: hidden;
+    min-height: 320px;
 }
 
 .panel-header-eth {
-    padding: 15px 20px;
-    background: rgba(0, 217, 197, 0.05);
-    border-bottom: 1px solid rgba(0, 217, 197, 0.2);
+    padding: 10px 16px;
+    background: rgba(0, 217, 197, 0.03);
+    border-bottom: 1px solid rgba(0, 217, 197, 0.12);
 }
 
 .panel-header-eth h3 {
-    font-size: 1.1rem;
+    font-size: 1.8rem;
     font-weight: 700;
+    margin-bottom: 10px;
     color: #fff;
-    margin: 0;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -225,17 +250,17 @@
 }
 
 .panel-body-eth {
-    max-height: 550px;
+    max-height: calc(100vh - 240px);
     overflow-y: auto;
 }
 
 /* Block Item */
 .block-item {
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(0, 217, 197, 0.1);
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(0, 217, 197, 0.08);
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     transition: background 0.2s;
 }
 
@@ -322,11 +347,11 @@
 
 /* Transaction Item */
 .tx-item {
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(0, 217, 197, 0.1);
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(0, 217, 197, 0.08);
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     transition: background 0.2s;
 }
 
