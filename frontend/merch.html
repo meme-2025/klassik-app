@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaspaHub Merch - Official Store</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/kaspa.css">
+    <link rel="stylesheet" href="assets/css/merch.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div id="particles-js"></div>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="container nav-container">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="fas fa-cube"></i>
+                </div>
+                <span class="logo-text">KaspaHub</span>
+                <span class="logo-subtitle">Merch</span>
+            </div>
+            
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <div class="nav-dropdown">
+                    <a href="index.html#vision" class="nav-link dropdown-trigger">
+                        Platform
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="index.html#vision" class="dropdown-item">Vision</a>
+                        <a href="index.html#tokenomics" class="dropdown-item">Tokenomics</a>
+                        <a href="index.html#roadmap" class="dropdown-item">Roadmap</a>
+                    </div>
+                </div>
+                <a href="api.html" class="nav-link">API Explorer</a>
+                <a href="exchange.html" class="nav-link">Exchange</a>
+                <a href="merch.html" class="nav-link active">Merch</a>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="cart-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </button>
+                <button class="btn-primary">Sign In</button>
+            </div>
+
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="merch-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="gradient-text">Official KaspaHub</span>
+                    <br>Merchandise Store
+                </h1>
+                <p class="hero-subtitle">
+                    Wear the future. Rep the BlockDAG.
+                </p>
+                <div class="hero-cta">
+                    <button class="btn-primary" onclick="document.getElementById('products').scrollIntoView({behavior: 'smooth'})">
+                        <i class="fas fa-shopping-bag"></i>
+                        Shop Now
+                    </button>
+                    <button class="btn-secondary">
+                        <i class="fas fa-gift"></i>
+                        Limited Drops
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="categories-section">
+        <div class="container">
+            <div class="categories-grid">
+                <button class="category-btn active" data-category="all">
+                    <i class="fas fa-th"></i>
+                    All Items
+                </button>
+                <button class="category-btn" data-category="apparel">
+                    <i class="fas fa-tshirt"></i>
+                    Apparel
+                </button>
+                <button class="category-btn" data-category="accessories">
+                    <i class="fas fa-hat-cowboy"></i>
+                    Accessories
+                </button>
+                <button class="category-btn" data-category="tech">
+                    <i class="fas fa-laptop"></i>
+                    Tech
+                </button>
+                <button class="category-btn" data-category="collectibles">
+                    <i class="fas fa-gem"></i>
+                    Collectibles
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Grid -->
+    <section class="products-section" id="products">
+        <div class="container">
+            
+            <div class="section-header">
+                <h2>Featured Products</h2>
+                <div class="filter-controls">
+                    <select class="filter-select">
+                        <option>Sort by: Featured</option>
+                        <option>Price: Low to High</option>
+                        <option>Price: High to Low</option>
+                        <option>Newest First</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="products-grid">
+                
+                <!-- Product 1 -->
+                <div class="product-card" data-category="apparel">
+                    <div class="product-badge limited">Limited</div>
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600" alt="KaspaHub Hoodie">
+                        <div class="product-overlay">
+                            <button class="quick-view-btn">
+                                <i class="fas fa-eye"></i>
+                                Quick View
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">BlockDAG Hoodie</h3>
+                        <p class="product-desc">Premium cotton blend with embroidered logo</p>
+                        <div class="product-meta">
+                            <span class="product-price">
+                                <span class="price-kas">0.543 KAS</span>
+                                <span class="price-usd">($100)</span>
+                            </span>
+                            <button class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                        <div class="product-sizes">
+                            <button class="size-btn">S</button>
+                            <button class="size-btn">M</button>
+                            <button class="size-btn">L</button>
+                            <button class="size-btn">XL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 2 -->
+                <div class="product-card" data-category="apparel">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600" alt="KaspaHub T-Shirt">
+                        <div class="product-overlay">
+                            <button class="quick-view-btn">
+                                <i class="fas fa-eye"></i>
+                                Quick View
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Classic Logo Tee</h3>
+                        <p class="product-desc">100% organic cotton, screen printed</p>
+                        <div class="product-meta">
+                            <span class="product-price">
+                                <span class="price-kas">0.217 KAS</span>
+                                <span class="price-usd">($40)</span>
+                            </span>
+                            <button class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                        <div class="product-sizes">
+                            <button class="size-btn">S</button>
+                            <button class="size-btn">M</button>
+                            <button class="size-btn">L</button>
+                            <button class="size-btn">XL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 3 -->
+                <div class="product-card" data-category="accessories">
+                    <div class="product-badge new">New</div>
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600" alt="Kaspa Cap">
+                        <div class="product-overlay">
+                            <button class="quick-view-btn">
+                                <i class="fas fa-eye"></i>
+                                Quick View
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Kaspa Snapback</h3>
+                        <p class="product-desc">Embroidered logo, adjustable strap</p>
+                        <div class="product-meta">
+                            <span class="product-price">
+                                <span class="price-kas">0.163 KAS</span>
+                                <span class="price-usd">($30)</span>
+                            </span>
+                            <button class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 4 -->
+                <div class="product-card" data-category="tech">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=600" alt="Laptop Sleeve">
+                        <div class="product-overlay">
+                            <button class="quick-view-btn">
+                                <i class="fas fa-eye"></i>
+                                Quick View
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">BlockDAG Laptop Sleeve</h3>
+                        <p class="product-desc">Neoprene 13-15" with inner pocket</p>
+                        <div class="product-meta">
+                            <span class="product-price">
+                                <span class="price-kas">0.271 KAS</span>
+                                <span class="price-usd">($50)</span>
+                            </span>
+                            <button class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 5 -->
+                <div class="product-card" data-category="accessories">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600" alt="Kaspa Stickers">
+                        <div class="product-overlay">
+                            <button class="quick-view-btn">
+                                <i class="fas fa-eye"></i>
+                                Quick View
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Sticker Pack (10x)</h3>
+                        <p class="product-desc">Waterproof vinyl stickers</p>
+                        <div class="product-meta">
+                            <span class="product-price">
+                                <span class="price-kas">0.054 KAS</span>
+                                <span class="price-usd">($10)</span>
+                            </span>
+                            <button class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 6 -->
+                <div class="product-card" data-category="collectibles">
+                    <div class="product-badge limited">Limited 100</div>
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1614963623723-475e2a09b6cb?w=600" alt="Kaspa NFT Card">
+                        <div class="product-overlay">
+                            <button class="quick-view-btn">
+                                <i class="fas fa-eye"></i>
+                                Quick View
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Genesis NFT Card</h3>
+                        <p class="product-desc">Physical card + digital twin NFT</p>
+                        <div class="product-meta">
+                            <span class="product-price">
+                                <span class="price-kas">2.713 KAS</span>
+                                <span class="price-usd">($500)</span>
+                            </span>
+                            <button class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                        <div class="product-stock">
+                            <span class="stock-indicator">
+                                <i class="fas fa-fire"></i>
+                                Only 23 left!
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 7 -->
+                <div class="product-card" data-category="tech">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1625948515291-69613efd103f?w=600" alt="Phone Case">
+                        <div class="product-overlay">
+                            <button class="quick-view-btn">
+                                <i class="fas fa-eye"></i>
+                                Quick View
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Kaspa Phone Case</h3>
+                        <p class="product-desc">Shockproof TPU for iPhone/Samsung</p>
+                        <div class="product-meta">
+                            <span class="product-price">
+                                <span class="price-kas">0.163 KAS</span>
+                                <span class="price-usd">($30)</span>
+                            </span>
+                            <button class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product 8 -->
+                <div class="product-card" data-category="accessories">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1591348278863-e0b8e7d299d1?w=600" alt="Tote Bag">
+                        <div class="product-overlay">
+                            <button class="quick-view-btn">
+                                <i class="fas fa-eye"></i>
+                                Quick View
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">BlockDAG Tote Bag</h3>
+                        <p class="product-desc">Canvas tote with inside pocket</p>
+                        <div class="product-meta">
+                            <span class="product-price">
+                                <span class="price-kas">0.136 KAS</span>
+                                <span class="price-usd">($25)</span>
+                            </span>
+                            <button class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter-section">
+        <div class="container">
+            <div class="newsletter-card">
+                <div class="newsletter-content">
+                    <h2>Get Exclusive Drops</h2>
+                    <p>Join our newsletter for early access to limited editions and special offers</p>
+                </div>
+                <div class="newsletter-form">
+                    <input type="email" placeholder="Enter your email" class="newsletter-input">
+                    <button class="btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Subscribe
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <div class="footer-logo">
+                        <i class="fas fa-cube"></i>
+                        <span>KaspaHub Merch</span>
+                    </div>
+                    <p class="footer-tagline">Official Kaspa Network Merchandise</p>
+                    <div class="payment-methods">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-paypal"></i>
+                        <i class="fab fa-bitcoin"></i>
+                        <span class="crypto-badge">KAS</span>
+                    </div>
+                </div>
+                
+                <div class="footer-links-group">
+                    <div class="footer-links-col">
+                        <h4>Shop</h4>
+                        <a href="#">All Products</a>
+                        <a href="#">New Arrivals</a>
+                        <a href="#">Limited Drops</a>
+                        <a href="#">Best Sellers</a>
+                    </div>
+                    <div class="footer-links-col">
+                        <h4>Support</h4>
+                        <a href="#">Shipping Info</a>
+                        <a href="#">Returns</a>
+                        <a href="#">Size Guide</a>
+                        <a href="#">Contact Us</a>
+                    </div>
+                    <div class="footer-links-col">
+                        <h4>Company</h4>
+                        <a href="#">About Us</a>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                    </div>
+                </div>
+                
+                <div class="footer-right">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 KaspaHub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Shopping Cart Sidebar -->
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button class="cart-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items">
+            <div class="cart-empty">
+                <i class="fas fa-shopping-cart"></i>
+                <p>Your cart is empty</p>
+            </div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span class="total-amount">0 KAS ($0)</span>
+            </div>
+            <button class="btn-primary checkout-btn">
+                <i class="fas fa-lock"></i>
+                Checkout
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/particles-config.js"></script>
+    <script src="assets/js/merch.js"></script>
+
+</body>
+</html>

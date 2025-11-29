@@ -88,7 +88,7 @@ window.particlesConfig = {
         speed: 3
       },
       repulse: {
-        distance: 150,
+        distance: 200,
         duration: 0.4
       },
       push: {

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaspaHub Exchange - Decentralized Trading Platform</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/kaspa.css">
+    <link rel="stylesheet" href="assets/css/exchange.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div id="particles-js"></div>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="container nav-container">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="fas fa-cube"></i>
+                </div>
+                <span class="logo-text">KaspaHub</span>
+                <span class="logo-subtitle">Exchange</span>
+            </div>
+            
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <div class="nav-dropdown">
+                    <a href="index.html#vision" class="nav-link dropdown-trigger">
+                        Platform
+                        <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="index.html#vision" class="dropdown-item">Vision</a>
+                        <a href="index.html#tokenomics" class="dropdown-item">Tokenomics</a>
+                        <a href="index.html#roadmap" class="dropdown-item">Roadmap</a>
+                    </div>
+                </div>
+                <a href="api.html" class="nav-link">API Explorer</a>
+                <a href="exchange.html" class="nav-link active">Exchange</a>
+                <a href="merch.html" class="nav-link">Merch</a>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="wallet-connect-btn">
+                    <i class="fas fa-wallet"></i>
+                    <span>Connect Wallet</span>
+                </button>
+            </div>
+
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Exchange Interface -->
+    <main class="exchange-main">
+        <div class="container exchange-container">
+            
+            <!-- Market Stats Bar -->
+            <div class="market-stats-bar">
+                <div class="stat-item">
+                    <span class="stat-label">KAS/USDT</span>
+                    <span class="stat-value positive">$0.1843</span>
+                    <span class="stat-change positive">+5.32%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">24h Volume</span>
+                    <span class="stat-value">$12.4M</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">24h High</span>
+                    <span class="stat-value">$0.1891</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">24h Low</span>
+                    <span class="stat-value">$0.1752</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Liquidity</span>
+                    <span class="stat-value">$8.9M</span>
+                </div>
+            </div>
+
+            <!-- Main Exchange Grid -->
+            <div class="exchange-grid">
+                
+                <!-- Left Panel - Trading Chart -->
+                <div class="exchange-panel chart-panel">
+                    <div class="panel-header">
+                        <h3>KAS/USDT</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active">1m</button>
+                            <button class="chart-btn">5m</button>
+                            <button class="chart-btn">15m</button>
+                            <button class="chart-btn">1h</button>
+                            <button class="chart-btn">4h</button>
+                            <button class="chart-btn">1d</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="tradingChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Center Panel - Trading Form -->
+                <div class="exchange-panel trading-panel">
+                    <div class="panel-header">
+                        <div class="trade-tabs">
+                            <button class="trade-tab active" data-tab="swap">
+                                <i class="fas fa-exchange-alt"></i>
+                                Swap
+                            </button>
+                            <button class="trade-tab" data-tab="limit">
+                                <i class="fas fa-chart-line"></i>
+                                Limit
+                            </button>
+                            <button class="trade-tab" data-tab="liquidity">
+                                <i class="fas fa-water"></i>
+                                Liquidity
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Swap Tab -->
+                    <div class="trade-content active" id="swap-content">
+                        <div class="trade-form">
+                            
+                            <!-- From Token -->
+                            <div class="token-input-group">
+                                <label>From</label>
+                                <div class="token-input">
+                                    <input type="number" placeholder="0.00" class="amount-input" id="from-amount">
+                                    <div class="token-select">
+                                        <img src="https://cryptologos.cc/logos/kaspa-kas-logo.png" alt="KAS" class="token-icon">
+                                        <span>KAS</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div class="balance-info">
+                                    <span>Balance: 1,250.45 KAS</span>
+                                    <button class="max-btn">MAX</button>
+                                </div>
+                            </div>
+
+                            <!-- Swap Direction Button -->
+                            <div class="swap-direction">
+                                <button class="swap-direction-btn">
+                                    <i class="fas fa-arrow-down"></i>
+                                </button>
+                            </div>
+
+                            <!-- To Token -->
+                            <div class="token-input-group">
+                                <label>To</label>
+                                <div class="token-input">
+                                    <input type="number" placeholder="0.00" class="amount-input" id="to-amount" readonly>
+                                    <div class="token-select">
+                                        <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="USDT" class="token-icon">
+                                        <span>USDT</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div class="balance-info">
+                                    <span>Balance: 500.00 USDT</span>
+                                </div>
+                            </div>
+
+                            <!-- Trade Details -->
+                            <div class="trade-details">
+                                <div class="detail-row">
+                                    <span>Rate</span>
+                                    <span>1 KAS = 0.1843 USDT</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span>Slippage Tolerance</span>
+                                    <span class="editable">0.5% <i class="fas fa-pen"></i></span>
+                                </div>
+                                <div class="detail-row">
+                                    <span>Price Impact</span>
+                                    <span class="positive">&lt;0.01%</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span>Trading Fee</span>
+                                    <span>0.25%</span>
+                                </div>
+                            </div>
+
+                            <!-- Action Button -->
+                            <button class="swap-btn">
+                                <i class="fas fa-exchange-alt"></i>
+                                Swap Tokens
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <!-- Limit Tab -->
+                    <div class="trade-content" id="limit-content">
+                        <div class="trade-form">
+                            <div class="limit-type-selector">
+                                <button class="limit-type-btn active">Buy</button>
+                                <button class="limit-type-btn">Sell</button>
+                            </div>
+
+                            <div class="token-input-group">
+                                <label>Price (USDT)</label>
+                                <div class="token-input">
+                                    <input type="number" placeholder="0.1843" class="amount-input">
+                                </div>
+                            </div>
+
+                            <div class="token-input-group">
+                                <label>Amount (KAS)</label>
+                                <div class="token-input">
+                                    <input type="number" placeholder="0.00" class="amount-input">
+                                </div>
+                                <div class="balance-info">
+                                    <span>Available: 500.00 USDT</span>
+                                    <button class="max-btn">MAX</button>
+                                </div>
+                            </div>
+
+                            <div class="token-input-group">
+                                <label>Total (USDT)</label>
+                                <div class="token-input">
+                                    <input type="number" placeholder="0.00" class="amount-input" readonly>
+                                </div>
+                            </div>
+
+                            <button class="swap-btn buy">
+                                <i class="fas fa-shopping-cart"></i>
+                                Place Buy Order
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Liquidity Tab -->
+                    <div class="trade-content" id="liquidity-content">
+                        <div class="trade-form">
+                            <div class="liquidity-tabs">
+                                <button class="liquidity-tab-btn active">Add Liquidity</button>
+                                <button class="liquidity-tab-btn">Remove Liquidity</button>
+                            </div>
+
+                            <div class="token-input-group">
+                                <label>Token A</label>
+                                <div class="token-input">
+                                    <input type="number" placeholder="0.00" class="amount-input">
+                                    <div class="token-select">
+                                        <img src="https://cryptologos.cc/logos/kaspa-kas-logo.png" alt="KAS" class="token-icon">
+                                        <span>KAS</span>
+                                    </div>
+                                </div>
+                                <div class="balance-info">
+                                    <span>Balance: 1,250.45 KAS</span>
+                                    <button class="max-btn">MAX</button>
+                                </div>
+                            </div>
+
+                            <div class="liquidity-plus">
+                                <i class="fas fa-plus"></i>
+                            </div>
+
+                            <div class="token-input-group">
+                                <label>Token B</label>
+                                <div class="token-input">
+                                    <input type="number" placeholder="0.00" class="amount-input">
+                                    <div class="token-select">
+                                        <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="USDT" class="token-icon">
+                                        <span>USDT</span>
+                                    </div>
+                                </div>
+                                <div class="balance-info">
+                                    <span>Balance: 500.00 USDT</span>
+                                    <button class="max-btn">MAX</button>
+                                </div>
+                            </div>
+
+                            <div class="liquidity-info">
+                                <div class="detail-row">
+                                    <span>Share of Pool</span>
+                                    <span>0.00%</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span>LP Tokens to Receive</span>
+                                    <span>0.00</span>
+                                </div>
+                            </div>
+
+                            <button class="swap-btn">
+                                <i class="fas fa-plus-circle"></i>
+                                Add Liquidity
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel - Order Book & Trades -->
+                <div class="exchange-panel orderbook-panel">
+                    <div class="panel-header">
+                        <div class="orderbook-tabs">
+                            <button class="orderbook-tab active" data-tab="orderbook">
+                                <i class="fas fa-list"></i>
+                                Order Book
+                            </button>
+                            <button class="orderbook-tab" data-tab="trades">
+                                <i class="fas fa-history"></i>
+                                Recent Trades
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Order Book Tab -->
+                    <div class="orderbook-content active" id="orderbook-tab">
+                        <div class="orderbook-header">
+                            <span>Price (USDT)</span>
+                            <span>Amount (KAS)</span>
+                            <span>Total</span>
+                        </div>
+
+                        <!-- Asks (Sell Orders) -->
+                        <div class="orderbook-asks">
+                            <div class="orderbook-row ask" data-depth="85">
+                                <span class="price">0.1851</span>
+                                <span class="amount">1,250.45</span>
+                                <span class="total">231.42</span>
+                            </div>
+                            <div class="orderbook-row ask" data-depth="65">
+                                <span class="price">0.1850</span>
+                                <span class="amount">850.12</span>
+                                <span class="total">157.27</span>
+                            </div>
+                            <div class="orderbook-row ask" data-depth="45">
+                                <span class="price">0.1849</span>
+                                <span class="amount">2,100.00</span>
+                                <span class="total">388.29</span>
+                            </div>
+                            <div class="orderbook-row ask" data-depth="30">
+                                <span class="price">0.1848</span>
+                                <span class="amount">1,500.75</span>
+                                <span class="total">277.34</span>
+                            </div>
+                            <div class="orderbook-row ask" data-depth="15">
+                                <span class="price">0.1847</span>
+                                <span class="amount">950.00</span>
+                                <span class="total">175.47</span>
+                            </div>
+                        </div>
+
+                        <!-- Current Price -->
+                        <div class="current-price">
+                            <span class="price-value positive">0.1843</span>
+                            <span class="price-change">↑ $0.0093</span>
+                        </div>
+
+                        <!-- Bids (Buy Orders) -->
+                        <div class="orderbook-bids">
+                            <div class="orderbook-row bid" data-depth="20">
+                                <span class="price">0.1842</span>
+                                <span class="amount">1,100.00</span>
+                                <span class="total">202.62</span>
+                            </div>
+                            <div class="orderbook-row bid" data-depth="40">
+                                <span class="price">0.1841</span>
+                                <span class="amount">1,800.50</span>
+                                <span class="total">331.48</span>
+                            </div>
+                            <div class="orderbook-row bid" data-depth="55">
+                                <span class="price">0.1840</span>
+                                <span class="amount">2,250.00</span>
+                                <span class="total">414.00</span>
+                            </div>
+                            <div class="orderbook-row bid" data-depth="75">
+                                <span class="price">0.1839</span>
+                                <span class="amount">1,650.25</span>
+                                <span class="total">303.48</span>
+                            </div>
+                            <div class="orderbook-row bid" data-depth="90">
+                                <span class="price">0.1838</span>
+                                <span class="amount">3,000.00</span>
+                                <span class="total">551.40</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Trades Tab -->
+                    <div class="orderbook-content" id="trades-tab">
+                        <div class="trades-header">
+                            <span>Price (USDT)</span>
+                            <span>Amount (KAS)</span>
+                            <span>Time</span>
+                        </div>
+                        <div class="trades-list">
+                            <div class="trade-row buy">
+                                <span class="price">0.1843</span>
+                                <span class="amount">125.45</span>
+                                <span class="time">12:34:56</span>
+                            </div>
+                            <div class="trade-row sell">
+                                <span class="price">0.1842</span>
+                                <span class="amount">250.00</span>
+                                <span class="time">12:34:52</span>
+                            </div>
+                            <div class="trade-row buy">
+                                <span class="price">0.1843</span>
+                                <span class="amount">89.50</span>
+                                <span class="time">12:34:48</span>
+                            </div>
+                            <div class="trade-row buy">
+                                <span class="price">0.1844</span>
+                                <span class="amount">500.25</span>
+                                <span class="time">12:34:45</span>
+                            </div>
+                            <div class="trade-row sell">
+                                <span class="price">0.1841</span>
+                                <span class="amount">175.80</span>
+                                <span class="time">12:34:41</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Open Orders Section -->
+            <div class="exchange-panel orders-panel">
+                <div class="panel-header">
+                    <h3>Open Orders</h3>
+                    <button class="cancel-all-btn">Cancel All</button>
+                </div>
+                <div class="orders-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Pair</th>
+                                <th>Type</th>
+                                <th>Side</th>
+                                <th>Price</th>
+                                <th>Amount</th>
+                                <th>Filled</th>
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="9" class="no-orders">No open orders</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <div class="footer-logo">
+                        <i class="fas fa-cube"></i>
+                        <span>KaspaHub Exchange</span>
+                    </div>
+                    <p class="footer-tagline">Decentralized Trading on Kaspa Network</p>
+                </div>
+                
+                <div class="footer-right">
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 KaspaHub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="assets/js/particles-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="assets/js/exchange.js"></script>
+
+</body>
+</html>
