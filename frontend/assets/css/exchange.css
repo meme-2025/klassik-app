@@ -2,41 +2,42 @@
 
 .exchange-main {
     min-height: 100vh;
-    padding-top: 100px;
-    padding-bottom: 60px;
+    padding-top: 90px;
+    padding-bottom: 20px;
 }
 
 .exchange-container {
-    max-width: 1800px;
+    max-width: 1920px;
+    padding: 0 20px;
 }
 
 /* Market Stats Bar */
 .market-stats-bar {
     display: flex;
-    gap: 40px;
-    padding: 20px 30px;
+    gap: 30px;
+    padding: 15px 25px;
     background: rgba(0, 217, 197, 0.05);
     border: 1px solid rgba(0, 217, 197, 0.2);
-    border-radius: 16px;
-    margin-bottom: 30px;
+    border-radius: 12px;
+    margin-bottom: 20px;
     overflow-x: auto;
 }
 
 .stat-item {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-width: 150px;
+    gap: 3px;
+    min-width: 130px;
 }
 
 .stat-label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.6);
     font-weight: 500;
 }
 
 .stat-value {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #fff;
 }
@@ -65,30 +66,34 @@
 /* Exchange Grid Layout */
 .exchange-grid {
     display: grid;
-    grid-template-columns: 1fr 450px 380px;
-    gap: 20px;
-    margin-bottom: 20px;
+    grid-template-columns: 1fr 380px 320px;
+    gap: 15px;
+    margin-bottom: 15px;
+    height: calc(100vh - 240px);
 }
 
 .exchange-panel {
     background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(0, 217, 197, 0.2);
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .panel-header {
-    padding: 20px 25px;
+    padding: 15px 20px;
     border-bottom: 1px solid rgba(0, 217, 197, 0.15);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .panel-header h3 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #fff;
     margin: 0;
@@ -96,7 +101,7 @@
 
 /* Chart Panel */
 .chart-panel {
-    min-height: 500px;
+    height: 100%;
 }
 
 .chart-controls {
@@ -123,23 +128,25 @@
 
 .chart-btn.active {
     background: linear-gradient(135deg, #00D9C5, #0099CC);
-    color: #fff;
-    border-color: transparent;
-}
-
 .chart-container {
-    padding: 25px;
-    height: 440px;
+    padding: 15px;
+    flex: 1;
+    min-height: 0;
 }
 
 #tradingChart {
     width: 100% !important;
     height: 100% !important;
 }
-
+#tradingChart {
+    width: 100% !important;
+    height: 100% !important;
+}
 /* Trading Panel */
 .trading-panel {
-    min-height: 500px;
+    height: 100%;
+    overflow-y: auto;
+}   min-height: 500px;
 }
 
 .trade-tabs {
@@ -175,10 +182,9 @@
     border-bottom-color: #00D9C5;
     background: rgba(0, 217, 197, 0.1);
 }
-
 .trade-content {
     display: none;
-    padding: 25px;
+    padding: 20px;
 }
 
 .trade-content.active {
@@ -188,7 +194,8 @@
 .trade-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
+}   gap: 20px;
 }
 
 /* Token Input */
@@ -456,10 +463,11 @@
     border: 1px solid rgba(0, 217, 197, 0.2);
     border-radius: 10px;
 }
-
 /* Order Book Panel */
 .orderbook-panel {
-    min-height: 500px;
+    height: 100%;
+    overflow: hidden;
+}   min-height: 500px;
 }
 
 .orderbook-tabs {
@@ -493,14 +501,17 @@
     color: #00D9C5;
     border-bottom-color: #00D9C5;
 }
-
 .orderbook-content {
     display: none;
-    padding: 15px;
+    padding: 10px;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .orderbook-content.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
+}   display: block;
 }
 
 .orderbook-header {
@@ -652,10 +663,12 @@
 }
 
 .trade-row .amount,
-.trade-row .time {
-    color: rgba(255, 255, 255, 0.7);
+/* Open Orders */
+.orders-panel {
+    grid-column: 1 / -1;
+    height: 200px;
+    overflow: hidden;
 }
-
 /* Open Orders */
 .orders-panel {
     grid-column: 1 / -1;
@@ -671,14 +684,17 @@
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.3s ease;
-}
-
-.cancel-all-btn:hover {
-    background: rgba(255, 71, 87, 0.3);
-}
-
 .orders-table {
-    padding: 0 25px 25px;
+    padding: 0 20px 15px;
+    overflow-y: auto;
+    max-height: 150px;
+}
+
+.orders-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}   padding: 0 25px 25px;
 }
 
 .orders-table table {

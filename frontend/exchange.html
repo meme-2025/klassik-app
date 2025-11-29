@@ -75,24 +75,28 @@
             <div class="market-stats-bar">
                 <div class="stat-item">
                     <span class="stat-label">KAS/USDT</span>
-                    <span class="stat-value positive">$0.1843</span>
+                    <span class="stat-value positive" data-stat="price">$0.1843</span>
                     <span class="stat-change positive">+5.32%</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">24h Volume</span>
-                    <span class="stat-value">$12.4M</span>
+                    <span class="stat-value" data-stat="volume">$12.4M</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">24h High</span>
-                    <span class="stat-value">$0.1891</span>
+                    <span class="stat-value" data-stat="high">$0.1891</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">24h Low</span>
-                    <span class="stat-value">$0.1752</span>
+                    <span class="stat-value" data-stat="low">$0.1752</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Market Cap</span>
+                    <span class="stat-value" data-stat="marketcap">$3.8B</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Liquidity</span>
-                    <span class="stat-value">$8.9M</span>
+                    <span class="stat-value" data-stat="liquidity">$8.9M</span>
                 </div>
             </div>
 
@@ -335,31 +339,7 @@
 
                         <!-- Asks (Sell Orders) -->
                         <div class="orderbook-asks">
-                            <div class="orderbook-row ask" data-depth="85">
-                                <span class="price">0.1851</span>
-                                <span class="amount">1,250.45</span>
-                                <span class="total">231.42</span>
-                            </div>
-                            <div class="orderbook-row ask" data-depth="65">
-                                <span class="price">0.1850</span>
-                                <span class="amount">850.12</span>
-                                <span class="total">157.27</span>
-                            </div>
-                            <div class="orderbook-row ask" data-depth="45">
-                                <span class="price">0.1849</span>
-                                <span class="amount">2,100.00</span>
-                                <span class="total">388.29</span>
-                            </div>
-                            <div class="orderbook-row ask" data-depth="30">
-                                <span class="price">0.1848</span>
-                                <span class="amount">1,500.75</span>
-                                <span class="total">277.34</span>
-                            </div>
-                            <div class="orderbook-row ask" data-depth="15">
-                                <span class="price">0.1847</span>
-                                <span class="amount">950.00</span>
-                                <span class="total">175.47</span>
-                            </div>
+                            <!-- Live data will be populated here -->
                         </div>
 
                         <!-- Current Price -->
@@ -370,31 +350,7 @@
 
                         <!-- Bids (Buy Orders) -->
                         <div class="orderbook-bids">
-                            <div class="orderbook-row bid" data-depth="20">
-                                <span class="price">0.1842</span>
-                                <span class="amount">1,100.00</span>
-                                <span class="total">202.62</span>
-                            </div>
-                            <div class="orderbook-row bid" data-depth="40">
-                                <span class="price">0.1841</span>
-                                <span class="amount">1,800.50</span>
-                                <span class="total">331.48</span>
-                            </div>
-                            <div class="orderbook-row bid" data-depth="55">
-                                <span class="price">0.1840</span>
-                                <span class="amount">2,250.00</span>
-                                <span class="total">414.00</span>
-                            </div>
-                            <div class="orderbook-row bid" data-depth="75">
-                                <span class="price">0.1839</span>
-                                <span class="amount">1,650.25</span>
-                                <span class="total">303.48</span>
-                            </div>
-                            <div class="orderbook-row bid" data-depth="90">
-                                <span class="price">0.1838</span>
-                                <span class="amount">3,000.00</span>
-                                <span class="total">551.40</span>
-                            </div>
+                            <!-- Live data will be populated here -->
                         </div>
                     </div>
 
@@ -453,33 +409,9 @@
                                 <th>Side</th>
                                 <th>Price</th>
                                 <th>Amount</th>
-                                <th>Filled</th>
-                                <th>Total</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="9" class="no-orders">No open orders</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="main-footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-left">
-                    <div class="footer-logo">
-                        <i class="fas fa-cube"></i>
-                        <span>KaspaHub Exchange</span>
-                    </div>
-                    <p class="footer-tagline">Decentralized Trading on Kaspa Network</p>
+                        <div class="trades-list">
+                            <!-- Live trades will be populated here -->
+                        </div>footer-tagline">Decentralized Trading on Kaspa Network</p>
                 </div>
                 
                 <div class="footer-right">
