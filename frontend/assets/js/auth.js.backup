@@ -1,13 +1,12 @@
 /**
- * Authentication Module - Futuristic UI Edition
- * Handles Email/Password and Wallet authentication with modern animations
+ * Authentication Module
+ * Handles Email/Password and Wallet authentication
  */
 
 const API_URL = window.location.origin;
 
 // State
 let currentUser = null;
-const { openModal, closeModal, showToast, setLoadingState, showFormError } = window.AnimationHelpers || {};
 
 /**
  * Initialize auth on page load
@@ -41,9 +40,26 @@ function initAuth() {
  * Bind all auth-related event listeners
  */
 function bindAuthEventListeners() {
-  // Show/hide modals (using new modal system)
-  document.getElementById('loginBtn')?.addEventListener('click', () => openModal('loginModal'));
-  document.getElementById('registerBtn')?.addEventListener('click', () => openModal('registerModal'));
+  // Show/hide modals
+  document.getElementById('showLoginBtn')?.addEventListener('click', () => showModal('loginModal'));
+  document.getElementById('showRegisterBtn')?.addEventListener('click', () => showModal('registerModal'));
+  
+  // Close modals
+  document.getElementById('closeLoginModal')?.addEventListener('click', () => hideModal('loginModal'));
+  document.getElementById('closeRegisterModal')?.addEventListener('click', () => hideModal('registerModal'));
+  
+  // Switch between modals
+  document.getElementById('switchToRegister')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    hideModal('loginModal');
+    showModal('registerModal');
+  });
+  
+  document.getElementById('switchToLogin')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    hideModal('registerModal');
+    showModal('loginModal');
+  });
   
   // Forms
   document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
@@ -52,10 +68,13 @@ function bindAuthEventListeners() {
   // Logout
   document.getElementById('logoutBtn')?.addEventListener('click', logout);
   
-  // Wallet connect buttons
-  document.querySelectorAll('.wallet-connect-btn').forEach(btn => {
-    btn.addEventListener('click', connectWallet);
-  });
+  // Wallet connect
+  document.getElementById('connectWalletBtn')?.addEventListener('click', connectWallet);
+
+  // Profile edit
+  document.getElementById('editProfileBtn')?.addEventListener('click', () => showModal('profileModal'));
+  document.getElementById('closeProfileModal')?.addEventListener('click', () => hideModal('profileModal'));
+  document.getElementById('profileForm')?.addEventListener('submit', handleProfileSave);
 }
 
 /**
@@ -64,22 +83,17 @@ function bindAuthEventListeners() {
 async function fetchProfileMe() {
   const token = getAuthToken();
   if (!token) return;
-  
-  try {
-    const res = await fetch(`${API_URL}/api/users/me`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    if (!res.ok) return;
-    
-    const data = await res.json();
-    if (data && data.user) {
-      currentUser = data.user;
-      localStorage.setItem('klassik_user', JSON.stringify(currentUser));
-      updateUIForLoggedInUser(currentUser);
-    }
-  } catch (error) {
-    console.error('Failed to fetch profile:', error);
+  const res = await fetch(`${API_URL}/api/users/me`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!res.ok) return;
+  const data = await res.json();
+  if (data && data.user) {
+    currentUser = data.user;
+    localStorage.setItem('klassik_user', JSON.stringify(currentUser));
+    updateUIForLoggedInUser(currentUser);
+    // prefill profile modal
+    const pe = document.getElementById('profileEmail'); if (pe) pe.value = currentUser.email || '';
   }
 }
 
@@ -90,14 +104,9 @@ async function handleProfileSave(e) {
   e.preventDefault();
   const email = document.getElementById('profileEmail').value.trim();
   const submitBtn = e.target.querySelector('button[type="submit"]');
-  
-  if (!email) {
-    showToast('Email required', 'error');
-    return;
-  }
+  if (!email) return showModalError('profileModal', 'Email required');
 
-  setLoadingState(submitBtn, true);
-  
+  submitBtn.disabled = true; submitBtn.innerHTML = 'Speichern... <span class="spinner"></span>';
   try {
     const res = await fetch(`${API_URL}/api/users/me`, {
       method: 'PUT',
@@ -107,46 +116,63 @@ async function handleProfileSave(e) {
       },
       body: JSON.stringify({ email })
     });
-    
     const data = await res.json();
-    
-    if (!res.ok) {
-      throw new Error(data.error || 'Update failed');
-    }
+    if (!res.ok) throw new Error(data.error || 'Update failed');
 
-    // Update local storage and UI
+    // update local storage and UI
     currentUser = data.user;
     localStorage.setItem('klassik_user', JSON.stringify(currentUser));
     updateUIForLoggedInUser(currentUser);
-    closeModal('profileModal');
-    showToast('Profile updated successfully!', 'success');
-    
+    hideModal('profileModal');
+    showToast('Profil aktualisiert', 'success');
   } catch (err) {
     console.error('Profile save error', err);
-    showToast(err.message || 'Failed to update profile', 'error');
+    showModalError('profileModal', err.message || 'Speicherfehler');
   } finally {
-    setLoadingState(submitBtn, false);
+    submitBtn.disabled = false; submitBtn.textContent = 'Speichern';
   }
 }
 
 /**
- * Switch between login and register modals
+ * Show modal
  */
-function switchToRegister(e) {
-  if (e) e.preventDefault();
-  closeModal('loginModal');
-  openModal('registerModal');
+function showModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+    
+    // Clear any previous errors
+    const errorEl = modal.querySelector('.error-message');
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.classList.remove('show');
+    }
+  }
 }
 
-function switchToLogin(e) {
-  if (e) e.preventDefault();
-  closeModal('registerModal');
-  openModal('loginModal');
+/**
+ * Hide modal
+ */
+function hideModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+  }
 }
 
-// Expose switch functions globally
-window.switchToRegister = switchToRegister;
-window.switchToLogin = switchToLogin;
+/**
+ * Show error in modal
+ */
+function showModalError(modalId, message) {
+  const modal = document.getElementById(modalId);
+  const errorEl = modal?.querySelector('.error-message');
+  if (errorEl) {
+    errorEl.textContent = message;
+    errorEl.classList.add('show');
+  }
+}
 
 /**
  * Handle login form submission
@@ -160,11 +186,13 @@ async function handleLogin(e) {
   
   // Validation
   if (!email || !password) {
-    showFormError('Please fill in all fields', e.target);
+    showModalError('loginModal', 'Please fill in all fields');
     return;
   }
   
-  setLoadingState(submitBtn, true);
+  // Disable button and show loading
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = 'Logging in... <span class="spinner"></span>';
   
   try {
     const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -186,17 +214,18 @@ async function handleLogin(e) {
     
     // Update UI
     updateUIForLoggedInUser(data.user);
-    closeModal('loginModal');
-    showToast('Welcome back! Login successful.', 'success');
+    hideModal('loginModal');
+    showToast('Login successful! Welcome back.', 'success');
     
     // Reset form
     document.getElementById('loginForm').reset();
     
   } catch (error) {
     console.error('Login error:', error);
-    showFormError(error.message, e.target);
+    showModalError('loginModal', error.message);
   } finally {
-    setLoadingState(submitBtn, false);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Login';
   }
 }
 
@@ -213,27 +242,30 @@ async function handleRegister(e) {
   
   // Validation
   if (!email || !password || !passwordConfirm) {
-    showFormError('Please fill in all fields', e.target);
+    showModalError('registerModal', 'Please fill in all fields');
     return;
   }
   
   if (password !== passwordConfirm) {
-    showFormError('Passwords do not match', e.target);
+    showModalError('registerModal', 'Passwords do not match');
     return;
   }
   
   if (password.length < 8) {
-    showFormError('Password must be at least 8 characters', e.target);
+    showModalError('registerModal', 'Password must be at least 8 characters');
     return;
   }
   
+  // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    showFormError('Please enter a valid email address', e.target);
+    showModalError('registerModal', 'Please enter a valid email address');
     return;
   }
   
-  setLoadingState(submitBtn, true);
+  // Disable button and show loading
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = 'Creating account... <span class="spinner"></span>';
   
   try {
     const response = await fetch(`${API_URL}/api/auth/register`, {
@@ -255,7 +287,7 @@ async function handleRegister(e) {
     
     // Update UI
     updateUIForLoggedInUser(data.user);
-    closeModal('registerModal');
+    hideModal('registerModal');
     showToast('Account created successfully! Welcome to Klassik.', 'success');
     
     // Reset form
@@ -263,9 +295,10 @@ async function handleRegister(e) {
     
   } catch (error) {
     console.error('Register error:', error);
-    showFormError(error.message, e.target);
+    showModalError('registerModal', error.message);
   } finally {
-    setLoadingState(submitBtn, false);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create Account';
   }
 }
 
@@ -400,38 +433,58 @@ function logout() {
  * Update UI for logged-in user
  */
 function updateUIForLoggedInUser(user) {
-  // Update nav actions (hide login/register, show user menu)
-  const loginBtn = document.getElementById('loginBtn');
-  const registerBtn = document.getElementById('registerBtn');
-  const userMenu = document.getElementById('userMenu');
+  // Show/hide elements
+  document.getElementById('notLoggedIn').style.display = 'none';
+  document.getElementById('loggedIn').style.display = 'flex';
   
-  if (loginBtn) loginBtn.style.display = 'none';
-  if (registerBtn) registerBtn.style.display = 'none';
-  if (userMenu) userMenu.style.display = 'flex';
+  // Update user info
+  const emailEl = document.getElementById('userEmail');
+  const addressEl = document.getElementById('userAddress');
   
-  // Update user display name
-  const userNameEl = document.getElementById('userName');
-  if (userNameEl) {
-    userNameEl.textContent = user.email || 
-      (user.address ? `${user.address.substring(0, 6)}...${user.address.substring(38)}` : 'User');
+  if (emailEl) {
+    emailEl.textContent = user.email || 'No email';
   }
   
-  console.log('✅ UI updated for user:', user.email || user.address);
+  if (addressEl && user.address) {
+    addressEl.textContent = `${user.address.substring(0, 6)}...${user.address.substring(38)}`;
+    addressEl.title = user.address;
+  } else if (addressEl) {
+    addressEl.textContent = '';
+  }
+  
+  console.log('✅ UI updated for user:', user);
 }
 
 /**
  * Update UI for logged-out user
  */
 function updateUIForLoggedOutUser() {
-  const loginBtn = document.getElementById('loginBtn');
-  const registerBtn = document.getElementById('registerBtn');
-  const userMenu = document.getElementById('userMenu');
-  
-  if (loginBtn) loginBtn.style.display = 'inline-flex';
-  if (registerBtn) registerBtn.style.display = 'inline-flex';
-  if (userMenu) userMenu.style.display = 'none';
-  
+  document.getElementById('notLoggedIn').style.display = 'flex';
+  document.getElementById('loggedIn').style.display = 'none';
   console.log('ℹ️ User logged out');
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(message, type = 'info') {
+  // Remove existing toast if any
+  const existingToast = document.querySelector('.toast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
+  // Create new toast
+  const toast = document.createElement('div');
+  toast.className = `toast ${type} show`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 /**

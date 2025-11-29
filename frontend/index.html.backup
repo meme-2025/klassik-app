@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>KlassiTxT-V00k — Shop</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body class="index">
+
+
+  <header>
+    <h1>🎵 Klassik22</h1>
+    <div class="header-actions">
+      <select id="modeSelect">
+        <option value="auth">Auth</option>
+        <option value="booking">Booking</option>
+        <option value="shop">Shop</option>
+      </select>
+      
+      <!-- Not logged in -->
+      <div id="notLoggedIn" style="display:none">
+        <button id="showLoginBtn" class="btn-secondary">Login</button>
+        <button id="showRegisterBtn" class="btn-primary">Register</button>
+        <button id="connectWalletBtn" class="btn-wallet">Connect Wallet</button>
+      </div>
+      
+      <!-- Logged in -->
+      <div id="loggedIn" class="user-area" style="display:none">
+        <div class="user-info">
+          <div class="user-avatar">👤</div>
+          <div class="user-details">
+            <div id="userEmail" class="user-email"></div>
+            <div id="userAddress" class="user-address"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="editProfileBtn" class="btn-secondary">Profile</button>
+          <button id="logoutBtn" class="btn-logout">Logout</button>
+        </div>
+      </div>
+      
+      <button id="openCartBtn" class="btn-cart">🛒 <span id="cartCount">0</span></button>
+    </div>
+  </header>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal" style="display:none">
+      <div class="modal-content">
+        <span class="close-modal" id="closeProfileModal">&times;</span>
+        <h2>Dein Profil</h2>
+        <form id="profileForm">
+          <div class="form-group">
+            <label for="profileEmail">Email</label>
+            <input type="email" id="profileEmail" required placeholder="your@email.com">
+          </div>
+          <div id="profileError" class="error-message"></div>
+          <button type="submit" class="btn-primary btn-block">Speichern</button>
+        </form>
+      </div>
+    </div>
+
+  <!-- Auth Modals -->
+  <div id="loginModal" class="modal" style="display:none">
+    <div class="modal-content">
+      <span class="close-modal" id="closeLoginModal">&times;</span>
+      <h2>Login</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" required placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" required placeholder="••••••••">
+        </div>
+        <div id="loginError" class="error-message"></div>
+        <button type="submit" class="btn-primary btn-block">Login</button>
+      </form>
+      <p class="modal-footer">
+        Don't have an account? <a href="#" id="switchToRegister">Register here</a>
+      </p>
+    </div>
+  </div>
+
+  <div id="registerModal" class="modal" style="display:none">
+    <div class="modal-content">
+      <span class="close-modal" id="closeRegisterModal">&times;</span>
+      <h2>Create Account</h2>
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" required placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label for="registerPassword">Password</label>
+          <input type="password" id="registerPassword" required placeholder="Min. 8 characters">
+          <small>Password must be at least 8 characters long</small>
+        </div>
+        <div class="form-group">
+          <label for="registerPasswordConfirm">Confirm Password</label>
+          <input type="password" id="registerPasswordConfirm" required placeholder="Repeat password">
+        </div>
+        <div id="registerError" class="error-message"></div>
+        <button type="submit" class="btn-primary btn-block">Create Account</button>
+      </form>
+      <p class="modal-footer">
+        Already have an account? <a href="#" id="switchToLogin">Login here</a>
+      </p>
+    </div>
+  </div>
+
+
+  <main>
+    <section id="swap" style="display:none">
+      <h2>Tauschen</h2>
+      <label>Von</label>
+      <select id="fromChain">
+        <option value="kaspa">Kaspa (EVM)</option>
+        <option value="ethereum">Ethereum</option>
+        <option value="bsc">BSC</option>
+      </select>
+
+      <label>Nach</label>
+      <select id="toChain">
+        <option value="ethereum">Ethereum</option>
+        <option value="bsc">BSC</option>
+      </select>
+
+      <label>Betrag</label>
+      <input id="amount" type="number" min="0" step="0.0001" />
+
+      <button id="createOrder">Order erstellen</button>
+    </section>
+
+    <section id="shop" style="display:none">
+      <h2>Produkte</h2>
+      <div id="productList" class="product-grid"></div>
+      <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Gutschein suchen (z. B. PlayStation, Xbox)">
+            <div id="search-results" class="search-results"></div>
+        </div>
+        <div class="filters">
+            <div id="category-buttons" class="category-buttons">
+              <button class="category-btn active" data-category="">Alle</button>
+              <button class="category-btn" data-category="Mobile">Mobile</button>
+              <button class="category-btn" data-category="Giftcards">Giftcards</button>
+              <button class="category-btn" data-category="Games">Games</button>
+              <button class="category-btn" data-category="Bundles">Bundles</button>
+            </div>
+            <select id="country-filter">
+              <option value="">Alle Länder</option>
+              <!-- Dynamisch befüllen -->
+            </select>
+          </div>
+          <div class="filters">
+            <div id="provider-buttons" class="provider-buttons">
+              <button class="provider-btn active" data-provider="all">Alle</button>
+              <button class="provider-btn" data-provider="products">Test</button>
+              <button class="provider-btn" data-provider="dingconnect">DingConnect</button>
+              <button class="provider-btn" data-provider="reloadly">Reloadly</button>
+            </div>
+            <div id="subcategory-buttons" class="subcategory-buttons">
+              <!-- Dynamisch befüllt -->
+            </div>
+            <select id="country-filter">
+              <option value="">Alle Länder</option>
+              <!-- Dynamisch befüllen -->
+            </select>
+          </div>
+        <div class="container">
+            <section class="hero">
+                <h1>Schnelle Gutscheine für Gamer</h1>
+                <p>Hol dir jetzt digitale Codes – sicher und sofort lieferbar!</p>
+            </section>
+            <section class="video-section">
+                <iframe src="https://www.youtube.com/embed/66eAN56g7D8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </section>
+            <section id="products" class="products">
+                <h2>Unsere Gutscheine</h2>
+                <div id="categories" class="categories"></div>
+                <div class="product-grid" id="product-grid"></div>
+            </section>
+            <section id="cart" class="cart">
+                <h2>Dein Warenkorb</h2>
+                <ul id="cart-items"></ul>
+                <div class="cart-total">Gesamtsumme: <span id="cart-total">0€</span></div>
+                <a href="checkout.html" class="btn-checkout">Zur Kasse</a>
+            </section>
+        </div>
+        <div id="value-modal" class="value-modal">
+            <div class="value-modal-content">
+                <span class="close-modal" onclick="closeValueModal()">✖</span>
+                <h2 id="modal-product-name"></h2>
+                <div id="value-options" class="value-options"></div>
+            </div>
+        </div>
+
+
+
+
+
+      <aside id="cart" class="cart-box" style="display:none">
+        <h3>Warenkorb</h3>
+        <div id="cartItems"></div>
+        <div class="cart-summary">
+          <div>Gesamt: <strong id="cartTotal">0.00</strong> ETH</div>
+          <button id="checkoutBtn">Zur Kasse (NOWPayments)</button>
+          <button id="closeCartBtn">Schließen</button>
+        </div>
+        <div id="invoiceArea"></div>
+      </aside>
+    </section>
+
+    <section id="status">
+      <h2>Status</h2>
+      <pre id="statusLog"></pre>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/wallet.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
