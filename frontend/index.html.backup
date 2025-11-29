@@ -10,40 +10,39 @@
 <body class="index">
 
 
-  <header>
-    <h1>🎵 Klassik22</h1>
-    <div class="header-actions">
-      <select id="modeSelect">
-        <option value="auth">Auth</option>
-        <option value="booking">Booking</option>
-        <option value="shop">Shop</option>
-      </select>
-      
-      <!-- Not logged in -->
-      <div id="notLoggedIn" style="display:none">
-        <button id="showLoginBtn" class="btn-secondary">Login</button>
-        <button id="showRegisterBtn" class="btn-primary">Register</button>
-        <button id="connectWalletBtn" class="btn-wallet">Connect Wallet</button>
+
+  <!-- HERO STATS: Kaspa Blockchain Live Overview -->
+  <section class="hero-stats glass" style="margin:32px auto 24px auto;max-width:900px;box-shadow:0 4px 32px #0002;border-radius:18px;padding:32px 24px 24px 24px;">
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:2.2rem;margin-bottom:18px;letter-spacing:-1px;">Kaspa Blockchain <span style="color:#6cf">Live Stats</span></h2>
+    <div class="hero-stats-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:24px;align-items:center;">
+      <div class="hero-stat">
+        <div class="stat-label">Blocks/sec</div>
+        <div class="stat-value" id="stat-bps">...</div>
       </div>
-      
-      <!-- Logged in -->
-      <div id="loggedIn" class="user-area" style="display:none">
-        <div class="user-info">
-          <div class="user-avatar">👤</div>
-          <div class="user-details">
-            <div id="userEmail" class="user-email"></div>
-            <div id="userAddress" class="user-address"></div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button id="editProfileBtn" class="btn-secondary">Profile</button>
-          <button id="logoutBtn" class="btn-logout">Logout</button>
-        </div>
+      <div class="hero-stat">
+        <div class="stat-label">Reward/Block</div>
+        <div class="stat-value" id="stat-reward">...</div>
       </div>
-      
-      <button id="openCartBtn" class="btn-cart">🛒 <span id="cartCount">0</span></button>
+      <div class="hero-stat">
+        <div class="stat-label">Tx (24h)</div>
+        <div class="stat-value" id="stat-tx24h">...</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-label">Supply/Max</div>
+        <div class="stat-value" id="stat-supply">...</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-label">Hashrate</div>
+        <div class="stat-value" id="stat-hashrate">...</div>
+      </div>
     </div>
-  </header>
+    <div class="hero-stats-meta" style="margin-top:18px;display:flex;align-items:center;gap:24px;font-size:1.05rem;color:#888;">
+      <span id="stats-source">Quelle: -</span>
+      <span id="stats-updated">Letztes Update: -</span>
+      <button id="stats-refresh" class="btn-secondary" style="padding:6px 18px;font-size:1rem;">Aktualisieren</button>
+      <span id="stats-status" style="margin-left:auto;font-weight:500;color:#6cf">API Status: <span id="api-status">?</span></span>
+    </div>
+  </section>
 
     <!-- Profile Modal -->
     <div id="profileModal" class="modal" style="display:none">

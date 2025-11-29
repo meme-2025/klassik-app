@@ -1,3 +1,8 @@
+            <div class="hero-stats-meta" style="margin-top: 10px; font-size: 0.95em; color: #7B68EE; display: flex; align-items: center; gap: 18px;">
+                <span id="stats-source">Quelle: -</span>
+                <span id="stats-updated">Letztes Update: -</span>
+                <button id="stats-refresh" style="background: #22223B; color: #00D9C5; border: 1px solid #49E3D7; border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 0.95em;">Aktualisieren</button>
+            </div>
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -102,19 +107,23 @@
             <!-- Live Stats -->
             <div class="hero-stats fade-in-up delay-300">
                 <div class="stat-item">
-                    <div class="stat-value" data-target="10">0</div>
+                    <div class="stat-value" id="stat-bps"></div>
                     <div class="stat-label">Blocks/Second</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" data-target="10">0</div>
-                    <div class="stat-label">Sec Confirmation</div>
+                    <div class="stat-value" id="stat-reward"></div>
+                    <div class="stat-label">Reward/Block</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">28.7<span style="font-size: 0.6em">B</span></div>
-                    <div class="stat-label">Max Supply KAS</div>
+                    <div class="stat-value" id="stat-tx24h"></div>
+                    <div class="stat-label">Tx Last 24h</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="live-hashrate">0</div>
+                    <div class="stat-value" id="stat-supply"></div>
+                    <div class="stat-label">Supply / Max</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat-hashrate"></div>
                     <div class="stat-label">Network Hashrate</div>
                 </div>
             </div>
@@ -812,8 +821,9 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="assets/js/particles-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.1.0/tsparticles.bundle.min.js"></script>
+    <script src="assets/js/tsparticles-config.js"></script>
+    <script src="assets/js/hero-stats-live.js"></script>
     <script src="assets/js/animations.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/kaspa-blockdag.js"></script>

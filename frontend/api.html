@@ -194,85 +194,104 @@
                         <div class="stat-value">1.0s</div>
                         <div class="stat-secondary">10 BPS</div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
+                    <!-- HERO STATS: Etherscan-Style Kaspa Overview -->
+                    <section class="hero-stats glass" style="margin:32px auto 24px auto;max-width:1100px;box-shadow:0 4px 32px #0002;border-radius:18px;padding:32px 24px 24px 24px;">
+                      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:2.2rem;margin-bottom:18px;letter-spacing:-1px;">Kaspa Blockchain <span style="color:#6cf">Live Stats</span></h2>
+                      <div class="hero-stats-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:24px;align-items:center;">
+                        <div class="hero-stat">
+                          <div class="stat-label">KAS Price</div>
+                          <div class="stat-value" id="kasPrice">...</div>
+                        </div>
+                        <div class="hero-stat">
+                          <div class="stat-label">Market Cap</div>
+                          <div class="stat-value" id="marketCap">...</div>
+                        </div>
+                        <div class="hero-stat">
+                          <div class="stat-label">Tx (24h)</div>
+                          <div class="stat-value" id="txCount24h">...</div>
+                        </div>
+                        <div class="hero-stat">
+                          <div class="stat-label">TPS</div>
+                          <div class="stat-value" id="tps">...</div>
+                        </div>
+                        <div class="hero-stat">
+                          <div class="stat-label">Latest Block</div>
+                          <div class="stat-value" id="latestBlockNum">...</div>
+                        </div>
+                        <div class="hero-stat">
+                          <div class="stat-label">Hashrate</div>
+                          <div class="stat-value" id="hashrate">...</div>
+                        </div>
+                        <div class="hero-stat">
+                          <div class="stat-label">Supply/Max</div>
+                          <div class="stat-value" id="supply">...</div>
+                        </div>
+                      </div>
+                      <div class="hero-stats-meta" style="margin-top:18px;display:flex;align-items:center;gap:24px;font-size:1.05rem;color:#888;">
+                        <span id="stats-source">Quelle: -</span>
+                        <span id="stats-updated">Letztes Update: -</span>
+                        <button id="stats-refresh" class="btn-secondary" style="padding:6px 18px;font-size:1rem;">Aktualisieren</button>
+                        <span id="stats-status" style="margin-left:auto;font-weight:500;color:#6cf">API Status: <span id="api-status">?</span></span>
+                      </div>
+                    </section>
 
-    <!-- Main Content - Blocks & Transactions -->
-    <section class="main-content">
-        <div class="container">
-            <div class="content-grid">
-                <!-- Latest Blocks -->
-                <div class="content-panel glass scroll-reveal">
-                    <div class="panel-header">
-                        <h2>
-                            <i class="fas fa-cube"></i>
-                            Latest Blocks
-                        </h2>
-                        <a href="#blocks" class="btn-ghost btn-sm">View All Blocks</a>
-                    </div>
-                    
-                    <div class="table-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
+                    <!-- BLOCKS & TRANSACTIONS PANELS -->
+                    <section class="main-content">
+                      <div class="container" style="max-width:1100px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+                          <!-- Latest Blocks -->
+                          <div class="content-panel glass" style="padding:18px 12px 12px 12px;">
+                            <div class="panel-header" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+                              <h2 style="font-size:1.2rem;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;">
+                                <i class="fas fa-cube"></i> Latest Blocks
+                              </h2>
+                              <a href="#blocks" class="btn-ghost btn-sm">View All</a>
+                            </div>
+                            <div class="table-wrapper">
+                              <table class="data-table" style="font-size:1rem;">
+                                <thead>
+                                  <tr>
                                     <th>Block</th>
                                     <th>Age</th>
                                     <th>Txns</th>
                                     <th>Miner</th>
                                     <th>Reward</th>
-                                </tr>
-                            </thead>
-                            <tbody id="latestBlocksTable">
-                                <!-- Dynamically populated -->
-                                <tr class="skeleton-row">
-                                    <td colspan="5">
-                                        <div class="skeleton-loader">
-                                            <div class="skeleton-line"></div>
-                                            <div class="skeleton-line"></div>
-                                            <div class="skeleton-line"></div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Latest Transactions -->
-                <div class="content-panel glass scroll-reveal delay-100">
-                    <div class="panel-header">
-                        <h2>
-                            <i class="fas fa-exchange-alt"></i>
-                            Latest Transactions
-                        </h2>
-                        <a href="#transactions" class="btn-ghost btn-sm">View All Txns</a>
-                    </div>
-                    
-                    <div class="table-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
+                                  </tr>
+                                </thead>
+                                <tbody id="latestBlocksTable">
+                                  <!-- Live rows via JS -->
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                          <!-- Latest Transactions -->
+                          <div class="content-panel glass" style="padding:18px 12px 12px 12px;">
+                            <div class="panel-header" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+                              <h2 style="font-size:1.2rem;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;">
+                                <i class="fas fa-exchange-alt"></i> Latest Transactions
+                              </h2>
+                              <a href="#transactions" class="btn-ghost btn-sm">View All</a>
+                            </div>
+                            <div class="table-wrapper">
+                              <table class="data-table" style="font-size:1rem;">
+                                <thead>
+                                  <tr>
                                     <th>Txn Hash</th>
                                     <th>Age</th>
                                     <th>From</th>
                                     <th>To</th>
                                     <th>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody id="latestTxTable">
-                                <!-- Dynamically populated -->
-                                <tr class="skeleton-row">
-                                    <td colspan="5">
-                                        <div class="skeleton-loader">
-                                            <div class="skeleton-line"></div>
-                                            <div class="skeleton-line"></div>
-                                            <div class="skeleton-line"></div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
+                                  </tr>
+                                </thead>
+                                <tbody id="latestTxTable">
+                                  <!-- Live rows via JS -->
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
                         </table>
                     </div>
                 </div>
