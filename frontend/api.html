@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KaspaScan - Kaspa Blockchain Explorer | Track blocks, transactions, addresses, and network stats in real-time">
+    <title>KaspaScan - Kaspa Blockchain Explorer</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="assets/css/kaspa.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/explorer.css">
+</head>
+<body class="explorer-body">
+    <!-- Background Effects -->
+    <div class="gradient-bg-kaspa"></div>
+    <div id="particles-js"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-explorer">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-icon-kaspa">
+                    <div class="dag-node"></div>
+                    <div class="dag-node"></div>
+                    <div class="dag-node"></div>
+                </div>
+                <span class="logo-text">Kaspa<span class="logo-accent">Scan</span></span>
+                <span class="beta-badge">BETA</span>
+            </div>
+            
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#blockchain" class="nav-link active">
+                    <i class="fas fa-cubes"></i>
+                    <span>Blockchain</span>
+                </a>
+                <a href="#tokens" class="nav-link">
+                    <i class="fas fa-coins"></i>
+                    <span>Tokens</span>
+                </a>
+                <a href="#charts" class="nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Charts</span>
+                </a>
+                <a href="#api" class="nav-link">
+                    <i class="fas fa-code"></i>
+                    <span>API</span>
+                </a>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="btn-ghost" id="darkModeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a href="index.html" class="btn-kaspa">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Hub</span>
+                </a>
+            </div>
+            
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Search Section -->
+    <section class="hero-search">
+        <div class="container">
+            <h1 class="search-title fade-in-up">
+                Kaspa Blockchain <span class="gradient-text-kaspa">Explorer</span>
+            </h1>
+            <p class="search-subtitle fade-in-up delay-100">
+                The Kaspa BlockDAG Network Explorer - Search blocks, transactions, addresses, and more
+            </p>
+            
+            <div class="explorer-search-box glass fade-in-up delay-200">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="mainSearchInput" 
+                        class="search-input" 
+                        placeholder="Search by Address / Txn Hash / Block / Token"
+                        autocomplete="off"
+                    >
+                    <button class="btn-search" id="mainSearchBtn">
+                        <span>Search</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="search-suggestions" id="searchSuggestions"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Network Stats Overview -->
+    <section class="network-overview">
+        <div class="container">
+            <div class="stats-grid-large">
+                <!-- KAS Price -->
+                <div class="stat-card-large glass scroll-reveal">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">KAS Price</div>
+                        <div class="stat-value" id="kasPrice">$0.1247</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12.4% (24h)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market Cap -->
+                <div class="stat-card-large glass scroll-reveal delay-50">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Market Cap</div>
+                        <div class="stat-value" id="marketCap">$2.89B</div>
+                        <div class="stat-secondary">Rank #47</div>
+                    </div>
+                </div>
+
+                <!-- Transactions (24h) -->
+                <div class="stat-card-large glass scroll-reveal delay-100">
+                    <div class="stat-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Transactions (24h)</div>
+                        <div class="stat-value" id="txCount24h">847,235</div>
+                        <div class="stat-secondary">~9.8 TPS</div>
+                    </div>
+                </div>
+
+                <!-- Latest Block -->
+                <div class="stat-card-large glass scroll-reveal delay-150">
+                    <div class="stat-icon pulsing">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Latest Block</div>
+                        <div class="stat-value" id="latestBlockNum">45,892,347</div>
+                        <div class="stat-secondary" id="blockTime">1.2s ago</div>
+                    </div>
+                </div>
+
+                <!-- Network Hashrate -->
+                <div class="stat-card-large glass scroll-reveal delay-200">
+                    <div class="stat-icon">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Hashrate</div>
+                        <div class="stat-value" id="hashrate">1.24 EH/s</div>
+                        <div class="stat-secondary">+5.2% (24h)</div>
+                    </div>
+                </div>
+
+                <!-- Block Time -->
+                <div class="stat-card-large glass scroll-reveal delay-250">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Avg Block Time</div>
+                        <div class="stat-value">1.0s</div>
+                        <div class="stat-secondary">10 BPS</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content - Blocks & Transactions -->
+    <section class="main-content">
+        <div class="container">
+            <div class="content-grid">
+                <!-- Latest Blocks -->
+                <div class="content-panel glass scroll-reveal">
+                    <div class="panel-header">
+                        <h2>
+                            <i class="fas fa-cube"></i>
+                            Latest Blocks
+                        </h2>
+                        <a href="#blocks" class="btn-ghost btn-sm">View All Blocks</a>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Block</th>
+                                    <th>Age</th>
+                                    <th>Txns</th>
+                                    <th>Miner</th>
+                                    <th>Reward</th>
+                                </tr>
+                            </thead>
+                            <tbody id="latestBlocksTable">
+                                <!-- Dynamically populated -->
+                                <tr class="skeleton-row">
+                                    <td colspan="5">
+                                        <div class="skeleton-loader">
+                                            <div class="skeleton-line"></div>
+                                            <div class="skeleton-line"></div>
+                                            <div class="skeleton-line"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Latest Transactions -->
+                <div class="content-panel glass scroll-reveal delay-100">
+                    <div class="panel-header">
+                        <h2>
+                            <i class="fas fa-exchange-alt"></i>
+                            Latest Transactions
+                        </h2>
+                        <a href="#transactions" class="btn-ghost btn-sm">View All Txns</a>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Txn Hash</th>
+                                    <th>Age</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="latestTxTable">
+                                <!-- Dynamically populated -->
+                                <tr class="skeleton-row">
+                                    <td colspan="5">
+                                        <div class="skeleton-loader">
+                                            <div class="skeleton-line"></div>
+                                            <div class="skeleton-line"></div>
+                                            <div class="skeleton-line"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Charts & Analytics -->
+    <section id="charts" class="charts-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Network <span class="gradient-text-kaspa">Analytics</span></h2>
+                <p>Real-time blockchain insights and historical data</p>
+            </div>
+
+            <div class="charts-grid">
+                <!-- Transaction History Chart -->
+                <div class="chart-panel glass scroll-reveal">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-area"></i> Daily Transactions</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-period="7d">7D</button>
+                            <button class="chart-btn" data-period="30d">30D</button>
+                            <button class="chart-btn" data-period="90d">90D</button>
+                            <button class="chart-btn" data-period="1y">1Y</button>
+                        </div>
+                    </div>
+                    <canvas id="txHistoryChart"></canvas>
+                </div>
+
+                <!-- Hashrate Chart -->
+                <div class="chart-panel glass scroll-reveal delay-100">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-tachometer-alt"></i> Network Hashrate</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-period="7d">7D</button>
+                            <button class="chart-btn" data-period="30d">30D</button>
+                        </div>
+                    </div>
+                    <canvas id="hashrateChart"></canvas>
+                </div>
+
+                <!-- Gas Price Chart -->
+                <div class="chart-panel glass scroll-reveal delay-200">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-fire"></i> Average Block Reward</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-period="24h">24H</button>
+                            <button class="chart-btn" data-period="7d">7D</button>
+                        </div>
+                    </div>
+                    <canvas id="rewardChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Top Addresses -->
+    <section class="top-addresses-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Top <span class="gradient-text-kaspa">Addresses</span></h2>
+                <p>Richest addresses on the Kaspa network</p>
+            </div>
+
+            <div class="top-addresses-panel glass scroll-reveal">
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Address</th>
+                                <th>Balance</th>
+                                <th>Percentage</th>
+                                <th>Txn Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topAddressesTable">
+                            <!-- Dynamically populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Documentation -->
+    <section id="api" class="api-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Developer <span class="gradient-text-kaspa">API</span></h2>
+                <p>Free, public API for developers building on Kaspa</p>
+            </div>
+
+            <div class="api-grid">
+                <!-- API Overview -->
+                <div class="api-overview glass scroll-reveal">
+                    <h3>Getting Started</h3>
+                    <p>Our API is completely free and open for developers. No API key required for public endpoints.</p>
+                    
+                    <div class="api-stats-mini">
+                        <div class="api-stat">
+                            <div class="api-stat-value">99.9%</div>
+                            <div class="api-stat-label">Uptime</div>
+                        </div>
+                        <div class="api-stat">
+                            <div class="api-stat-value">< 100ms</div>
+                            <div class="api-stat-label">Avg Response</div>
+                        </div>
+                        <div class="api-stat">
+                            <div class="api-stat-value">50+</div>
+                            <div class="api-stat-label">Endpoints</div>
+                        </div>
+                    </div>
+
+                    <h4>Base URL</h4>
+                    <div class="code-block">
+                        <code>https://api.kaspascan.io/v1</code>
+                        <button class="copy-btn" onclick="copyToClipboard(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+
+                    <h4>Rate Limits</h4>
+                    <ul class="api-list">
+                        <li><i class="fas fa-check"></i> 100 requests/minute (Free)</li>
+                        <li><i class="fas fa-check"></i> 1000 requests/minute (Pro)</li>
+                        <li><i class="fas fa-check"></i> Unlimited (Enterprise)</li>
+                    </ul>
+                </div>
+
+                <!-- API Endpoints -->
+                <div class="api-endpoints scroll-reveal delay-100">
+                    <h3>Available Endpoints</h3>
+                    
+                    <!-- Blocks Endpoints -->
+                    <div class="endpoint-category">
+                        <h4><i class="fas fa-cube"></i> Blocks</h4>
+                        
+                        <div class="endpoint-item">
+                            <div class="endpoint-header">
+                                <span class="method get">GET</span>
+                                <code class="endpoint-path">/blocks/latest</code>
+                            </div>
+                            <p>Get latest blocks with pagination</p>
+                            <button class="btn-expand" onclick="toggleEndpoint(this)">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="endpoint-details">
+                                <h5>Parameters</h5>
+                                <ul>
+                                    <li><code>limit</code> - Number of blocks (default: 10, max: 100)</li>
+                                    <li><code>offset</code> - Pagination offset</li>
+                                </ul>
+                                <h5>Example Request</h5>
+                                <div class="code-block">
+                                    <pre>curl https://api.kaspascan.io/v1/blocks/latest?limit=10</pre>
+                                    <button class="copy-btn" onclick="copyToClipboard(this)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="endpoint-item">
+                            <div class="endpoint-header">
+                                <span class="method get">GET</span>
+                                <code class="endpoint-path">/blocks/:blockHash</code>
+                            </div>
+                            <p>Get block details by hash or number</p>
+                            <button class="btn-expand" onclick="toggleEndpoint(this)">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="endpoint-details">
+                                <h5>Example Response</h5>
+                                <div class="code-block">
+                                    <pre>{
+  "blockHash": "0x1a2b3c...",
+  "blockNumber": 45892347,
+  "timestamp": 1732867200,
+  "transactions": 127,
+  "miner": "kaspa:qq...",
+  "reward": "250.5 KAS"
+}</pre>
+                                    <button class="copy-btn" onclick="copyToClipboard(this)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Endpoints -->
+                    <div class="endpoint-category">
+                        <h4><i class="fas fa-exchange-alt"></i> Transactions</h4>
+                        
+                        <div class="endpoint-item">
+                            <div class="endpoint-header">
+                                <span class="method get">GET</span>
+                                <code class="endpoint-path">/transactions/:txHash</code>
+                            </div>
+                            <p>Get transaction details by hash</p>
+                        </div>
+
+                        <div class="endpoint-item">
+                            <div class="endpoint-header">
+                                <span class="method get">GET</span>
+                                <code class="endpoint-path">/transactions/pending</code>
+                            </div>
+                            <p>Get pending transactions in mempool</p>
+                        </div>
+                    </div>
+
+                    <!-- Address Endpoints -->
+                    <div class="endpoint-category">
+                        <h4><i class="fas fa-wallet"></i> Addresses</h4>
+                        
+                        <div class="endpoint-item">
+                            <div class="endpoint-header">
+                                <span class="method get">GET</span>
+                                <code class="endpoint-path">/address/:address</code>
+                            </div>
+                            <p>Get address balance and transaction history</p>
+                        </div>
+
+                        <div class="endpoint-item">
+                            <div class="endpoint-header">
+                                <span class="method get">GET</span>
+                                <code class="endpoint-path">/address/:address/utxos</code>
+                            </div>
+                            <p>Get unspent transaction outputs (UTXOs) for address</p>
+                        </div>
+                    </div>
+
+                    <!-- Network Stats -->
+                    <div class="endpoint-category">
+                        <h4><i class="fas fa-chart-line"></i> Network Stats</h4>
+                        
+                        <div class="endpoint-item">
+                            <div class="endpoint-header">
+                                <span class="method get">GET</span>
+                                <code class="endpoint-path">/stats/network</code>
+                            </div>
+                            <p>Get comprehensive network statistics</p>
+                        </div>
+
+                        <div class="endpoint-item">
+                            <div class="endpoint-header">
+                                <span class="method get">GET</span>
+                                <code class="endpoint-path">/stats/supply</code>
+                            </div>
+                            <p>Get circulating and total supply</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-explorer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <div class="logo-icon-kaspa">
+                            <div class="dag-node"></div>
+                            <div class="dag-node"></div>
+                            <div class="dag-node"></div>
+                        </div>
+                        <span class="logo-text">Kaspa<span class="logo-accent">Scan</span></span>
+                    </div>
+                    <p>The #1 Kaspa BlockDAG Explorer</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Explorer</h4>
+                    <a href="#blocks">Blocks</a>
+                    <a href="#transactions">Transactions</a>
+                    <a href="#addresses">Top Addresses</a>
+                    <a href="#charts">Charts</a>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Developers</h4>
+                    <a href="#api">API Documentation</a>
+                    <a href="#">GraphQL</a>
+                    <a href="#">WebSocket</a>
+                    <a href="#">SDK & Tools</a>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Support</a>
+                    <a href="#">Status Page</a>
+                    <a href="index.html">Back to Hub</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 KaspaScan. Powered by <a href="index.html">KaspaHub</a></p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">API Terms</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="assets/js/particles-config.js"></script>
+    <script src="assets/js/animations.js"></script>
+    <script src="assets/js/explorer.js"></script>
+</body>
+</html>

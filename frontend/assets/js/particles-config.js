@@ -2,14 +2,14 @@
 window.particlesConfig = {
   particles: {
     number: {
-      value: 80,
+      value: 150,
       density: {
         enable: true,
-        value_area: 800
+        value_area: 600
       }
     },
     color: {
-      value: ["#6366f1", "#ec4899", "#8b5cf6"]
+      value: ["#00D9C5", "#49E3D7", "#0099CC", "#7B68EE"]
     },
     shape: {
       type: "circle",
@@ -41,7 +41,7 @@ window.particlesConfig = {
     line_linked: {
       enable: true,
       distance: 150,
-      color: "#6366f1",
+      color: "#00D9C5",
       opacity: 0.2,
       width: 1
     },
@@ -65,7 +65,7 @@ window.particlesConfig = {
     events: {
       onhover: {
         enable: true,
-        mode: "grab"
+        mode: "repulse"
       },
       onclick: {
         enable: true,
@@ -75,9 +75,9 @@ window.particlesConfig = {
     },
     modes: {
       grab: {
-        distance: 140,
+        distance: 200,
         line_linked: {
-          opacity: 0.5
+          opacity: 0.8
         }
       },
       bubble: {
@@ -88,11 +88,11 @@ window.particlesConfig = {
         speed: 3
       },
       repulse: {
-        distance: 200,
+        distance: 150,
         duration: 0.4
       },
       push: {
-        particles_nb: 4
+        particles_nb: 6
       },
       remove: {
         particles_nb: 2
