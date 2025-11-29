@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaspaScan - The Kaspa Blockchain Explorer</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/kaspa.css">
+    <link rel="stylesheet" href="assets/css/explorer-compact.css">
+    
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div id="particles-js"></div>
+
+    <!-- Compact Navigation -->
+    <nav class="navbar-etherscan">
+        <div class="container nav-container-etherscan">
+            <div class="nav-logo">
+                <i class="fas fa-cube"></i>
+                <span>KaspaScan</span>
+                <span class="beta">BETA</span>
+            </div>
+            
+            <div class="nav-links-compact">
+                <a href="index.html">Home</a>
+                <a href="exchange.html">Exchange</a>
+                <a href="merch.html">Merch</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Compact Search Bar -->
+    <section class="search-bar-etherscan">
+        <div class="container">
+            <h1 class="title-etherscan">The Kaspa Blockchain Explorer</h1>
+            <div class="search-wrapper-etherscan">
+                <input type="text" placeholder="Search by Address / Txn Hash / Block" class="search-input-etherscan">
+                <button class="search-btn-etherscan"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Overview Compact -->
+    <section class="stats-overview-etherscan">
+        <div class="container">
+            <div class="stats-row">
+                <div class="stat-group">
+                    <i class="fas fa-coins stat-icon-eth"></i>
+                    <div>
+                        <div class="stat-label-eth">KAS PRICE</div>
+                        <div class="stat-value-eth" id="kas-price-main">$0.1843 <span class="btc-price">@ 0.00433 BTC</span></div>
+                        <div class="stat-change-eth positive">(+5.32%)</div>
+                    </div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">MARKET CAP</div>
+                    <div class="stat-value-eth" id="market-cap-main">$3,847,291,520.00</div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">TRANSACTIONS</div>
+                    <div class="stat-value-eth" id="tx-count">147.3 M <span class="tps">(12.8 TPS)</span></div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">BLOCK DAG SIZE</div>
+                    <div class="stat-value-eth">42.8 GB</div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">LAST FINALIZED BLOCK</div>
+                    <div class="stat-value-eth" id="last-block-main">47,382,901</div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">HASHRATE</div>
+                    <div class="stat-value-eth">847.3 PH/s</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content - Blocks & Transactions Side by Side -->
+    <section class="main-content-etherscan">
+        <div class="container">
+            <div class="content-columns">
+                
+                <!-- Latest Blocks Column -->
+                <div class="column-half">
+                    <div class="panel-etherscan">
+                        <div class="panel-header-eth">
+                            <h3><i class="fas fa-cube"></i> Latest Blocks</h3>
+                        </div>
+                        <div class="panel-body-eth" id="blocks-list">
+                            <!-- Blocks populated by JS -->
+                        </div>
+                        <div class="panel-footer-eth">
+                            <a href="#" class="view-all-btn">View all blocks →</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Latest Transactions Column -->
+                <div class="column-half">
+                    <div class="panel-etherscan">
+                        <div class="panel-header-eth">
+                            <h3><i class="fas fa-exchange-alt"></i> Latest Transactions</h3>
+                        </div>
+                        <div class="panel-body-eth" id="transactions-list">
+                            <!-- Transactions populated by JS -->
+                        </div>
+                        <div class="panel-footer-eth">
+                            <a href="#" class="view-all-btn">View all transactions →</a>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-compact">
+        <div class="container">
+            <p>&copy; 2024 KaspaScan - Kaspa Blockchain Explorer</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="assets/js/particles-config.js"></script>
+    <script src="assets/js/explorer-compact.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,505 @@
+/* Explorer Compact - Etherscan Style */
+
+/* Navbar Etherscan Style */
+.navbar-etherscan {
+    background: rgba(10, 14, 39, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 217, 197, 0.2);
+    padding: 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.nav-container-etherscan {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.nav-logo i {
+    color: #00D9C5;
+    font-size: 1.5rem;
+}
+
+.beta {
+    padding: 3px 8px;
+    background: linear-gradient(135deg, #00D9C5, #0099CC);
+    color: #fff;
+    font-size: 0.65rem;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.nav-links-compact {
+    display: flex;
+    gap: 25px;
+}
+
+.nav-links-compact a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.nav-links-compact a:hover {
+    color: #00D9C5;
+}
+
+/* Search Bar Etherscan */
+.search-bar-etherscan {
+    padding: 100px 20px 30px;
+    background: rgba(0, 217, 197, 0.02);
+}
+
+.title-etherscan {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.search-wrapper-etherscan {
+    max-width: 800px;
+    display: flex;
+    background: rgba(15, 23, 42, 0.6);
+    border: 2px solid rgba(0, 217, 197, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.search-input-etherscan {
+    flex: 1;
+    padding: 14px 20px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.search-input-etherscan::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.search-btn-etherscan {
+    padding: 14px 25px;
+    background: linear-gradient(135deg, #00D9C5, #0099CC);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.search-btn-etherscan:hover {
+    opacity: 0.9;
+}
+
+/* Stats Overview - Etherscan Style */
+.stats-overview-etherscan {
+    padding: 20px 0;
+    background: rgba(0, 217, 197, 0.02);
+    border-bottom: 1px solid rgba(0, 217, 197, 0.1);
+}
+
+.stats-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-icon-eth {
+    font-size: 2rem;
+    color: #00D9C5;
+}
+
+.stat-item-eth {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label-eth {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.stat-value-eth {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.stat-value-eth .btc-price,
+.stat-value-eth .tps {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+}
+
+.stat-change-eth {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.stat-change-eth.positive {
+    color: #00ff88;
+}
+
+.stat-change-eth.negative {
+    color: #ff4757;
+}
+
+.stat-separator {
+    width: 1px;
+    height: 40px;
+    background: rgba(0, 217, 197, 0.2);
+}
+
+/* Main Content Etherscan */
+.main-content-etherscan {
+    padding: 30px 0 60px;
+}
+
+.content-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.column-half {
+    min-width: 0;
+}
+
+.panel-etherscan {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 217, 197, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.panel-header-eth {
+    padding: 15px 20px;
+    background: rgba(0, 217, 197, 0.05);
+    border-bottom: 1px solid rgba(0, 217, 197, 0.2);
+}
+
+.panel-header-eth h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.panel-header-eth i {
+    color: #00D9C5;
+}
+
+.panel-body-eth {
+    max-height: 550px;
+    overflow-y: auto;
+}
+
+/* Block Item */
+.block-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(0, 217, 197, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: background 0.2s;
+}
+
+.block-item:hover {
+    background: rgba(0, 217, 197, 0.05);
+}
+
+.block-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 217, 197, 0.15);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.block-icon i {
+    color: #00D9C5;
+    font-size: 1.1rem;
+}
+
+.block-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.block-number {
+    font-weight: 700;
+    color: #00D9C5;
+    font-size: 0.95rem;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 4px;
+}
+
+.block-number:hover {
+    text-decoration: underline;
+}
+
+.block-meta {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.block-time {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+}
+
+.block-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.block-miner {
+    font-size: 0.85rem;
+    color: #00D9C5;
+    font-family: 'Fira Code', monospace;
+    text-decoration: none;
+}
+
+.block-miner:hover {
+    text-decoration: underline;
+}
+
+.block-txs {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.block-reward {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 217, 197, 0.1);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Transaction Item */
+.tx-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(0, 217, 197, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: background 0.2s;
+}
+
+.tx-item:hover {
+    background: rgba(0, 217, 197, 0.05);
+}
+
+.tx-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 217, 197, 0.15);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tx-icon i {
+    color: #00D9C5;
+    font-size: 1.1rem;
+}
+
+.tx-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tx-hash {
+    font-weight: 600;
+    color: #00D9C5;
+    font-size: 0.9rem;
+    font-family: 'Fira Code', monospace;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 6px;
+}
+
+.tx-hash:hover {
+    text-decoration: underline;
+}
+
+.tx-addresses {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.tx-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+.tx-address {
+    color: #00D9C5;
+    font-family: 'Fira Code', monospace;
+    text-decoration: none;
+}
+
+.tx-address:hover {
+    text-decoration: underline;
+}
+
+.tx-arrow {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.tx-time {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.tx-amount {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    background: rgba(0, 217, 197, 0.1);
+    padding: 6px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+/* Panel Footer */
+.panel-footer-eth {
+    padding: 12px 20px;
+    background: rgba(0, 217, 197, 0.03);
+    border-top: 1px solid rgba(0, 217, 197, 0.1);
+    text-align: center;
+}
+
+.view-all-btn {
+    color: #00D9C5;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.view-all-btn:hover {
+    color: #49E3D7;
+}
+
+/* Footer */
+.footer-compact {
+    padding: 30px 0;
+    border-top: 1px solid rgba(0, 217, 197, 0.2);
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+}
+
+/* Scrollbar */
+.panel-body-eth::-webkit-scrollbar {
+    width: 8px;
+}
+
+.panel-body-eth::-webkit-scrollbar-track {
+    background: rgba(0, 217, 197, 0.05);
+}
+
+.panel-body-eth::-webkit-scrollbar-thumb {
+    background: rgba(0, 217, 197, 0.3);
+    border-radius: 4px;
+}
+
+.panel-body-eth::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 217, 197, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .stats-row {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 10px;
+    }
+}
+
+@media (max-width: 968px) {
+    .content-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-bar-etherscan {
+        padding: 90px 15px 25px;
+    }
+    
+    .title-etherscan {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .nav-links-compact {
+        gap: 15px;
+    }
+    
+    .block-item,
+    .tx-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .block-details {
+        align-items: flex-start;
+        width: 100%;
+    }
+    
+    .tx-addresses {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
