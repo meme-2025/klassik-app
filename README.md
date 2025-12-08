@@ -2,7 +2,32 @@
 
 Ultramoderne Web3-Plattform mit futuristischem Frontend und Node.js Backend.
 
-## ⚡ Quick Start
+---
+
+## 🚀 Production Setup (Ubuntu mit existierender DB)
+
+**Hast du bereits eine `klassikdb` auf Ubuntu?**
+
+```bash
+# Einmalig: Automatisches Setup
+cd /pfad/zu/klassik
+chmod +x production-setup.sh
+sudo bash production-setup.sh
+```
+
+Das Script:
+- ✅ Verbindet mit existierender `klassikdb`
+- ✅ Installiert Dependencies
+- ✅ Erstellt sichere `.env`
+- ✅ Richtet systemd Service ein
+- ✅ Startet Backend auf Port 3000
+
+**➡️ Vollständige Anleitung:** [`PRODUCTION_GUIDE.md`](./PRODUCTION_GUIDE.md)  
+**➡️ Quick Reference:** [`QUICK_REFERENCE.md`](./QUICK_REFERENCE.md)
+
+---
+
+## ⚡ Entwicklung (Windows - Lokaler Test)
 
 ```powershell
 # 1. PostgreSQL DB erstellen
