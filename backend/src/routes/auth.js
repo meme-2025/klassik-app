@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
+const { ethers } = require('ethers');
 
 const router = express.Router();
 
@@ -53,13 +54,72 @@ function generateToken(user) {
 // POST /api/auth/register
 router.post('/register', async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ error: 'email and password required' });
+    const { email, password, signature, address } = req.body;
+
+    const identifier = email || address;
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'email/address and password required' });
     }
 
-    // Validate email
+    // Wallet-based registration when identifier is an Ethereum address
+    if (ethers.utils.isAddress(identifier)) {
+      const normalized = identifier.toLowerCase();
+
+      if (!signature) {
+        return res.status(400).json({ error: 'signature required for wallet registration' });
+      }
+
+      // Get nonce
+      const nonceRes = await db.query('SELECT nonce, expires_at FROM nonces WHERE address = $1 LIMIT 1', [normalized]);
+      if (nonceRes.rows.length === 0) {
+        return res.status(400).json({ error: 'Nonce not found. Request a nonce first.' });
+      }
+
+      const nonceRow = nonceRes.rows[0];
+      if (!nonceRow.nonce || !nonceRow.expires_at || new Date(nonceRow.expires_at) < new Date()) {
+        return res.status(401).json({ error: 'Nonce expired. Request a new one.' });
+      }
+
+      const message = `Sign this message to authenticate with Klassik:\n\nNonce: ${nonceRow.nonce}\nTimestamp: ${new Date(nonceRow.expires_at).toISOString()}`;
+
+      let recovered;
+      try {
+        recovered = ethers.utils.verifyMessage(message, signature);
+      } catch (err) {
+        return res.status(401).json({ error: 'Invalid signature' });
+      }
+
+      if (recovered.toLowerCase() !== normalized) {
+        return res.status(401).json({ error: 'Signature verification failed' });
+      }
+
+      // Ensure wallet not already registered
+      const exists = await db.query('SELECT id FROM users WHERE LOWER(address) = $1', [normalized]);
+      if (exists.rows.length) {
+        return res.status(409).json({ error: 'Wallet already registered' });
+      }
+
+      // Hash the provided secret (username) and save as password, store address in email column as requested
+      const passwordCheck = validatePassword(password);
+      if (!passwordCheck.valid) {
+        return res.status(400).json({ error: passwordCheck.message });
+      }
+
+      const hashed = await bcrypt.hash(password, 10);
+      const result = await db.query(
+        'INSERT INTO users (email, password, address, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING id, email, created_at, address',
+        [normalized, hashed, normalized]
+      );
+
+      // Remove nonce after successful registration
+      await db.query('DELETE FROM nonces WHERE address = $1', [normalized]);
+
+      const user = result.rows[0];
+      const token = generateToken(user);
+      return res.status(201).json({ user, token, expiresIn: JWT_EXPIRY });
+    }
+
+    // Traditional email registration path
     if (!validateEmail(email)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
@@ -80,10 +140,10 @@ router.post('/register', async (req, res, next) => {
       'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email, created_at',
       [email, hashed]
     );
-    
+
     const user = result.rows[0];
     const token = generateToken(user);
-    
+
     res.json({ user, token, expiresIn: JWT_EXPIRY });
   } catch (err) {
     next(err);

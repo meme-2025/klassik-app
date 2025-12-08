@@ -52,27 +52,32 @@ async function fetchKaspaStats() {
     }
   }
 
-  // Stats anzeigen
+  // Stats anzeigen (nur schreiben, wenn Elemente existieren)
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+
   if (stats && stats.netStats && stats.supplyStats) {
     const { netStats, supplyStats, latestBlock } = stats;
-    document.getElementById('stat-bps').textContent = netStats.block_rate ? netStats.block_rate.toFixed(2) : '-';
-    document.getElementById('stat-reward').textContent = latestBlock && latestBlock.reward ? latestBlock.reward : '-';
-    document.getElementById('stat-tx24h').textContent = netStats.tx_count_24h ? netStats.tx_count_24h.toLocaleString() : '-';
-    document.getElementById('stat-supply').textContent = supplyStats.circulating && supplyStats.total ? `${parseFloat(supplyStats.circulating).toLocaleString()} / ${parseFloat(supplyStats.total).toLocaleString()}` : '-';
-    document.getElementById('stat-hashrate').textContent = netStats.network_hashrate ? `${(netStats.network_hashrate/1e12).toFixed(2)} TH/s` : '-';
-    document.getElementById('stats-source').textContent = 'Quelle: ' + (source === MAIN_API ? 'Eigene Node' : 'Kaspa.org');
-    document.getElementById('stats-updated').textContent = 'Letztes Update: ' + now.toLocaleTimeString();
-    document.getElementById('api-status').textContent = apiStatus;
+    setText('stat-bps', netStats.block_rate ? netStats.block_rate.toFixed(2) : '-');
+    setText('stat-reward', latestBlock && latestBlock.reward ? latestBlock.reward : '-');
+    setText('stat-tx24h', netStats.tx_count_24h ? netStats.tx_count_24h.toLocaleString() : '-');
+    setText('stat-supply', supplyStats.circulating && supplyStats.total ? `${parseFloat(supplyStats.circulating).toLocaleString()} / ${parseFloat(supplyStats.total).toLocaleString()}` : '-');
+    setText('stat-hashrate', netStats.network_hashrate ? `${(netStats.network_hashrate/1e12).toFixed(2)} TH/s` : '-');
+    setText('stats-source', 'Quelle: ' + (source === MAIN_API ? 'Eigene Node' : 'Kaspa.org'));
+    setText('stats-updated', 'Letztes Update: ' + now.toLocaleTimeString());
+    setText('api-status', apiStatus);
   } else {
     // Fehlerfall: alles leeren
-    document.getElementById('stat-bps').textContent = '-';
-    document.getElementById('stat-reward').textContent = '-';
-    document.getElementById('stat-tx24h').textContent = '-';
-    document.getElementById('stat-supply').textContent = '-';
-    document.getElementById('stat-hashrate').textContent = '-';
-    document.getElementById('stats-source').textContent = 'Quelle: -';
-    document.getElementById('stats-updated').textContent = 'Letztes Update: -';
-    document.getElementById('api-status').textContent = 'offline';
+    setText('stat-bps', '-');
+    setText('stat-reward', '-');
+    setText('stat-tx24h', '-');
+    setText('stat-supply', '-');
+    setText('stat-hashrate', '-');
+    setText('stats-source', 'Quelle: -');
+    setText('stats-updated', 'Letztes Update: -');
+    setText('api-status', 'offline');
   }
 }
 

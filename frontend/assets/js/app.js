@@ -1,9 +1,9 @@
-document.getElementById('createOrder').addEventListener('click', async ()=>{
+document.getElementById('createOrder')?.addEventListener('click', async ()=>{
   const from = document.getElementById('fromChain').value;
   const to = document.getElementById('toChain').value;
   const amount = document.getElementById('amount').value;
   const statusLog = document.getElementById('statusLog');
-  statusLog.innerText += `Creating order: ${amount} from ${from} to ${to}\n`;
+  if (statusLog) statusLog.innerText += `Creating order: ${amount} from ${from} to ${to}\n`;
 
   // address: prefer connected wallet state or fallback to stored address
   const address = window.walletState && window.walletState.address ? window.walletState.address : localStorage.getItem('klassik_address');

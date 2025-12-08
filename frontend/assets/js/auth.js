@@ -7,7 +7,7 @@ const API_URL = window.location.origin;
 
 // State
 let currentUser = null;
-const { openModal, closeModal, showToast, setLoadingState, showFormError } = window.AnimationHelpers || {};
+const AnimationHelpers = window.AnimationHelpers || {};
 
 /**
  * Initialize auth on page load
@@ -42,8 +42,8 @@ function initAuth() {
  */
 function bindAuthEventListeners() {
   // Show/hide modals (using new modal system)
-  document.getElementById('loginBtn')?.addEventListener('click', () => openModal('loginModal'));
-  document.getElementById('registerBtn')?.addEventListener('click', () => openModal('registerModal'));
+  document.getElementById('loginBtn')?.addEventListener('click', () => AnimationHelpers.openModal && AnimationHelpers.openModal('loginModal'));
+  document.getElementById('registerBtn')?.addEventListener('click', () => AnimationHelpers.openModal && AnimationHelpers.openModal('registerModal'));
   
   // Forms
   document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
@@ -92,11 +92,11 @@ async function handleProfileSave(e) {
   const submitBtn = e.target.querySelector('button[type="submit"]');
   
   if (!email) {
-    showToast('Email required', 'error');
+    AnimationHelpers.showToast && AnimationHelpers.showToast('Email required', 'error');
     return;
   }
 
-  setLoadingState(submitBtn, true);
+  AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, true);
   
   try {
     const res = await fetch(`${API_URL}/api/users/me`, {
@@ -118,14 +118,14 @@ async function handleProfileSave(e) {
     currentUser = data.user;
     localStorage.setItem('klassik_user', JSON.stringify(currentUser));
     updateUIForLoggedInUser(currentUser);
-    closeModal('profileModal');
-    showToast('Profile updated successfully!', 'success');
+    AnimationHelpers.closeModal && AnimationHelpers.closeModal('profileModal');
+    AnimationHelpers.showToast && AnimationHelpers.showToast('Profile updated successfully!', 'success');
     
   } catch (err) {
     console.error('Profile save error', err);
-    showToast(err.message || 'Failed to update profile', 'error');
+    AnimationHelpers.showToast && AnimationHelpers.showToast(err.message || 'Failed to update profile', 'error');
   } finally {
-    setLoadingState(submitBtn, false);
+    AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, false);
   }
 }
 
@@ -134,14 +134,14 @@ async function handleProfileSave(e) {
  */
 function switchToRegister(e) {
   if (e) e.preventDefault();
-  closeModal('loginModal');
-  openModal('registerModal');
+  AnimationHelpers.closeModal && AnimationHelpers.closeModal('loginModal');
+  AnimationHelpers.openModal && AnimationHelpers.openModal('registerModal');
 }
 
 function switchToLogin(e) {
   if (e) e.preventDefault();
-  closeModal('registerModal');
-  openModal('loginModal');
+  AnimationHelpers.closeModal && AnimationHelpers.closeModal('registerModal');
+  AnimationHelpers.openModal && AnimationHelpers.openModal('loginModal');
 }
 
 // Expose switch functions globally
@@ -160,11 +160,11 @@ async function handleLogin(e) {
   
   // Validation
   if (!email || !password) {
-    showFormError('Please fill in all fields', e.target);
+    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Please fill in all fields', e.target);
     return;
   }
   
-  setLoadingState(submitBtn, true);
+  AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, true);
   
   try {
     const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -186,17 +186,17 @@ async function handleLogin(e) {
     
     // Update UI
     updateUIForLoggedInUser(data.user);
-    closeModal('loginModal');
-    showToast('Welcome back! Login successful.', 'success');
+    AnimationHelpers.closeModal && AnimationHelpers.closeModal('loginModal');
+    AnimationHelpers.showToast && AnimationHelpers.showToast('Welcome back! Login successful.', 'success');
     
     // Reset form
     document.getElementById('loginForm').reset();
     
   } catch (error) {
     console.error('Login error:', error);
-    showFormError(error.message, e.target);
+    AnimationHelpers.showFormError && AnimationHelpers.showFormError(error.message, e.target);
   } finally {
-    setLoadingState(submitBtn, false);
+    AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, false);
   }
 }
 
@@ -213,27 +213,27 @@ async function handleRegister(e) {
   
   // Validation
   if (!email || !password || !passwordConfirm) {
-    showFormError('Please fill in all fields', e.target);
+    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Please fill in all fields', e.target);
     return;
   }
   
   if (password !== passwordConfirm) {
-    showFormError('Passwords do not match', e.target);
+    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Passwords do not match', e.target);
     return;
   }
   
   if (password.length < 8) {
-    showFormError('Password must be at least 8 characters', e.target);
+    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Password must be at least 8 characters', e.target);
     return;
   }
   
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    showFormError('Please enter a valid email address', e.target);
+    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Please enter a valid email address', e.target);
     return;
   }
   
-  setLoadingState(submitBtn, true);
+  AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, true);
   
   try {
     const response = await fetch(`${API_URL}/api/auth/register`, {
@@ -255,17 +255,17 @@ async function handleRegister(e) {
     
     // Update UI
     updateUIForLoggedInUser(data.user);
-    closeModal('registerModal');
-    showToast('Account created successfully! Welcome to Klassik.', 'success');
+    AnimationHelpers.closeModal && AnimationHelpers.closeModal('registerModal');
+    AnimationHelpers.showToast && AnimationHelpers.showToast('Account created successfully! Welcome to Klassik.', 'success');
     
     // Reset form
     document.getElementById('registerForm').reset();
     
   } catch (error) {
     console.error('Register error:', error);
-    showFormError(error.message, e.target);
+    AnimationHelpers.showFormError && AnimationHelpers.showFormError(error.message, e.target);
   } finally {
-    setLoadingState(submitBtn, false);
+    AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, false);
   }
 }
 
@@ -274,7 +274,7 @@ async function handleRegister(e) {
  */
 async function connectWallet() {
   if (!window.ethereum) {
-    showToast('Please install MetaMask to connect your wallet', 'error');
+    AnimationHelpers.showToast && AnimationHelpers.showToast('Please install MetaMask to connect your wallet', 'error');
     return;
   }
   
@@ -299,7 +299,7 @@ async function connectWallet() {
       // Wallet not registered, show registration prompt
       const email = prompt('Please enter your email to register this wallet:');
       if (!email) {
-        showToast('Registration cancelled', 'info');
+        AnimationHelpers.showToast && AnimationHelpers.showToast('Registration cancelled', 'info');
         return;
       }
       
@@ -308,7 +308,7 @@ async function connectWallet() {
     
   } catch (error) {
     console.error('Wallet connection error:', error);
-    showToast(error.message || 'Failed to connect wallet', 'error');
+    AnimationHelpers.showToast && AnimationHelpers.showToast(error.message || 'Failed to connect wallet', 'error');
   }
 }
 
@@ -378,7 +378,7 @@ async function walletSignIn(address) {
     
     // Update UI
     updateUIForLoggedInUser(authData.user);
-    showToast('Wallet connected successfully!', 'success');
+    AnimationHelpers.showToast && AnimationHelpers.showToast('Wallet connected successfully!', 'success');
     
   } catch (error) {
     throw error;
@@ -393,7 +393,7 @@ function logout() {
   localStorage.removeItem('klassik_user');
   currentUser = null;
   updateUIForLoggedOutUser();
-  showToast('Logged out successfully', 'info');
+  AnimationHelpers.showToast && AnimationHelpers.showToast('Logged out successfully', 'info');
 }
 
 /**
