@@ -5,8 +5,8 @@ exports.up = (pgm) => {
   // users table (extend with address + nonce fields)
   pgm.createTable('users', {
     id: 'id',
-    email: { type: 'varchar(255)', notNull: true, unique: true },
-    password: { type: 'text', notNull: true },
+    email: { type: 'varchar(255)', notNull: false, unique: true },
+    password: { type: 'text', notNull: false },
     address: { type: 'varchar(255)', notNull: false, unique: true },
     nonce: { type: 'varchar(255)', notNull: false },
     nonce_expiry: { type: 'timestamp', notNull: false },

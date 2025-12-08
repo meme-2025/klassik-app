@@ -2,6 +2,26 @@
 
 Ultramoderne Web3-Plattform mit futuristischem Frontend und Node.js Backend.
 
+## ⚡ Quick Start
+
+```powershell
+# 1. PostgreSQL DB erstellen
+psql -U postgres -c "CREATE DATABASE klassik;"
+
+# 2. Backend starten
+cd backend
+npm install
+npm run migrate:up
+npm run dev
+
+# 3. Browser öffnen
+start http://localhost:3000
+```
+
+**Vollständige Anleitung:** Siehe [`SETUP_ANLEITUNG.md`](./SETUP_ANLEITUNG.md)
+
+---
+
 ## 🚀 Features
 
 - **🎨 Futuristic UI**: Glassmorphism Design mit Particles.js Animationen
@@ -10,6 +30,8 @@ Ultramoderne Web3-Plattform mit futuristischem Frontend und Node.js Backend.
 - **🛍️ Marketplace**: Product listings mit Crypto-Zahlungen
 - **📊 User Dashboard**: Profile management, order tracking
 - **⚡ Modern Stack**: Node.js, Express, PostgreSQL, JWT, ethers.js
+
+---
 
 ## 📁 Projektstruktur
 
@@ -36,17 +58,188 @@ Klassik/
 │   │       ├── animations.js      # UI interactions
 │   │       └── particles-config.js # Background effects
 ├── contracts/         # Smart contracts (Hardhat)
-└── docker-compose.yml
-
+├── SETUP_ANLEITUNG.md    # Vollständige Setup-Anleitung (Deutsch)
+├── ANALYSE_ERGEBNISSE.md # Projekt-Analyse & Architektur
+└── test-api.ps1          # Automatisches Test-Script
 ```
+
+---
 
 ## 🛠️ Installation
 
-### Backend Setup
+### Lokale Entwicklung (Windows)
 
 ```powershell
-# 1. Navigate to backend
+# 1. PostgreSQL DB erstellen
+psql -U postgres
+CREATE DATABASE klassik;
+CREATE USER klassik WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE klassik TO klassik;
+\q
+
+# 2. Backend Setup
 cd backend
+npm install
+npm run migrate:up    # Datenbank-Schema erstellen
+npm run seed          # Test-Daten (optional)
+npm run dev           # Server starten (Port 3000)
+
+# 3. Tests ausführen
+cd ..
+.\test-api.ps1
+```
+
+### Ubuntu Server Deployment
+
+```bash
+# Automatisches Setup-Script (empfohlen)
+curl -fsSL https://raw.githubusercontent.com/meme-2025/klassik-app/main/backend/deploy/setup-ubuntu.sh -o setup.sh
+chmod +x setup.sh
+./setup.sh
+```
+
+**Details:** Siehe [`SETUP_ANLEITUNG.md`](./SETUP_ANLEITUNG.md)
+
+---
+
+## 🧪 Testen
+
+### Automatische Tests
+
+```powershell
+.\test-api.ps1
+```
+
+### Manuelle Tests
+
+```powershell
+# Health Check
+curl http://localhost:3000/health
+
+# Register
+curl -X POST http://localhost:3000/api/auth/register `
+  -H "Content-Type: application/json" `
+  -d '{"email":"test@example.com","password":"test123"}'
+
+# Login
+curl -X POST http://localhost:3000/api/auth/login `
+  -H "Content-Type: application/json" `
+  -d '{"email":"test@example.com","password":"test123"}'
+```
+
+---
+
+## 📚 Dokumentation
+
+| Datei | Beschreibung |
+|-------|--------------|
+| [SETUP_ANLEITUNG.md](./SETUP_ANLEITUNG.md) | Vollständige Setup & Deployment Anleitung |
+| [ANALYSE_ERGEBNISSE.md](./ANALYSE_ERGEBNISSE.md) | Architektur, API-Docs, Troubleshooting |
+| [DEPLOY_UBUNTU.md](./DEPLOY_UBUNTU.md) | Ubuntu Server Deployment (alt) |
+| [backend/README.md](./backend/README.md) | Backend-spezifische Dokumentation |
+
+---
+
+## 🔐 API Endpoints
+
+### Public
+- `POST /api/auth/register` - Email/Password Registrierung
+- `POST /api/auth/login` - Login
+- `GET /api/auth/nonce?address=0x...` - Wallet-Auth Nonce
+- `POST /api/auth/signin-with-wallet` - Wallet-Auth
+- `GET /api/products` - Produktliste
+
+### Protected (JWT Token required)
+- `GET /api/users/me` - User-Profil
+- `POST /api/orders` - Order erstellen
+- `GET /api/bookings` - Bookings abrufen
+
+**Vollständige API-Docs:** Siehe [`ANALYSE_ERGEBNISSE.md`](./ANALYSE_ERGEBNISSE.md#-api-endpoints-vollständig)
+
+---
+
+## 🐛 Troubleshooting
+
+### Backend startet nicht
+```powershell
+# Logs prüfen
+npm run dev
+
+# Häufige Fehler:
+# - PostgreSQL läuft nicht: pg_ctl start
+# - Port 3000 belegt: netstat -ano | findstr :3000
+# - DB-Verbindung fehlgeschlagen: .env prüfen
+```
+
+### Frontend lädt nicht
+```powershell
+# Backend muss laufen (seriert Frontend unter /)
+cd backend
+npm run dev
+
+# Browser öffnen
+start http://localhost:3000
+```
+
+### Wallet Connect funktioniert nicht
+1. MetaMask installieren
+2. Browser-Konsole (F12) öffnen
+3. Auf Ethereum Mainnet wechseln
+4. Fehler in Console prüfen
+
+**Weitere Lösungen:** [`SETUP_ANLEITUNG.md#troubleshooting`](./SETUP_ANLEITUNG.md#-troubleshooting)
+
+---
+
+## 🔄 Updates deployen (Ubuntu)
+
+```bash
+cd /opt/klassik
+git pull origin main
+cd backend
+npm ci --production
+npm run migrate:up
+sudo systemctl restart klassik
+sudo journalctl -u klassik -f
+```
+
+---
+
+## 🛡️ Sicherheit
+
+- ✅ JWT-basierte Authentifizierung
+- ✅ bcrypt Password-Hashing
+- ✅ CORS Protection
+- ✅ Rate Limiting (Express)
+- ✅ SQL Injection Prevention (Parameterized Queries)
+- ⚠️ Für Production: SSL/TLS, starke Secrets, Firewall
+
+---
+
+## 🤝 Contributing
+
+1. Fork das Repo
+2. Feature Branch erstellen (`git checkout -b feature/AmazingFeature`)
+3. Änderungen committen (`git commit -m 'Add AmazingFeature'`)
+4. Branch pushen (`git push origin feature/AmazingFeature`)
+5. Pull Request erstellen
+
+---
+
+## 📄 License
+
+MIT License - siehe [LICENSE](LICENSE)
+
+---
+
+## 📞 Support
+
+- **Issues:** https://github.com/meme-2025/klassik-app/issues
+- **Dokumentation:** [`SETUP_ANLEITUNG.md`](./SETUP_ANLEITUNG.md)
+
+---
+
+**Built with ❤️ using Node.js, Express, PostgreSQL & Web3**
 
 # 2. Install dependencies
 npm install

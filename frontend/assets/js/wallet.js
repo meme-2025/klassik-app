@@ -35,7 +35,7 @@ async function connectWallet(){
 
 async function fetchAndShowUser(address) {
   try {
-    const res = await fetch(`${API_URL}/auth/user?address=${address}`);
+    const res = await fetch(`${API_URL}/api/auth/user?address=${address}`);
     if (res.ok) {
       const { user } = await res.json();
       showUserInfo(user);
@@ -69,7 +69,7 @@ function showRegisterForm(address) {
     const email = document.getElementById('registerEmail').value;
     if (!email) return alert('Bitte Email angeben');
     try {
-      const r = await fetch(`${API_URL}/auth/user`, {
+      const r = await fetch(`${API_URL}/api/auth/user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address, email })
@@ -93,7 +93,7 @@ function showRegisterForm(address) {
 async function authenticateWallet(address) {
   try {
     // Step 1: Get nonce
-    const nonceRes = await fetch(`${API_URL}/auth/nonce?address=${address}`);
+    const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`);
     const { nonce, message } = await nonceRes.json();
     
     if (!nonce) throw new Error('Failed to get nonce');
@@ -105,7 +105,7 @@ async function authenticateWallet(address) {
     });
     
     // Step 3: Verify signature and get JWT
-    const authRes = await fetch(`${API_URL}/auth/signin-with-wallet`, {
+    const authRes = await fetch(`${API_URL}/api/auth/signin-with-wallet`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ address, signature })
@@ -134,7 +134,7 @@ async function authenticateWallet(address) {
   async function performSigninFlow(address) {
     try {
       // Request nonce (only possible if address is registered)
-      const nonceRes = await fetch(`${API_URL}/auth/nonce?address=${address}`);
+      const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`);
       if (!nonceRes.ok) {
         const e = await nonceRes.json();
         throw new Error(e.error || 'nonce request failed');
@@ -145,7 +145,7 @@ async function authenticateWallet(address) {
       const signature = await signer.signMessage(message);
 
       // send signin
-      const authRes = await fetch(`${API_URL}/auth/signin-with-wallet`, {
+      const authRes = await fetch(`${API_URL}/api/auth/signin-with-wallet`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address, signature })

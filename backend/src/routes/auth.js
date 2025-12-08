@@ -210,4 +210,13 @@ router.post('/user', async (req, res, next) => {
   }
 });
 
+// Import wallet auth controller functions
+const authController = require('../controllers/auth');
+
+// GET /api/auth/nonce?address=0x...
+router.get('/nonce', authController.getNonce);
+
+// POST /api/auth/signin-with-wallet
+router.post('/signin-with-wallet', authController.signInWithWallet);
+
 module.exports = router;
