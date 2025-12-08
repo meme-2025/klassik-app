@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Kaspa Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0A0E27;
+            color: #00ff88;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        h1 {
+            color: #00D9C5;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #00D9C5;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #00ff88;
+            margin: 30px 0 15px;
+            font-size: 1.2rem;
+        }
+        
+        .test-section {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #00D9C5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status.loading {
+            background: #ffa500;
+            color: #000;
+        }
+        
+        .status.success {
+            background: #00ff88;
+            color: #000;
+        }
+        
+        .status.error {
+            background: #ff4757;
+            color: #fff;
+        }
+        
+        .data-display {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .data-display pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .error-msg {
+            color: #ff4757;
+            font-weight: bold;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #00D9C5, #0099CC);
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 217, 197, 0.5);
+        }
+        
+        .test-info {
+            color: #ffffff;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(0, 217, 197, 0.1);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 Kaspa API Test Suite</h1>
+    
+    <div class="test-info">
+        <strong>Dieser Test zeigt die ECHTEN API-Antworten und ob Daten korrekt geladen werden.</strong>
+        <br>Klicke auf "Test All APIs" um alle Endpunkte zu testen.
+    </div>
+
+    <button onclick="testAllAPIs()">🚀 Test All APIs</button>
+    <button onclick="location.reload()">🔄 Reset</button>
+
+    <!-- CoinGecko Price Test -->
+    <div class="test-section">
+        <h2>1. CoinGecko Price API <span id="price-status" class="status">Not tested</span></h2>
+        <button onclick="testPriceAPI()">Test Price API</button>
+        <div id="price-result" class="data-display" style="display:none;"></div>
+    </div>
+
+    <!-- Kaspa Blocks Test -->
+    <div class="test-section">
+        <h2>2. Kaspa Blocks API (Fallback) <span id="blocks-status" class="status">Not tested</span></h2>
+        <button onclick="testBlocksAPI()">Test Blocks API</button>
+        <div id="blocks-result" class="data-display" style="display:none;"></div>
+    </div>
+
+    <!-- Kaspa Transactions Test -->
+    <div class="test-section">
+        <h2>3. Kaspa Transactions API (Fallback) <span id="tx-status" class="status">Not tested</span></h2>
+        <button onclick="testTransactionsAPI()">Test Transactions API</button>
+        <div id="tx-result" class="data-display" style="display:none;"></div>
+    </div>
+
+    <!-- Kaspa Network Stats Test -->
+    <div class="test-section">
+        <h2>4. Kaspa Network Stats API (Fallback) <span id="network-status" class="status">Not tested</span></h2>
+        <button onclick="testNetworkAPI()">Test Network API</button>
+        <div id="network-result" class="data-display" style="display:none;"></div>
+    </div>
+
+    <!-- Local Node Test -->
+    <div class="test-section">
+        <h2>5. Local Node Connection <span id="local-status" class="status">Not tested</span></h2>
+        <button onclick="testLocalNode()">Test Local Node</button>
+        <div id="local-result" class="data-display" style="display:none;"></div>
+    </div>
+
+    <script>
+        const COINGECKO_API = 'https://api.coingecko.com/api/v3';
+        const LOCAL_NODE_API = 'http://localhost:8080';
+        const FALLBACK_API = 'https://api.kaspaexplorer.io';
+
+        function setStatus(id, status, text) {
+            const elem = document.getElementById(id);
+            elem.className = `status ${status}`;
+            elem.textContent = text || status;
+        }
+
+        function displayResult(id, data, isError = false) {
+            const elem = document.getElementById(id);
+            elem.style.display = 'block';
+            if (isError) {
+                elem.innerHTML = `<pre class="error-msg">${JSON.stringify(data, null, 2)}</pre>`;
+            } else {
+                elem.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+        }
+
+        async function testPriceAPI() {
+            setStatus('price-status', 'loading', 'Testing...');
+            try {
+                const response = await fetch(`${COINGECKO_API}/simple/price?ids=kaspa&vs_currencies=usd,btc&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.kaspa && data.kaspa.usd) {
+                    setStatus('price-status', 'success', `✓ Success - $${data.kaspa.usd}`);
+                    displayResult('price-result', data);
+                } else {
+                    setStatus('price-status', 'error', '✗ No valid data');
+                    displayResult('price-result', data, true);
+                }
+            } catch (error) {
+                setStatus('price-status', 'error', `✗ ${error.message}`);
+                displayResult('price-result', { error: error.message, stack: error.stack }, true);
+            }
+        }
+
+        async function testBlocksAPI() {
+            setStatus('blocks-status', 'loading', 'Testing...');
+            try {
+                // Try local first
+                let response;
+                try {
+                    response = await fetch(`${LOCAL_NODE_API}/blocks?limit=5`, { timeout: 3000 });
+                } catch (e) {
+                    console.log('Local node nicht erreichbar, nutze Fallback');
+                    response = await fetch(`${FALLBACK_API}/blocks?limit=5`);
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data && Array.isArray(data.blocks) && data.blocks.length > 0) {
+                    setStatus('blocks-status', 'success', `✓ Success - ${data.blocks.length} blocks`);
+                    displayResult('blocks-result', data);
+                } else {
+                    setStatus('blocks-status', 'error', '✗ No valid blocks data');
+                    displayResult('blocks-result', data, true);
+                }
+            } catch (error) {
+                setStatus('blocks-status', 'error', `✗ ${error.message}`);
+                displayResult('blocks-result', { error: error.message, stack: error.stack }, true);
+            }
+        }
+
+        async function testTransactionsAPI() {
+            setStatus('tx-status', 'loading', 'Testing...');
+            try {
+                let response;
+                try {
+                    response = await fetch(`${LOCAL_NODE_API}/transactions?limit=5`, { timeout: 3000 });
+                } catch (e) {
+                    console.log('Local node nicht erreichbar, nutze Fallback');
+                    response = await fetch(`${FALLBACK_API}/transactions?limit=5`);
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data && Array.isArray(data.transactions) && data.transactions.length > 0) {
+                    setStatus('tx-status', 'success', `✓ Success - ${data.transactions.length} txs`);
+                    displayResult('tx-result', data);
+                } else {
+                    setStatus('tx-status', 'error', '✗ No valid transactions data');
+                    displayResult('tx-result', data, true);
+                }
+            } catch (error) {
+                setStatus('tx-status', 'error', `✗ ${error.message}`);
+                displayResult('tx-result', { error: error.message, stack: error.stack }, true);
+            }
+        }
+
+        async function testNetworkAPI() {
+            setStatus('network-status', 'loading', 'Testing...');
+            try {
+                let response;
+                try {
+                    response = await fetch(`${LOCAL_NODE_API}/network`, { timeout: 3000 });
+                } catch (e) {
+                    console.log('Local node nicht erreichbar, nutze Fallback');
+                    response = await fetch(`${FALLBACK_API}/network`);
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data && (data.hashrate || data.daaScore)) {
+                    setStatus('network-status', 'success', '✓ Success');
+                    displayResult('network-result', data);
+                } else {
+                    setStatus('network-status', 'error', '✗ No valid network data');
+                    displayResult('network-result', data, true);
+                }
+            } catch (error) {
+                setStatus('network-status', 'error', `✗ ${error.message}`);
+                displayResult('network-result', { error: error.message, stack: error.stack }, true);
+            }
+        }
+
+        async function testLocalNode() {
+            setStatus('local-status', 'loading', 'Testing...');
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 3000);
+                
+                const response = await fetch(`${LOCAL_NODE_API}/network`, { 
+                    signal: controller.signal 
+                });
+                clearTimeout(timeout);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                setStatus('local-status', 'success', '✓ Local node is running!');
+                displayResult('local-result', data);
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    setStatus('local-status', 'error', '✗ Timeout - Node not running');
+                    displayResult('local-result', { 
+                        error: 'Local node nicht erreichbar auf http://localhost:8080',
+                        note: 'Das ist normal wenn du den Node noch nicht gebaut hast.',
+                        fallback: 'Der Explorer nutzt automatisch die Public API als Fallback.'
+                    }, true);
+                } else {
+                    setStatus('local-status', 'error', `✗ ${error.message}`);
+                    displayResult('local-result', { error: error.message }, true);
+                }
+            }
+        }
+
+        async function testAllAPIs() {
+            console.log('🚀 Starting comprehensive API tests...');
+            await testPriceAPI();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testBlocksAPI();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testTransactionsAPI();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testNetworkAPI();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testLocalNode();
+            console.log('✅ All tests completed!');
+        }
+
+        // Auto-run on load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Test page loaded. Click "Test All APIs" to begin.');
+        });
+    </script>
+</body>
+</html>

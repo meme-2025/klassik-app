@@ -141,6 +141,82 @@ section {
     border-bottom: 1px solid rgba(0, 217, 197, 0.1);
 }
 
+/* Update Timer Animation */
+.update-timer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: rgba(0, 217, 197, 0.1);
+    border: 1px solid rgba(0, 217, 197, 0.3);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    width: fit-content;
+}
+
+.timer-circle {
+    position: relative;
+    width: 40px;
+    height: 40px;
+}
+
+.timer-svg {
+    transform: rotate(-90deg);
+}
+
+.timer-bg {
+    fill: none;
+    stroke: rgba(0, 217, 197, 0.2);
+    stroke-width: 3;
+}
+
+.timer-progress {
+    fill: none;
+    stroke: #00D9C5;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear;
+}
+
+.timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #00D9C5;
+}
+
+.timer-label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+}
+
+/* Loading Pulse Animation */
+.loading-pulse {
+    color: rgba(255, 255, 255, 0.5);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Data Update Flash */
+.stat-update-flash {
+    animation: flashUpdate 0.5s ease-out;
+}
+
+@keyframes flashUpdate {
+    0% { background: rgba(0, 217, 197, 0.3); }
+    100% { background: transparent; }
+}
+
 .stats-row {
     display: flex;
     align-items: center;

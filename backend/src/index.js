@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const eventsRoutes = require('./routes/events');
 const bookingsRoutes = require('./routes/bookings');
 const usersRoutes = require('./routes/users');
+const kaspaRoutes = require('./routes/kaspa');
 const ordersController = require('./controllers/orders');
 const productsController = require('./controllers/products');
 const paymentsController = require('./controllers/payments');
@@ -42,6 +43,9 @@ app.get('/health', (req, res) => res.json({
 
 // Auth routes (public with rate limiting)
 app.use('/api/auth', rateLimit(60000, 20), authRoutes);
+
+// Kaspa blockchain routes (public)
+app.use('/api/kaspa', kaspaRoutes);
 
 // Events routes
 app.use('/api/events', eventsRoutes);
@@ -114,6 +118,7 @@ app.listen(PORT, () => {
   console.log('  API Endpoints:');
   console.log('  - POST   /api/auth/register');
   console.log('  - POST   /api/auth/login');
+  console.log('  - GET    /api/kaspa/stats');
   console.log('  - GET    /api/products');
   console.log('  - POST   /api/payments/invoice');
   console.log('  - POST   /api/orders');
