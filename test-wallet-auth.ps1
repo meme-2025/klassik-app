@@ -1,7 +1,8 @@
 # Klassik Wallet Authentication Test
 # Testet den kompletten Wallet-Sign Flow
 
-$BASE_URL = "http://localhost:3000"
+# ⚠️ ÄNDERE DIESE IP ZU DEINER SERVER-IP!
+$BASE_URL = "http://192.168.2.148:8130"  # z.B. http://192.168.1.100:8130
 $API_URL = "$BASE_URL/api"
 
 Write-Host ""
