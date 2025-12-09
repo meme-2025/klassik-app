@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klassik - Dashboard</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>🎵 KLASSIK Dashboard</h1>
+            <div class="user-info">
+                <span id="userDisplay">Loading...</span>
+                <button id="logoutBtn" onclick="handleLogout()">Logout</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="welcome-section">
+                <h2>Willkommen! 🎉</h2>
+                <p>Du bist erfolgreich eingeloggt.</p>
+            </div>
+
+            <div class="content">
+                <div class="card">
+                    <h3>📊 Deine Stats</h3>
+                    <p>Wallet: <span id="walletDisplay"></span></p>
+                    <p>Username: <span id="usernameDisplay"></span></p>
+                    <p>Token: <span id="tokenDisplay">Active ✅</span></p>
+                </div>
+
+                <div class="card">
+                    <h3>🚀 Features</h3>
+                    <ul>
+                        <li>Wallet Authentication ✅</li>
+                        <li>Secure Login ✅</li>
+                        <li>JWT Token ✅</li>
+                        <li>Protected Routes ✅</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #logoutBtn {
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        #logoutBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(235, 51, 73, 0.4);
+        }
+
+        .welcome-section {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .welcome-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .card p {
+            margin: 0.5rem 0;
+            color: #333;
+        }
+
+        .card ul {
+            list-style: none;
+        }
+
+        .card li {
+            padding: 0.5rem 0;
+            color: #333;
+        }
+
+        #walletDisplay, #usernameDisplay {
+            font-weight: 700;
+            color: #667eea;
+        }
+    </style>
+
+    <script>
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('klassik_token');
+            const user = localStorage.getItem('klassik_user');
+
+            if (!token || !user) {
+                // Not logged in -> redirect to gateway
+                window.location.href = '/gateway.html';
+                return null;
+            }
+
+            return JSON.parse(user);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            // Display user info
+            document.getElementById('userDisplay').textContent = user.username || 'User';
+            document.getElementById('walletDisplay').textContent = 
+                user.wallet ? `${user.wallet.substring(0, 6)}...${user.wallet.substring(38)}` : 'N/A';
+            document.getElementById('usernameDisplay').textContent = user.username || 'N/A';
+
+            console.log('✅ Dashboard loaded for user:', user);
+        });
+
+        // Logout
+        function handleLogout() {
+            localStorage.removeItem('klassik_token');
+            localStorage.removeItem('klassik_user');
+            console.log('✅ Logged out');
+            window.location.href = '/gateway.html';
+        }
+    </script>
+</body>
+</html>

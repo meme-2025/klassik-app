@@ -149,7 +149,7 @@ router.post('/login', async (req, res, next) => {
 });
 
 // GET /auth/user?address=0x...
-// Check if wallet is registered (address stored in email column)
+// Try to match wallet address
 router.get('/user', async (req, res, next) => {
   try {
     const { address } = req.query;
@@ -158,10 +158,9 @@ router.get('/user', async (req, res, next) => {
     }
     
     const normalized = address.toLowerCase();
-    // Wallet address is stored in email column, username in password column
     const result = await db.query(
-      `SELECT id, email as wallet, password as username, created_at FROM users 
-       WHERE LOWER(email) = $1 LIMIT 1`,
+      `SELECT id, email, created_at, address FROM users 
+       WHERE LOWER(address) = $1 LIMIT 1`,
       [normalized]
     );
     
@@ -172,37 +171,33 @@ router.get('/user', async (req, res, next) => {
     const user = result.rows[0];
     res.json({ user });
   } catch (err) {
-    console.error('GET /user error:', err);
     next(err);
   }
 });
 
 // POST /auth/user
-// Register wallet (address → email column, username → password column)
+// Register wallet address (for wallet-only users)
 router.post('/user', async (req, res, next) => {
   try {
-    const { address, username } = req.body;
+    const { address, email } = req.body;
     
     if (!address) {
       return res.status(400).json({ error: 'address is required' });
     }
-    if (!username) {
-      return res.status(400).json({ error: 'username is required' });
+    if (!email) {
+      return res.status(400).json({ error: 'email is required' });
     }
 
-    // Validate username (3-30 chars, alphanumeric + underscore)
-    if (username.length < 3 || username.length > 30) {
-      return res.status(400).json({ error: 'Username must be 3-30 characters' });
-    }
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return res.status(400).json({ error: 'Username can only contain letters, numbers and underscore' });
+    // Validate email
+    if (!validateEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
     }
 
     const normalized = address.toLowerCase();
 
-    // Check if wallet already exists (stored in email column)
+    // Check if wallet already exists
     const exists = await db.query(
-      `SELECT id, email as wallet, password as username FROM users WHERE LOWER(email) = $1 LIMIT 1`,
+      `SELECT id, email, created_at, address FROM users WHERE LOWER(address) = $1 LIMIT 1`,
       [normalized]
     );
     
@@ -213,21 +208,29 @@ router.post('/user', async (req, res, next) => {
       });
     }
 
-    // Create wallet user: email column = wallet address, password column = username
+    // Check if email already exists
+    const emailExists = await db.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (emailExists.rows.length) {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+
+    // Create wallet user (no password field, will use wallet authentication)
     const insert = await db.query(
-      `INSERT INTO users (email, password, created_at) 
+      `INSERT INTO users (address, email, created_at) 
        VALUES ($1, $2, CURRENT_TIMESTAMP) 
-       RETURNING id, email as wallet, password as username, created_at`,
-      [normalized, username]
+       RETURNING id, email, created_at, address`,
+      [normalized, email]
     );
     
     const user = insert.rows[0];
-    const token = generateToken({ id: user.id, email: normalized, address: normalized });
+    const token = generateToken(user);
     
-    console.log('✅ Wallet registered:', normalized, '→ Username:', username);
     res.status(201).json({ user, token, expiresIn: JWT_EXPIRY });
   } catch (err) {
-    console.error('POST /user error:', err);
     next(err);
   }
 });

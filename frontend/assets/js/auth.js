@@ -1,462 +1,350 @@
 /**
- * Authentication Module - Futuristic UI Edition
- * Handles Email/Password and Wallet authentication with modern animations
+ * 🔐 Klassik Wallet-Only Authentication
+ * Krasse MetaMask Integration mit geilen Animations
  */
 
 const API_URL = window.location.origin;
 
 // State
 let currentUser = null;
-const AnimationHelpers = window.AnimationHelpers || {};
+let connectedWallet = null;
 
 /**
- * Initialize auth on page load
+ * 🚀 Initialize
  */
 function initAuth() {
-  // Check if user is already logged in
-  const token = localStorage.getItem('klassik_token');
-  const userDataStr = localStorage.getItem('klassik_user');
+  console.log('🔐 Initializing Wallet Auth...');
   
-  if (token && userDataStr) {
+  // Check if already logged in
+  const token = localStorage.getItem('klassik_token');
+  const userStr = localStorage.getItem('klassik_user');
+  
+  if (token && userStr) {
     try {
-      const userData = JSON.parse(userDataStr);
-      currentUser = userData;
-      updateUIForLoggedInUser(userData);
-      // Try to refresh profile from backend (get canonical fields)
-      fetchProfileMe().catch(() => {});
-      console.log('✅ Auto-logged in:', userData.email || userData.address);
-    } catch (err) {
-      console.error('Failed to parse user data:', err);
+      currentUser = JSON.parse(userStr);
+      updateUILoggedIn(currentUser);
+      console.log('✅ Auto-logged in:', currentUser.username);
+    } catch (e) {
       logout();
     }
   } else {
-    updateUIForLoggedOutUser();
+    updateUILoggedOut();
   }
-
-  // Bind event listeners
-  bindAuthEventListeners();
+  
+  bindEvents();
 }
 
 /**
- * Bind all auth-related event listeners
+ * 🎯 Bind all events
  */
-function bindAuthEventListeners() {
-  // Show/hide modals (using new modal system)
-  document.getElementById('loginBtn')?.addEventListener('click', () => AnimationHelpers.openModal && AnimationHelpers.openModal('loginModal'));
-  document.getElementById('registerBtn')?.addEventListener('click', () => AnimationHelpers.openModal && AnimationHelpers.openModal('registerModal'));
+function bindEvents() {
+  // Login button -> open modal
+  document.getElementById('loginBtn')?.addEventListener('click', () => {
+    window.AnimationHelpers?.openModal('loginModal');
+  });
   
-  // Forms
-  document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
-  document.getElementById('registerForm')?.addEventListener('submit', handleRegister);
+  // Register button -> open modal  
+  document.getElementById('registerBtn')?.addEventListener('click', () => {
+    window.AnimationHelpers?.openModal('registerModal');
+  });
   
   // Logout
   document.getElementById('logoutBtn')?.addEventListener('click', logout);
   
-  // Wallet connect buttons
-  document.querySelectorAll('.wallet-connect-btn').forEach(btn => {
-    btn.addEventListener('click', connectWallet);
+  // Wallet Login Button (in login modal)
+  document.getElementById('walletLoginBtn')?.addEventListener('click', handleWalletLogin);
+  
+  // Email/Password Login Form (fallback)
+  document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    window.AnimationHelpers?.showToast('Please use "Login with Wallet" for secure authentication', 'info');
+  });
+  
+  // Email/Password Register Form (fallback)
+  document.getElementById('registerForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    window.AnimationHelpers?.showToast('Please use the Wallet registration flow', 'info');
   });
 }
 
 /**
- * Fetch /api/users/me and update local stored user
+ * 🌟 WALLET LOGIN FLOW
  */
-async function fetchProfileMe() {
-  const token = getAuthToken();
-  if (!token) return;
+async function handleWalletLogin() {
+  const btn = document.getElementById('walletLoginBtn');
   
   try {
-    const res = await fetch(`${API_URL}/api/users/me`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    if (!res.ok) return;
-    
-    const data = await res.json();
-    if (data && data.user) {
-      currentUser = data.user;
-      localStorage.setItem('klassik_user', JSON.stringify(currentUser));
-      updateUIForLoggedInUser(currentUser);
-    }
-  } catch (error) {
-    console.error('Failed to fetch profile:', error);
-  }
-}
-
-/**
- * Handle profile save (update email)
- */
-async function handleProfileSave(e) {
-  e.preventDefault();
-  const email = document.getElementById('profileEmail').value.trim();
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  
-  if (!email) {
-    AnimationHelpers.showToast && AnimationHelpers.showToast('Email required', 'error');
-    return;
-  }
-
-  AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, true);
-  
-  try {
-    const res = await fetch(`${API_URL}/api/users/me`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getAuthToken()}`
-      },
-      body: JSON.stringify({ email })
-    });
-    
-    const data = await res.json();
-    
-    if (!res.ok) {
-      throw new Error(data.error || 'Update failed');
-    }
-
-    // Update local storage and UI
-    currentUser = data.user;
-    localStorage.setItem('klassik_user', JSON.stringify(currentUser));
-    updateUIForLoggedInUser(currentUser);
-    AnimationHelpers.closeModal && AnimationHelpers.closeModal('profileModal');
-    AnimationHelpers.showToast && AnimationHelpers.showToast('Profile updated successfully!', 'success');
-    
-  } catch (err) {
-    console.error('Profile save error', err);
-    AnimationHelpers.showToast && AnimationHelpers.showToast(err.message || 'Failed to update profile', 'error');
-  } finally {
-    AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, false);
-  }
-}
-
-/**
- * Switch between login and register modals
- */
-function switchToRegister(e) {
-  if (e) e.preventDefault();
-  AnimationHelpers.closeModal && AnimationHelpers.closeModal('loginModal');
-  AnimationHelpers.openModal && AnimationHelpers.openModal('registerModal');
-}
-
-function switchToLogin(e) {
-  if (e) e.preventDefault();
-  AnimationHelpers.closeModal && AnimationHelpers.closeModal('registerModal');
-  AnimationHelpers.openModal && AnimationHelpers.openModal('loginModal');
-}
-
-// Expose switch functions globally
-window.switchToRegister = switchToRegister;
-window.switchToLogin = switchToLogin;
-
-/**
- * Handle login form submission
- */
-async function handleLogin(e) {
-  e.preventDefault();
-  
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  
-  // Validation
-  if (!email || !password) {
-    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Please fill in all fields', e.target);
-    return;
-  }
-  
-  AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, true);
-  
-  try {
-    const response = await fetch(`${API_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Login failed');
+    // Check MetaMask
+    if (!window.ethereum) {
+      window.AnimationHelpers?.showToast('Please install MetaMask to continue', 'error');
+      window.open('https://metamask.io/download/', '_blank');
+      return;
     }
     
-    // Success - save token and user data
-    localStorage.setItem('klassik_token', data.token);
-    localStorage.setItem('klassik_user', JSON.stringify(data.user));
-    currentUser = data.user;
+    window.AnimationHelpers?.setLoadingState(btn, true);
     
-    // Update UI
-    updateUIForLoggedInUser(data.user);
-    AnimationHelpers.closeModal && AnimationHelpers.closeModal('loginModal');
-    AnimationHelpers.showToast && AnimationHelpers.showToast('Welcome back! Login successful.', 'success');
-    
-    // Reset form
-    document.getElementById('loginForm').reset();
-    
-  } catch (error) {
-    console.error('Login error:', error);
-    AnimationHelpers.showFormError && AnimationHelpers.showFormError(error.message, e.target);
-  } finally {
-    AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, false);
-  }
-}
-
-/**
- * Handle register form submission
- */
-async function handleRegister(e) {
-  e.preventDefault();
-  
-  const email = document.getElementById('registerEmail').value.trim();
-  const password = document.getElementById('registerPassword').value;
-  const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  
-  // Validation
-  if (!email || !password || !passwordConfirm) {
-    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Please fill in all fields', e.target);
-    return;
-  }
-  
-  if (password !== passwordConfirm) {
-    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Passwords do not match', e.target);
-    return;
-  }
-  
-  if (password.length < 8) {
-    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Password must be at least 8 characters', e.target);
-    return;
-  }
-  
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    AnimationHelpers.showFormError && AnimationHelpers.showFormError('Please enter a valid email address', e.target);
-    return;
-  }
-  
-  AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, true);
-  
-  try {
-    const response = await fetch(`${API_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Registration failed');
-    }
-    
-    // Success - save token and user data
-    localStorage.setItem('klassik_token', data.token);
-    localStorage.setItem('klassik_user', JSON.stringify(data.user));
-    currentUser = data.user;
-    
-    // Update UI
-    updateUIForLoggedInUser(data.user);
-    AnimationHelpers.closeModal && AnimationHelpers.closeModal('registerModal');
-    AnimationHelpers.showToast && AnimationHelpers.showToast('Account created successfully! Welcome to Klassik.', 'success');
-    
-    // Reset form
-    document.getElementById('registerForm').reset();
-    
-  } catch (error) {
-    console.error('Register error:', error);
-    AnimationHelpers.showFormError && AnimationHelpers.showFormError(error.message, e.target);
-  } finally {
-    AnimationHelpers.setLoadingState && AnimationHelpers.setLoadingState(submitBtn, false);
-  }
-}
-
-/**
- * Connect wallet (MetaMask)
- */
-async function connectWallet() {
-  if (!window.ethereum) {
-    AnimationHelpers.showToast && AnimationHelpers.showToast('Please install MetaMask to connect your wallet', 'error');
-    return;
-  }
-  
-  try {
-    // Request account access
+    // Step 1: Connect Wallet
+    console.log('📱 Requesting wallet connection...');
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const address = accounts[0];
+    connectedWallet = accounts[0];
     
-    if (!address) {
-      throw new Error('No account found');
+    if (!connectedWallet) {
+      throw new Error('No wallet found');
     }
     
-    console.log('Connected wallet:', address);
+    console.log('✅ Wallet connected:', connectedWallet);
+    window.AnimationHelpers?.showToast(`Wallet connected: ${connectedWallet.substring(0, 6)}...${connectedWallet.substring(38)}`, 'success');
     
-    // Check if wallet is already registered
-    const checkResponse = await fetch(`${API_URL}/api/auth/user?address=${address}`);
+    // Step 2: Check if wallet is registered
+    console.log('🔍 Checking if wallet is registered...');
+    const checkRes = await fetch(`${API_URL}/api/auth/user?address=${connectedWallet}`);
     
-    if (checkResponse.ok) {
-      // Wallet exists, do sign-in flow
-      await walletSignIn(address);
-    } else {
-      // Wallet not registered, show registration prompt
-      const email = prompt('Please enter your email to register this wallet:');
-      if (!email) {
-        AnimationHelpers.showToast && AnimationHelpers.showToast('Registration cancelled', 'info');
-        return;
-      }
+    if (checkRes.ok) {
+      // Wallet exists -> Login
+      const { user } = await checkRes.json();
+      console.log('✅ Wallet found! Username:', user.username);
       
-      await registerWallet(address, email);
+      await performWalletSignIn(connectedWallet, user);
+      
+    } else {
+      // Wallet not registered -> Show registration
+      console.log('ℹ️ Wallet not registered, showing registration...');
+      window.AnimationHelpers?.closeModal('loginModal');
+      showWalletRegistration(connectedWallet);
     }
     
   } catch (error) {
-    console.error('Wallet connection error:', error);
-    AnimationHelpers.showToast && AnimationHelpers.showToast(error.message || 'Failed to connect wallet', 'error');
+    console.error('❌ Wallet login error:', error);
+    window.AnimationHelpers?.showToast(error.message || 'Failed to connect wallet', 'error');
+  } finally {
+    window.AnimationHelpers?.setLoadingState(btn, false);
   }
 }
 
 /**
- * Register new wallet
+ * 🔑 Perform Wallet Sign-In (with Nonce)
  */
-async function registerWallet(address, email) {
+async function performWalletSignIn(address, user) {
   try {
-    const response = await fetch(`${API_URL}/api/auth/user`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address, email })
-    });
+    // Step 1: Get Nonce
+    console.log('🎲 Getting nonce...');
+    const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`);
+    const { nonce, message } = await nonceRes.json();
     
-    const data = await response.json();
+    if (!nonce) throw new Error('Failed to get nonce');
     
-    if (!response.ok) {
-      throw new Error(data.error || 'Wallet registration failed');
-    }
-    
-    // Wallet registered, now do sign-in
-    await walletSignIn(address);
-    
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Wallet sign-in flow (nonce-based)
- */
-async function walletSignIn(address) {
-  try {
-    // Step 1: Get nonce
-    const nonceResponse = await fetch(`${API_URL}/api/auth/nonce?address=${address}`);
-    const nonceData = await nonceResponse.json();
-    
-    if (!nonceResponse.ok) {
-      throw new Error(nonceData.error || 'Failed to get nonce');
-    }
-    
-    const { message } = nonceData;
-    
-    // Step 2: Sign message
+    // Step 2: Sign Message
+    console.log('✍️ Requesting signature...');
     const signature = await window.ethereum.request({
       method: 'personal_sign',
       params: [message, address]
     });
     
-    // Step 3: Verify signature and get JWT
-    const authResponse = await fetch(`${API_URL}/api/auth/signin-with-wallet`, {
+    console.log('✅ Message signed!');
+    
+    // Step 3: Verify & Get JWT
+    console.log('🔐 Verifying signature...');
+    const authRes = await fetch(`${API_URL}/api/auth/signin-with-wallet`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ address, signature })
     });
     
-    const authData = await authResponse.json();
-    
-    if (!authResponse.ok) {
-      throw new Error(authData.error || 'Authentication failed');
+    if (!authRes.ok) {
+      const err = await authRes.json();
+      throw new Error(err.error || 'Authentication failed');
     }
     
-    // Success - save token and user data
+    const authData = await authRes.json();
+    
+    // Save to localStorage
     localStorage.setItem('klassik_token', authData.token);
     localStorage.setItem('klassik_user', JSON.stringify(authData.user));
     currentUser = authData.user;
     
     // Update UI
-    updateUIForLoggedInUser(authData.user);
-    AnimationHelpers.showToast && AnimationHelpers.showToast('Wallet connected successfully!', 'success');
+    updateUILoggedIn(currentUser);
+    window.AnimationHelpers?.closeModal('loginModal');
+    window.AnimationHelpers?.showToast(`🎉 Welcome back, ${currentUser.username}!`, 'success');
+    
+    console.log('✅ Login successful!');
     
   } catch (error) {
+    console.error('❌ Sign-in error:', error);
+    window.AnimationHelpers?.showToast(error.message || 'Sign-in failed', 'error');
     throw error;
   }
 }
 
 /**
- * Logout
+ * 📝 Show Wallet Registration UI
+ */
+function showWalletRegistration(address) {
+  const modal = `
+    <div id="walletRegisterModal" class="modal" style="display: flex;">
+      <div class="modal-content glass">
+        <button class="modal-close" onclick="closeWalletRegister()">&times;</button>
+        <h2>🎉 Create Your Account</h2>
+        
+        <div style="text-align: center; margin: 1.5rem 0;">
+          <div style="background: rgba(73, 195, 231, 0.1); padding: 1rem; border-radius: 12px; border: 2px solid rgba(73, 195, 231, 0.3);">
+            <small style="display: block; color: rgba(255,255,255,0.6); margin-bottom: 0.5rem;">Connected Wallet</small>
+            <div style="font-family: monospace; color: #49C3E7; font-weight: bold; word-break: break-all;">
+              ${address.substring(0, 6)}...${address.substring(38)}
+            </div>
+          </div>
+        </div>
+        
+        <form id="walletRegisterForm" onsubmit="handleWalletRegister(event)">
+          <div class="form-group">
+            <label>Choose Your Username</label>
+            <input type="text" id="walletUsername" placeholder="crypto_king" 
+                   pattern="[a-zA-Z0-9_]{3,30}" required
+                   style="text-align: center; font-size: 1.1rem; font-weight: 600;">
+            <small style="display: block; margin-top: 0.5rem; color: rgba(255,255,255,0.5); font-size: 0.85rem;">
+              3-30 characters • Letters, numbers, and underscores only
+            </small>
+          </div>
+          
+          <div id="walletRegisterError" class="form-error"></div>
+          
+          <button type="submit" class="btn-kaspa btn-block" style="margin-top: 1.5rem;">
+            <span>🚀 Sign & Create Account</span>
+          </button>
+        </form>
+        
+        <div class="modal-footer">
+          Already have an account? <a href="#" onclick="closeWalletRegister(); AnimationHelpers.openModal('loginModal')">Login</a>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Remove old modal if exists
+  document.getElementById('walletRegisterModal')?.remove();
+  
+  // Add new modal
+  document.body.insertAdjacentHTML('beforeend', modal);
+}
+
+/**
+ * ✅ Handle Wallet Registration
+ */
+window.handleWalletRegister = async function(e) {
+  e.preventDefault();
+  
+  const username = document.getElementById('walletUsername').value.trim();
+  const errorDiv = document.getElementById('walletRegisterError');
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  
+  if (!username) {
+    errorDiv.textContent = 'Please enter a username';
+    return;
+  }
+  
+  if (username.length < 3 || username.length > 30) {
+    errorDiv.textContent = 'Username must be 3-30 characters';
+    return;
+  }
+  
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    errorDiv.textContent = 'Only letters, numbers, and underscores allowed';
+    return;
+  }
+  
+  try {
+    window.AnimationHelpers?.setLoadingState(submitBtn, true);
+    errorDiv.textContent = '';
+    
+    // Step 1: Register wallet + username
+    console.log('📝 Registering wallet with username...');
+    const regRes = await fetch(`${API_URL}/api/auth/user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        address: connectedWallet, 
+        username: username 
+      })
+    });
+    
+    if (!regRes.ok) {
+      const err = await regRes.json();
+      throw new Error(err.error || 'Registration failed');
+    }
+    
+    const { user } = await regRes.json();
+    console.log('✅ Wallet registered!');
+    
+    // Step 2: Sign in with wallet
+    await performWalletSignIn(connectedWallet, user);
+    
+    // Close registration modal
+    document.getElementById('walletRegisterModal')?.remove();
+    
+  } catch (error) {
+    console.error('❌ Registration error:', error);
+    errorDiv.textContent = error.message;
+  } finally {
+    window.AnimationHelpers?.setLoadingState(submitBtn, false);
+  }
+};
+
+/**
+ * 🚪 Close Wallet Register Modal
+ */
+window.closeWalletRegister = function() {
+  document.getElementById('walletRegisterModal')?.remove();
+};
+
+/**
+ * 🔓 Logout
  */
 function logout() {
   localStorage.removeItem('klassik_token');
   localStorage.removeItem('klassik_user');
   currentUser = null;
-  updateUIForLoggedOutUser();
-  AnimationHelpers.showToast && AnimationHelpers.showToast('Logged out successfully', 'info');
+  connectedWallet = null;
+  updateUILoggedOut();
+  window.AnimationHelpers?.showToast('Logged out successfully', 'info');
 }
 
 /**
- * Update UI for logged-in user
+ * 🎨 Update UI - Logged In
  */
-function updateUIForLoggedInUser(user) {
-  // Update nav actions (hide login/register, show user menu)
-  const loginBtn = document.getElementById('loginBtn');
-  const registerBtn = document.getElementById('registerBtn');
-  const userMenu = document.getElementById('userMenu');
+function updateUILoggedIn(user) {
+  document.getElementById('loginBtn').style.display = 'none';
+  document.getElementById('registerBtn').style.display = 'none';
+  document.getElementById('userMenu').style.display = 'flex';
+  document.getElementById('userName').textContent = user.username || 'User';
   
-  if (loginBtn) loginBtn.style.display = 'none';
-  if (registerBtn) registerBtn.style.display = 'none';
-  if (userMenu) userMenu.style.display = 'flex';
-  
-  // Update user display name
-  const userNameEl = document.getElementById('userName');
-  if (userNameEl) {
-    userNameEl.textContent = user.email || 
-      (user.address ? `${user.address.substring(0, 6)}...${user.address.substring(38)}` : 'User');
-  }
-  
-  console.log('✅ UI updated for user:', user.email || user.address);
+  console.log('✅ UI updated for:', user.username);
 }
 
 /**
- * Update UI for logged-out user
+ * 🎨 Update UI - Logged Out
  */
-function updateUIForLoggedOutUser() {
-  const loginBtn = document.getElementById('loginBtn');
-  const registerBtn = document.getElementById('registerBtn');
-  const userMenu = document.getElementById('userMenu');
-  
-  if (loginBtn) loginBtn.style.display = 'inline-flex';
-  if (registerBtn) registerBtn.style.display = 'inline-flex';
-  if (userMenu) userMenu.style.display = 'none';
-  
-  console.log('ℹ️ User logged out');
+function updateUILoggedOut() {
+  document.getElementById('loginBtn').style.display = 'inline-flex';
+  document.getElementById('registerBtn').style.display = 'inline-flex';
+  document.getElementById('userMenu').style.display = 'none';
 }
 
 /**
- * Get current auth token
+ * 📦 Utility Functions
  */
 function getAuthToken() {
   return localStorage.getItem('klassik_token');
 }
 
-/**
- * Get current user
- */
 function getCurrentUser() {
   return currentUser;
 }
 
-/**
- * Check if user is authenticated
- */
 function isAuthenticated() {
   const token = getAuthToken();
   if (!token) return false;
   
   try {
-    // Basic JWT expiry check
     const payload = JSON.parse(atob(token.split('.')[1]));
     return payload.exp * 1000 > Date.now();
   } catch {
@@ -464,15 +352,14 @@ function isAuthenticated() {
   }
 }
 
-// Export functions to window
+// 🌍 Export to window
 window.initAuth = initAuth;
 window.getAuthToken = getAuthToken;
 window.getCurrentUser = getCurrentUser;
 window.isAuthenticated = isAuthenticated;
-window.showToast = showToast;
 window.logout = logout;
 
-// Initialize on DOM ready
+// 🚀 Auto-init
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initAuth);
 } else {

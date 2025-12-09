@@ -1,0 +1,106 @@
+/* Wallet-Only Auth Styles */
+
+/* User Menu in Navigation */
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.user-info i {
+    font-size: 1.2rem;
+    color: var(--kaspa-blue, #49C3E7);
+}
+
+.user-info span {
+    font-weight: 500;
+    color: white;
+}
+
+/* Wallet Address Display */
+.wallet-address-display {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: rgba(73, 195, 231, 0.1);
+    border: 1px solid rgba(73, 195, 231, 0.3);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.wallet-address-display small {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.wallet-address {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: var(--kaspa-blue, #49C3E7);
+    word-break: break-all;
+    font-weight: 600;
+}
+
+/* Modal Description */
+.modal-description {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Form Hint */
+.form-hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+/* Animation for showing/hiding sections */
+#registerUsernameSection,
+#usernameInputSection {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .user-menu {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .user-info {
+        font-size: 0.9rem;
+    }
+    
+    .wallet-address {
+        font-size: 0.75rem;
+    }
+}

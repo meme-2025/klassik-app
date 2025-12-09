@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Klassik</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+        .test-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        button {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .config {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        .status-online { background: #d4edda; color: #155724; }
+        .status-offline { background: #f8d7da; color: #721c24; }
+        .endpoint {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Klassik API Test Suite</h1>
+        
+        <div class="config">
+            <strong>📍 Aktuelle Konfiguration:</strong><br>
+            <span id="apiUrl"></span><br>
+            <span id="statusBadge"></span>
+        </div>
+
+        <!-- Test 1: Health Check -->
+        <div class="test-section">
+            <h2>1️⃣ Health Check (GET)</h2>
+            <p>Testet: <span class="endpoint">GET /health</span></p>
+            <button onclick="testHealth()">Test Health</button>
+            <div id="healthResult"></div>
+        </div>
+
+        <!-- Test 2: CORS -->
+        <div class="test-section">
+            <h2>2️⃣ CORS Test</h2>
+            <p>Testet: Cross-Origin Resource Sharing</p>
+            <button onclick="testCORS()">Test CORS</button>
+            <div id="corsResult"></div>
+        </div>
+
+        <!-- Test 3: Check User (GET) -->
+        <div class="test-section">
+            <h2>3️⃣ Check User existiert (GET)</h2>
+            <p>Testet: <span class="endpoint">GET /api/auth/user?address=0x...</span></p>
+            <input type="text" id="checkAddress" placeholder="0x..." style="width: 100%; padding: 0.8rem; margin: 0.5rem 0; border-radius: 8px; border: 2px solid #ddd;">
+            <button onclick="testCheckUser()">Check User</button>
+            <div id="checkUserResult"></div>
+        </div>
+
+        <!-- Test 4: Register User (POST) -->
+        <div class="test-section">
+            <h2>4️⃣ Register User (POST)</h2>
+            <p>Testet: <span class="endpoint">POST /api/auth/user</span></p>
+            <input type="text" id="regAddress" placeholder="Wallet Address (0x...)" style="width: 100%; padding: 0.8rem; margin: 0.5rem 0; border-radius: 8px; border: 2px solid #ddd;">
+            <input type="text" id="regUsername" placeholder="Username" style="width: 100%; padding: 0.8rem; margin: 0.5rem 0; border-radius: 8px; border: 2px solid #ddd;">
+            <button onclick="testRegister()">Register</button>
+            <div id="registerResult"></div>
+        </div>
+
+        <!-- Test 5: Get Nonce (GET) -->
+        <div class="test-section">
+            <h2>5️⃣ Get Nonce (GET)</h2>
+            <p>Testet: <span class="endpoint">GET /api/auth/nonce?address=0x...</span></p>
+            <input type="text" id="nonceAddress" placeholder="0x..." style="width: 100%; padding: 0.8rem; margin: 0.5rem 0; border-radius: 8px; border: 2px solid #ddd;">
+            <button onclick="testNonce()">Get Nonce</button>
+            <div id="nonceResult"></div>
+        </div>
+
+        <!-- Test 6: Full Flow -->
+        <div class="test-section">
+            <h2>🚀 Complete Wallet Auth Flow</h2>
+            <p>Testet: Kompletter Ablauf mit MetaMask</p>
+            <button onclick="testFullFlow()">Test Full Flow</button>
+            <div id="flowResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        
+        // Initialize
+        window.addEventListener('load', async () => {
+            document.getElementById('apiUrl').textContent = `API URL: ${API_URL}`;
+            
+            // Check if backend is online
+            try {
+                const res = await fetch(`${API_URL}/health`);
+                if (res.ok) {
+                    document.getElementById('statusBadge').innerHTML = 
+                        '<span class="status-badge status-online">✅ Backend Online</span>';
+                } else {
+                    throw new Error('Not OK');
+                }
+            } catch (err) {
+                document.getElementById('statusBadge').innerHTML = 
+                    '<span class="status-badge status-offline">❌ Backend Offline</span>';
+            }
+        });
+
+        // Test 1: Health Check
+        async function testHealth() {
+            const result = document.getElementById('healthResult');
+            result.innerHTML = '<div class="result info">Testing...</div>';
+            
+            try {
+                const start = Date.now();
+                const res = await fetch(`${API_URL}/health`);
+                const data = await res.json();
+                const duration = Date.now() - start;
+                
+                result.innerHTML = `<div class="result success">
+✅ Success (${duration}ms)
+Status: ${res.status}
+Response: ${JSON.stringify(data, null, 2)}
+                </div>`;
+            } catch (err) {
+                result.innerHTML = `<div class="result error">
+❌ Error: ${err.message}
+                </div>`;
+            }
+        }
+
+        // Test 2: CORS
+        async function testCORS() {
+            const result = document.getElementById('corsResult');
+            result.innerHTML = '<div class="result info">Testing CORS headers...</div>';
+            
+            try {
+                const res = await fetch(`${API_URL}/health`);
+                const corsHeader = res.headers.get('Access-Control-Allow-Origin');
+                
+                result.innerHTML = `<div class="result success">
+✅ CORS Headers:
+Access-Control-Allow-Origin: ${corsHeader || 'Not Set'}
+Access-Control-Allow-Credentials: ${res.headers.get('Access-Control-Allow-Credentials') || 'Not Set'}
+                </div>`;
+            } catch (err) {
+                result.innerHTML = `<div class="result error">
+❌ CORS Error: ${err.message}
+                </div>`;
+            }
+        }
+
+        // Test 3: Check User
+        async function testCheckUser() {
+            const result = document.getElementById('checkUserResult');
+            const address = document.getElementById('checkAddress').value.trim();
+            
+            if (!address) {
+                result.innerHTML = '<div class="result error">❌ Bitte Wallet-Adresse eingeben</div>';
+                return;
+            }
+            
+            result.innerHTML = '<div class="result info">Checking...</div>';
+            
+            try {
+                const res = await fetch(`${API_URL}/api/auth/user?address=${encodeURIComponent(address)}`);
+                const data = await res.json();
+                
+                if (res.ok) {
+                    result.innerHTML = `<div class="result success">
+✅ User gefunden!
+Status: ${res.status}
+Response: ${JSON.stringify(data, null, 2)}
+                    </div>`;
+                } else {
+                    result.innerHTML = `<div class="result info">
+ℹ️ User nicht gefunden (erwartbar)
+Status: ${res.status}
+Response: ${JSON.stringify(data, null, 2)}
+                    </div>`;
+                }
+            } catch (err) {
+                result.innerHTML = `<div class="result error">
+❌ Request Error: ${err.message}
+                </div>`;
+            }
+        }
+
+        // Test 4: Register User
+        async function testRegister() {
+            const result = document.getElementById('registerResult');
+            const address = document.getElementById('regAddress').value.trim();
+            const username = document.getElementById('regUsername').value.trim();
+            
+            if (!address || !username) {
+                result.innerHTML = '<div class="result error">❌ Bitte beide Felder ausfüllen</div>';
+                return;
+            }
+            
+            result.innerHTML = '<div class="result info">Registering...</div>';
+            
+            try {
+                const res = await fetch(`${API_URL}/api/auth/user`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address, username })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    result.innerHTML = `<div class="result success">
+✅ Registration erfolgreich!
+Status: ${res.status}
+Response: ${JSON.stringify(data, null, 2)}
+                    </div>`;
+                } else {
+                    result.innerHTML = `<div class="result error">
+❌ Registration fehlgeschlagen
+Status: ${res.status}
+Response: ${JSON.stringify(data, null, 2)}
+                    </div>`;
+                }
+            } catch (err) {
+                result.innerHTML = `<div class="result error">
+❌ Request Error: ${err.message}
+                </div>`;
+            }
+        }
+
+        // Test 5: Get Nonce
+        async function testNonce() {
+            const result = document.getElementById('nonceResult');
+            const address = document.getElementById('nonceAddress').value.trim();
+            
+            if (!address) {
+                result.innerHTML = '<div class="result error">❌ Bitte Wallet-Adresse eingeben</div>';
+                return;
+            }
+            
+            result.innerHTML = '<div class="result info">Getting nonce...</div>';
+            
+            try {
+                const res = await fetch(`${API_URL}/api/auth/nonce?address=${encodeURIComponent(address)}`);
+                const data = await res.json();
+                
+                if (res.ok) {
+                    result.innerHTML = `<div class="result success">
+✅ Nonce erhalten!
+Status: ${res.status}
+Response: ${JSON.stringify(data, null, 2)}
+                    </div>`;
+                } else {
+                    result.innerHTML = `<div class="result error">
+❌ Nonce Error
+Status: ${res.status}
+Response: ${JSON.stringify(data, null, 2)}
+                    </div>`;
+                }
+            } catch (err) {
+                result.innerHTML = `<div class="result error">
+❌ Request Error: ${err.message}
+                </div>`;
+            }
+        }
+
+        // Test 6: Full Flow
+        async function testFullFlow() {
+            const result = document.getElementById('flowResult');
+            
+            if (!window.ethereum) {
+                result.innerHTML = '<div class="result error">❌ MetaMask nicht gefunden!</div>';
+                return;
+            }
+            
+            result.innerHTML = '<div class="result info">Starting full flow...</div>';
+            
+            try {
+                // Step 1: Connect Wallet
+                result.innerHTML = '<div class="result info">Step 1/5: Connecting wallet...</div>';
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const address = accounts[0];
+                
+                // Step 2: Check if registered
+                result.innerHTML = '<div class="result info">Step 2/5: Checking registration...</div>';
+                const checkRes = await fetch(`${API_URL}/api/auth/user?address=${address}`);
+                const isRegistered = checkRes.ok;
+                
+                // Step 3: Register if needed
+                if (!isRegistered) {
+                    result.innerHTML = '<div class="result info">Step 3/5: Not registered, registering...</div>';
+                    const username = `user_${Date.now()}`;
+                    const regRes = await fetch(`${API_URL}/api/auth/user`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ address, username })
+                    });
+                    if (!regRes.ok) throw new Error('Registration failed');
+                } else {
+                    result.innerHTML = '<div class="result info">Step 3/5: Already registered, skipping...</div>';
+                }
+                
+                // Step 4: Get Nonce
+                result.innerHTML = '<div class="result info">Step 4/5: Getting nonce...</div>';
+                const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`);
+                const { message } = await nonceRes.json();
+                
+                // Step 5: Sign
+                result.innerHTML = '<div class="result info">Step 5/5: Signing message (check MetaMask)...</div>';
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, address]
+                });
+                
+                // Step 6: Login
+                const loginRes = await fetch(`${API_URL}/api/auth/signin-with-wallet`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address, signature })
+                });
+                const loginData = await loginRes.json();
+                
+                if (loginRes.ok) {
+                    result.innerHTML = `<div class="result success">
+🎉 FULL FLOW ERFOLGREICH!
+Wallet: ${address}
+Token: ${loginData.token.substring(0, 20)}...
+User: ${JSON.stringify(loginData.user, null, 2)}
+                    </div>`;
+                } else {
+                    throw new Error('Login failed');
+                }
+                
+            } catch (err) {
+                result.innerHTML = `<div class="result error">
+❌ Flow Error: ${err.message}
+                </div>`;
+            }
+        }
+    </script>
+</body>
+</html>

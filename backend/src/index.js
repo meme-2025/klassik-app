@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '/etc/klassik/klassik1.env' });
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -104,16 +104,20 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0'; // Listen on all interfaces
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
   console.log('');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('  🎵 Klassik Backend Server');
   console.log('═══════════════════════════════════════════════════════════');
   console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`  Host:        ${HOST}`);
   console.log(`  Port:        ${PORT}`);
-  console.log(`  URL:         http://localhost:${PORT}`);
+  console.log(`  Local:       http://localhost:${PORT}`);
+  console.log(`  Network:     http://<YOUR_IP>:${PORT}`);
   console.log(`  Health:      http://localhost:${PORT}/health`);
+  console.log(`  Test Suite:  http://localhost:${PORT}/test-api-flow.html`);
   console.log('');
   console.log('  API Endpoints:');
   console.log('  - POST   /api/auth/register');

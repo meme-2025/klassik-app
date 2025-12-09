@@ -3,7 +3,7 @@ Description=Klassik Backend
 After=network.target
 
 [Service]
-EnvironmentFile=/etc/klassik/klassik.env
+EnvironmentFile=/etc/klassik/klassik1.env
 WorkingDirectory=/opt/klassik/backend
 ExecStart=/usr/bin/node src/index.js
 Restart=on-failure

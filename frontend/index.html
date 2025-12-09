@@ -1,8 +1,4 @@
-            <div class="hero-stats-meta" style="margin-top: 10px; font-size: 0.95em; color: #7B68EE; display: flex; align-items: center; gap: 18px;">
-                <span id="stats-source">Quelle: -</span>
-                <span id="stats-updated">Letztes Update: -</span>
-                <button id="stats-refresh" style="background: #22223B; color: #00D9C5; border: 1px solid #49E3D7; border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 0.95em;">Aktualisieren</button>
-            </div>
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -22,6 +18,7 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="assets/css/kaspa.css">
     <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/wallet-auth.css">
 </head>
 <body>
     <!-- Background Effects -->
@@ -64,10 +61,22 @@
                     <i class="fas fa-user"></i>
                     <span>Login</span>
                 </button>
-                <button class="btn-kaspa" id="connectWalletBtn">
-                    <i class="fas fa-wallet"></i>
-                    <span>Connect Wallet</span>
+                <button class="btn-kaspa" id="registerBtn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register</span>
                 </button>
+                
+                <!-- User Menu (shown when logged in) -->
+                <div id="userMenu" class="user-menu" style="display: none;">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="userName">User</span>
+                    </div>
+                    <button class="btn-ghost" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
             </div>
             
             <button class="mobile-menu-btn">
