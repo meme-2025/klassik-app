@@ -1,10 +1,24 @@
+/**
+ * ============================================
+ * KLASSIK - WALLET-ONLY AUTHENTICATION
+ * ============================================
+ * 
+ * Pure wallet-based authentication using Ethereum signatures.
+ * No email/password authentication.
+ * 
+ * Flow:
+ * 1. GET /nonce?address=0x... → Get signing nonce
+ * 2. User signs message with MetaMask
+ * 3. POST /register or /login with signature
+ * 4. Backend verifies signature → Issues JWT
+ * 5. All protected routes use JWT token
+ */
+
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../db');
 const { ethers } = require('ethers');
-const { SiweMessage, generateNonce } = require('siwe');
 
 const router = express.Router();
 
@@ -18,223 +32,58 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '7d';
 const NONCE_EXPIRY_MINUTES = 10;
 
-// Email validation regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 /**
- * Validate email format
- */
-function validateEmail(email) {
-  return EMAIL_REGEX.test(email);
-}
-
-/**
- * Validate password strength
- */
-function validatePassword(password) {
-  if (password.length < 8) {
-    return { valid: false, message: 'Password must be at least 8 characters' };
-  }
-  return { valid: true };
-}
-
-/**
- * Generate JWT token with consistent payload structure
+ * Generate JWT token for authenticated user
  */
 function generateToken(user) {
   return jwt.sign(
     { 
       userId: user.id,
       id: user.id,
-      email: user.email || null,
-      address: user.address || null
+      address: user.address,
+      username: user.username
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRY }
   );
 }
 
-// POST /api/auth/register
-router.post('/register', async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-
-    // Validate email format
-    if (!validateEmail(email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
-    }
-
-    // Validate password strength
-    const passwordCheck = validatePassword(password);
-    if (!passwordCheck.valid) {
-      return res.status(400).json({ error: passwordCheck.message });
-    }
-
-    // Check if user already exists
-    const exists = await db.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (exists.rows.length > 0) {
-      return res.status(409).json({ error: 'User with this email already exists' });
-    }
-
-    // Hash password and create user
-    const hashed = await bcrypt.hash(password, 10);
-    const result = await db.query(
-      'INSERT INTO users (email, password, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP) RETURNING id, email, created_at',
-      [email, hashed]
-    );
-
-    const user = result.rows[0];
-    const token = generateToken(user);
-
-    res.status(201).json({ 
-      message: 'User registered successfully',
-      user, 
-      token, 
-      expiresIn: JWT_EXPIRY 
-    });
-  } catch (err) {
-    console.error('Register error:', err);
-    next(err);
+/**
+ * Validate username
+ */
+function validateUsername(username) {
+  if (!username) {
+    return { valid: false, message: 'Username is required' };
   }
-});
-
-// POST /api/auth/login
-router.post('/login', async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-
-    // Find user by email
-    const result = await db.query(
-      'SELECT id, email, password, address, created_at FROM users WHERE email = $1', 
-      [email]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    const user = result.rows[0];
-    
-    // Verify password
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // Generate token
-    const token = generateToken(user);
-    
-    res.json({ 
-      message: 'Login successful',
-      user: { 
-        id: user.id, 
-        email: user.email,
-        address: user.address,
-        created_at: user.created_at
-      }, 
-      token,
-      expiresIn: JWT_EXPIRY
-    });
-  } catch (err) {
-    console.error('Login error:', err);
-    next(err);
+  
+  if (username.length < 3 || username.length > 30) {
+    return { valid: false, message: 'Username must be 3-30 characters' };
   }
-});
-
-// GET /auth/user?address=0x...
-// Check if wallet is registered (address stored in email column)
-router.get('/user', async (req, res, next) => {
-  try {
-    const { address } = req.query;
-    if (!address) {
-      return res.status(400).json({ error: 'address is required' });
-    }
-    
-    const normalized = address.toLowerCase();
-    // Wallet address is stored in email column, username in password column
-    const result = await db.query(
-      `SELECT id, email as wallet, password as username, created_at FROM users 
-       WHERE LOWER(email) = $1 LIMIT 1`,
-      [normalized]
-    );
-    
-    if (!result.rows.length) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    const user = result.rows[0];
-    res.json({ user });
-  } catch (err) {
-    console.error('GET /user error:', err);
-    next(err);
+  
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    return { valid: false, message: 'Username can only contain letters, numbers and underscore' };
   }
-});
+  
+  return { valid: true };
+}
 
-// POST /auth/user
-// Register wallet (address → email column, username → password column)
-router.post('/user', async (req, res, next) => {
+/**
+ * Verify Ethereum signature
+ */
+async function verifySignature(address, signature, nonce, expiresAt) {
+  const message = `Sign this message to authenticate with Klassik:\n\nNonce: ${nonce}\nTimestamp: ${new Date(expiresAt).toISOString()}`;
+  
   try {
-    const { address, username } = req.body;
-    
-    if (!address) {
-      return res.status(400).json({ error: 'address is required' });
-    }
-    if (!username) {
-      return res.status(400).json({ error: 'username is required' });
-    }
-
-    // Validate username (3-30 chars, alphanumeric + underscore)
-    if (username.length < 3 || username.length > 30) {
-      return res.status(400).json({ error: 'Username must be 3-30 characters' });
-    }
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return res.status(400).json({ error: 'Username can only contain letters, numbers and underscore' });
-    }
-
-    const normalized = address.toLowerCase();
-
-    // Check if wallet already exists (stored in email column)
-    const exists = await db.query(
-      `SELECT id, email as wallet, password as username FROM users WHERE LOWER(email) = $1 LIMIT 1`,
-      [normalized]
-    );
-    
-    if (exists.rows.length) {
-      return res.status(409).json({ 
-        error: 'Wallet already registered', 
-        user: exists.rows[0] 
-      });
-    }
-
-    // Create wallet user: email column = wallet address, password column = username
-    const insert = await db.query(
-      `INSERT INTO users (email, password, created_at) 
-       VALUES ($1, $2, CURRENT_TIMESTAMP) 
-       RETURNING id, email as wallet, password as username, created_at`,
-      [normalized, username]
-    );
-    
-    const user = insert.rows[0];
-    const token = generateToken({ id: user.id, email: normalized, address: normalized });
-    
-    console.log('✅ Wallet registered:', normalized, '→ Username:', username);
-    res.status(201).json({ user, token, expiresIn: JWT_EXPIRY });
+    const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+    return recoveredAddress.toLowerCase() === address.toLowerCase();
   } catch (err) {
-    console.error('POST /user error:', err);
-    next(err);
+    console.error('Signature verification error:', err);
+    return false;
   }
-});
+}
 
 // ============================================
-// WALLET AUTHENTICATION ENDPOINTS
+// PUBLIC ENDPOINTS
 // ============================================
 
 /**
@@ -253,7 +102,7 @@ router.get('/nonce', async (req, res) => {
     const nonce = crypto.randomBytes(32).toString('hex');
     const expiryTime = new Date(Date.now() + NONCE_EXPIRY_MINUTES * 60 * 1000);
 
-    // Store nonce in nonces table
+    // Store nonce in database
     await db.query(
       `INSERT INTO nonces (address, nonce, expires_at, created_at) 
        VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
@@ -270,339 +119,275 @@ router.get('/nonce', async (req, res) => {
       expiresAt: expiryTime.toISOString()
     });
   } catch (error) {
-    console.error('getNonce error:', error);
+    console.error('GET /nonce error:', error);
     res.status(500).json({ error: 'Failed to generate nonce' });
   }
 });
 
 /**
- * POST /api/auth/register-wallet
- * Register a new user with wallet address
- * Body: { address, signature, email? }
+ * GET /api/auth/check?address=0x...
+ * Check if wallet is registered
  */
-router.post('/register-wallet', async (req, res) => {
+router.get('/check', async (req, res) => {
   try {
-    const { address, signature, email } = req.body;
+    const { address } = req.query;
+    
+    if (!address || !ethers.utils.isAddress(address)) {
+      return res.status(400).json({ error: 'Valid address required' });
+    }
 
-    if (!address || !signature) {
-      return res.status(400).json({ error: 'Address and signature required' });
+    const normalized = address.toLowerCase();
+    
+    const result = await db.query(
+      'SELECT id, username, address, created_at FROM users WHERE LOWER(address) = $1',
+      [normalized]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.json({ 
+        registered: false,
+        address: normalized 
+      });
+    }
+    
+    return res.json({
+      registered: true,
+      user: {
+        id: result.rows[0].id,
+        username: result.rows[0].username,
+        address: result.rows[0].address,
+        created_at: result.rows[0].created_at
+      }
+    });
+    
+  } catch (err) {
+    console.error('GET /check error:', err);
+    res.status(500).json({ error: 'Check failed' });
+  }
+});
+
+/**
+ * POST /api/auth/register
+ * Register new wallet user
+ * Body: { address, signature, username }
+ */
+router.post('/register', async (req, res) => {
+  try {
+    const { address, signature, username } = req.body;
+
+    // Validation
+    if (!address || !signature || !username) {
+      return res.status(400).json({ 
+        error: 'address, signature and username are required' 
+      });
     }
 
     if (!ethers.utils.isAddress(address)) {
       return res.status(400).json({ error: 'Invalid Ethereum address' });
     }
 
-    const normalizedAddress = address.toLowerCase();
+    // Username validation
+    const usernameCheck = validateUsername(username);
+    if (!usernameCheck.valid) {
+      return res.status(400).json({ error: usernameCheck.message });
+    }
 
-    // Verify signature
+    const normalized = address.toLowerCase();
+
+    // Get nonce from database
     const nonceRes = await db.query(
       'SELECT nonce, expires_at FROM nonces WHERE address = $1',
-      [normalizedAddress]
+      [normalized]
     );
 
     if (nonceRes.rows.length === 0) {
-      return res.status(400).json({ error: 'Nonce not found. Request a nonce first.' });
+      return res.status(400).json({ 
+        error: 'No nonce found. Please request a nonce first.' 
+      });
     }
 
     const { nonce, expires_at } = nonceRes.rows[0];
-    
+
     if (new Date(expires_at) < new Date()) {
-      return res.status(401).json({ error: 'Nonce expired. Request a new nonce.' });
+      return res.status(401).json({ error: 'Nonce expired. Request a new one.' });
     }
 
-    const message = `Sign this message to authenticate with Klassik:\n\nNonce: ${nonce}\nTimestamp: ${new Date(expires_at).toISOString()}`;
-
-    let recoveredAddress;
-    try {
-      recoveredAddress = ethers.utils.verifyMessage(message, signature);
-    } catch (err) {
-      return res.status(401).json({ error: 'Invalid signature' });
-    }
-
-    if (recoveredAddress.toLowerCase() !== normalizedAddress) {
-      return res.status(401).json({ error: 'Signature verification failed' });
+    // Verify signature
+    const isValid = await verifySignature(normalized, signature, nonce, expires_at);
+    if (!isValid) {
+      return res.status(401).json({ 
+        error: 'Signature verification failed' 
+      });
     }
 
     // Check if wallet already registered
     const exists = await db.query(
-      'SELECT id, email, address, created_at FROM users WHERE LOWER(address) = $1',
-      [normalizedAddress]
+      'SELECT id FROM users WHERE LOWER(address) = $1',
+      [normalized]
     );
 
     if (exists.rows.length > 0) {
       return res.status(409).json({ 
-        error: 'Wallet already registered',
-        user: exists.rows[0]
+        error: 'Wallet already registered' 
       });
     }
 
-    // Validate email if provided
-    if (email && !validateEmail(email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
+    // Check if username already taken
+    const usernameExists = await db.query(
+      'SELECT id FROM users WHERE LOWER(username) = $1',
+      [username.toLowerCase()]
+    );
+
+    if (usernameExists.rows.length > 0) {
+      return res.status(409).json({ 
+        error: 'Username already taken. Please choose another one.' 
+      });
     }
 
-    // Check if email already used
-    if (email) {
-      const emailExists = await db.query('SELECT id FROM users WHERE email = $1', [email]);
-      if (emailExists.rows.length > 0) {
-        return res.status(409).json({ error: 'Email already registered' });
-      }
-    }
-
-    // Create wallet user (no password needed)
+    // Create user
     const result = await db.query(
-      `INSERT INTO users (address, email, created_at) 
-       VALUES ($1, $2, CURRENT_TIMESTAMP) 
-       RETURNING id, email, address, created_at`,
-      [normalizedAddress, email || null]
+      `INSERT INTO users (address, username, created_at) 
+       VALUES ($1, $2, CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Berlin') 
+       RETURNING id, address, username, created_at`,
+      [normalized, username]
     );
 
     const user = result.rows[0];
 
     // Delete used nonce
-    await db.query('DELETE FROM nonces WHERE address = $1', [normalizedAddress]);
+    await db.query('DELETE FROM nonces WHERE address = $1', [normalized]);
 
-    // Generate token
+    // Generate JWT token
     const token = generateToken(user);
 
+    console.log(`✅ Wallet registered: ${normalized} → ${username}`);
+
     res.status(201).json({
-      message: 'Wallet registered successfully',
-      user,
+      message: 'Registration successful',
+      user: {
+        id: user.id,
+        address: user.address,
+        username: user.username,
+        created_at: user.created_at
+      },
       token,
       expiresIn: JWT_EXPIRY
     });
 
-  } catch (error) {
-    console.error('register-wallet error:', error);
+  } catch (err) {
+    console.error('POST /register error:', err);
     res.status(500).json({ error: 'Registration failed' });
   }
 });
 
 /**
- * POST /api/auth/login-wallet
+ * POST /api/auth/login
  * Login with wallet signature
  * Body: { address, signature }
  */
-router.post('/login-wallet', async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { address, signature } = req.body;
 
     if (!address || !signature) {
-      return res.status(400).json({ error: 'Address and signature required' });
+      return res.status(400).json({ 
+        error: 'address and signature are required' 
+      });
     }
 
     if (!ethers.utils.isAddress(address)) {
       return res.status(400).json({ error: 'Invalid Ethereum address' });
     }
 
-    const normalizedAddress = address.toLowerCase();
+    const normalized = address.toLowerCase();
 
-    // Get and verify nonce
+    // Get nonce
     const nonceRes = await db.query(
       'SELECT nonce, expires_at FROM nonces WHERE address = $1',
-      [normalizedAddress]
+      [normalized]
     );
 
     if (nonceRes.rows.length === 0) {
-      return res.status(400).json({ error: 'Nonce not found. Request a nonce first.' });
+      return res.status(400).json({ 
+        error: 'No nonce found. Please request a nonce first.' 
+      });
     }
 
     const { nonce, expires_at } = nonceRes.rows[0];
 
     if (new Date(expires_at) < new Date()) {
-      return res.status(401).json({ error: 'Nonce expired. Request a new nonce.' });
+      return res.status(401).json({ error: 'Nonce expired. Request a new one.' });
     }
-
-    const message = `Sign this message to authenticate with Klassik:\n\nNonce: ${nonce}\nTimestamp: ${new Date(expires_at).toISOString()}`;
 
     // Verify signature
-    let recoveredAddress;
-    try {
-      recoveredAddress = ethers.utils.verifyMessage(message, signature);
-    } catch (err) {
-      return res.status(401).json({ error: 'Invalid signature' });
-    }
-
-    if (recoveredAddress.toLowerCase() !== normalizedAddress) {
-      return res.status(401).json({ error: 'Signature verification failed' });
-    }
-
-    // Find user
-    const userResult = await db.query(
-      'SELECT id, email, address, created_at FROM users WHERE LOWER(address) = $1',
-      [normalizedAddress]
-    );
-
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ 
-        error: 'Wallet not registered. Please register first.',
-        needsRegistration: true
+    const isValid = await verifySignature(normalized, signature, nonce, expires_at);
+    if (!isValid) {
+      return res.status(401).json({ 
+        error: 'Signature verification failed' 
       });
     }
 
-    const user = userResult.rows[0];
+    // Find user
+    const userRes = await db.query(
+      'SELECT id, address, username, created_at FROM users WHERE LOWER(address) = $1',
+      [normalized]
+    );
+
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({ 
+        error: 'Wallet not registered. Please register first.' 
+      });
+    }
+
+    const user = userRes.rows[0];
 
     // Delete used nonce
-    await db.query('DELETE FROM nonces WHERE address = $1', [normalizedAddress]);
+    await db.query('DELETE FROM nonces WHERE address = $1', [normalized]);
 
-    // Generate token
+    // Generate JWT token
     const token = generateToken(user);
+
+    console.log(`✅ Wallet login: ${user.username} (${normalized})`);
 
     res.json({
       message: 'Login successful',
-      user,
+      user: {
+        id: user.id,
+        address: user.address,
+        username: user.username,
+        created_at: user.created_at
+      },
       token,
       expiresIn: JWT_EXPIRY
     });
 
-  } catch (error) {
-    console.error('login-wallet error:', error);
+  } catch (err) {
+    console.error('POST /login error:', err);
     res.status(500).json({ error: 'Login failed' });
   }
 });
 
-// Test endpoint to verify auth routes are working
-router.get('/test', (req, res) => {
-  res.json({ 
-    status: 'Auth routes active',
-    timestamp: new Date().toISOString(),
-    endpoints: {
-      email_password: {
-        'POST /api/auth/register': 'Register with email & password',
-        'POST /api/auth/login': 'Login with email & password'
-      },
-      wallet: {
-        'GET /api/auth/nonce?address=0x...': 'Get nonce for wallet signing',
-        'POST /api/auth/register-wallet': 'Register with wallet signature',
-        'POST /api/auth/login-wallet': 'Login with wallet signature'
-      },
-      legacy: {
-        'GET /api/auth/user?address=0x...': 'Get user by address',
-        'POST /api/auth/user': 'Create wallet user (deprecated)'
-      }
-    }
-  });
-});
-
-// --------------------------------------------
-// SIWE (Sign-In With Ethereum) Endpoints
-// --------------------------------------------
-
-// GET /api/auth/siwe/nonce
-router.get('/siwe/nonce', async (req, res) => {
+/**
+ * GET /api/auth/me
+ * Get current user info (requires JWT token)
+ */
+router.get('/me', require('../middleware/auth'), async (req, res) => {
   try {
-    const nonce = generateNonce();
-    const expiryTime = new Date(Date.now() + NONCE_EXPIRY_MINUTES * 60 * 1000);
-
-    // Store nonce in nonces table (address NULL until verify)
-    await db.query(
-      `INSERT INTO nonces (address, nonce, expires_at, created_at)
-       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-       ON CONFLICT (nonce) DO UPDATE SET expires_at = EXCLUDED.expires_at`,
-      [null, nonce, expiryTime]
+    const userId = req.user.userId || req.user.id;
+    
+    const result = await db.query(
+      'SELECT id, address, username, created_at FROM users WHERE id = $1',
+      [userId]
     );
-
-    res.json({ nonce });
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json({ user: result.rows[0] });
   } catch (err) {
-    console.error('siwe/nonce error:', err);
-    res.status(500).json({ error: 'Failed to generate nonce' });
-  }
-});
-
-// GET /api/auth/siwe/message?address=0x...
-// Returns a SIWE message string ready to sign
-router.get('/siwe/message', async (req, res) => {
-  try {
-    const { address } = req.query;
-    if (!address || !ethers.utils.isAddress(address)) {
-      return res.status(400).json({ error: 'Valid Ethereum address required' });
-    }
-
-    const normalized = address.toLowerCase();
-    const nonce = generateNonce();
-    const expiryTime = new Date(Date.now() + NONCE_EXPIRY_MINUTES * 60 * 1000);
-
-    await db.query(
-      `INSERT INTO nonces (address, nonce, expires_at, created_at)
-       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-       ON CONFLICT (address) DO UPDATE SET nonce = EXCLUDED.nonce, expires_at = EXCLUDED.expires_at`,
-      [normalized, nonce, expiryTime]
-    );
-
-    const domain = req.get('host') || process.env.SITE_DOMAIN || 'klassik';
-    const uri = (process.env.SITE_URI || (`http://${req.get('host')}`));
-    const siweMessage = new SiweMessage({
-      domain,
-      address: normalized,
-      statement: 'Sign in to Klassik.',
-      uri,
-      version: '1',
-      chainId: parseInt(process.env.CHAIN_ID || '1'),
-      nonce,
-      issuedAt: new Date().toISOString()
-    });
-
-    res.json({ message: siweMessage.prepareMessage(), nonce });
-  } catch (err) {
-    console.error('siwe/message error:', err);
-    res.status(500).json({ error: 'Failed to create SIWE message' });
-  }
-});
-
-// POST /api/auth/siwe/verify
-// Body: { message, signature }
-router.post('/siwe/verify', async (req, res) => {
-  try {
-    const { message, signature } = req.body;
-    if (!message || !signature) return res.status(400).json({ error: 'message and signature required' });
-
-    let siweMessage;
-    try {
-      siweMessage = new SiweMessage(message);
-    } catch (e) {
-      return res.status(400).json({ error: 'Invalid SIWE message' });
-    }
-
-    // Validate signature and structure
-    let fields;
-    try {
-      fields = await siweMessage.validate(signature);
-    } catch (err) {
-      console.error('SIWE validate failed:', err);
-      return res.status(401).json({ error: 'Invalid signature or message' });
-    }
-
-    // Check nonce exists and not expired
-    const nonceRes = await db.query('SELECT nonce, expires_at FROM nonces WHERE nonce = $1', [fields.nonce]);
-    if (nonceRes.rows.length === 0) return res.status(400).json({ error: 'Nonce not found. Request new nonce.' });
-    const { expires_at } = nonceRes.rows[0];
-    if (new Date(expires_at) < new Date()) return res.status(401).json({ error: 'Nonce expired' });
-
-    const normalized = fields.address.toLowerCase();
-
-    // Find or create user by address
-    const exists = await db.query('SELECT id, email, address, created_at FROM users WHERE LOWER(address) = $1 LIMIT 1', [normalized]);
-    let user;
-    if (exists.rows.length) {
-      user = exists.rows[0];
-    } else {
-      const insert = await db.query(
-        `INSERT INTO users (address, email, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP) RETURNING id, email, address, created_at`,
-        [normalized, null]
-      );
-      user = insert.rows[0];
-    }
-
-    // Delete used nonce
-    await db.query('DELETE FROM nonces WHERE nonce = $1', [fields.nonce]);
-
-    const token = generateToken({ id: user.id, email: user.email, address: user.address });
-
-    res.json({ message: 'SIWE login successful', user, token, expiresIn: JWT_EXPIRY });
-
-  } catch (err) {
-    console.error('siwe/verify error:', err);
-    res.status(500).json({ error: 'SIWE verification failed' });
+    console.error('GET /me error:', err);
+    res.status(500).json({ error: 'Failed to get user info' });
   }
 });
 
