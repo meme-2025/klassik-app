@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../db');
 const { ethers } = require('ethers');
+const { SiweMessage, generateNonce } = require('siwe');
 
 const router = express.Router();
 
@@ -481,6 +482,128 @@ router.get('/test', (req, res) => {
       }
     }
   });
+});
+
+// --------------------------------------------
+// SIWE (Sign-In With Ethereum) Endpoints
+// --------------------------------------------
+
+// GET /api/auth/siwe/nonce
+router.get('/siwe/nonce', async (req, res) => {
+  try {
+    const nonce = generateNonce();
+    const expiryTime = new Date(Date.now() + NONCE_EXPIRY_MINUTES * 60 * 1000);
+
+    // Store nonce in nonces table (address NULL until verify)
+    await db.query(
+      `INSERT INTO nonces (address, nonce, expires_at, created_at)
+       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+       ON CONFLICT (nonce) DO UPDATE SET expires_at = EXCLUDED.expires_at`,
+      [null, nonce, expiryTime]
+    );
+
+    res.json({ nonce });
+  } catch (err) {
+    console.error('siwe/nonce error:', err);
+    res.status(500).json({ error: 'Failed to generate nonce' });
+  }
+});
+
+// GET /api/auth/siwe/message?address=0x...
+// Returns a SIWE message string ready to sign
+router.get('/siwe/message', async (req, res) => {
+  try {
+    const { address } = req.query;
+    if (!address || !ethers.utils.isAddress(address)) {
+      return res.status(400).json({ error: 'Valid Ethereum address required' });
+    }
+
+    const normalized = address.toLowerCase();
+    const nonce = generateNonce();
+    const expiryTime = new Date(Date.now() + NONCE_EXPIRY_MINUTES * 60 * 1000);
+
+    await db.query(
+      `INSERT INTO nonces (address, nonce, expires_at, created_at)
+       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+       ON CONFLICT (address) DO UPDATE SET nonce = EXCLUDED.nonce, expires_at = EXCLUDED.expires_at`,
+      [normalized, nonce, expiryTime]
+    );
+
+    const domain = req.get('host') || process.env.SITE_DOMAIN || 'klassik';
+    const uri = (process.env.SITE_URI || (`http://${req.get('host')}`));
+    const siweMessage = new SiweMessage({
+      domain,
+      address: normalized,
+      statement: 'Sign in to Klassik.',
+      uri,
+      version: '1',
+      chainId: parseInt(process.env.CHAIN_ID || '1'),
+      nonce,
+      issuedAt: new Date().toISOString()
+    });
+
+    res.json({ message: siweMessage.prepareMessage(), nonce });
+  } catch (err) {
+    console.error('siwe/message error:', err);
+    res.status(500).json({ error: 'Failed to create SIWE message' });
+  }
+});
+
+// POST /api/auth/siwe/verify
+// Body: { message, signature }
+router.post('/siwe/verify', async (req, res) => {
+  try {
+    const { message, signature } = req.body;
+    if (!message || !signature) return res.status(400).json({ error: 'message and signature required' });
+
+    let siweMessage;
+    try {
+      siweMessage = new SiweMessage(message);
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid SIWE message' });
+    }
+
+    // Validate signature and structure
+    let fields;
+    try {
+      fields = await siweMessage.validate(signature);
+    } catch (err) {
+      console.error('SIWE validate failed:', err);
+      return res.status(401).json({ error: 'Invalid signature or message' });
+    }
+
+    // Check nonce exists and not expired
+    const nonceRes = await db.query('SELECT nonce, expires_at FROM nonces WHERE nonce = $1', [fields.nonce]);
+    if (nonceRes.rows.length === 0) return res.status(400).json({ error: 'Nonce not found. Request new nonce.' });
+    const { expires_at } = nonceRes.rows[0];
+    if (new Date(expires_at) < new Date()) return res.status(401).json({ error: 'Nonce expired' });
+
+    const normalized = fields.address.toLowerCase();
+
+    // Find or create user by address
+    const exists = await db.query('SELECT id, email, address, created_at FROM users WHERE LOWER(address) = $1 LIMIT 1', [normalized]);
+    let user;
+    if (exists.rows.length) {
+      user = exists.rows[0];
+    } else {
+      const insert = await db.query(
+        `INSERT INTO users (address, email, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP) RETURNING id, email, address, created_at`,
+        [normalized, null]
+      );
+      user = insert.rows[0];
+    }
+
+    // Delete used nonce
+    await db.query('DELETE FROM nonces WHERE nonce = $1', [fields.nonce]);
+
+    const token = generateToken({ id: user.id, email: user.email, address: user.address });
+
+    res.json({ message: 'SIWE login successful', user, token, expiresIn: JWT_EXPIRY });
+
+  } catch (err) {
+    console.error('siwe/verify error:', err);
+    res.status(500).json({ error: 'SIWE verification failed' });
+  }
 });
 
 module.exports = router;

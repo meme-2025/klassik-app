@@ -15,6 +15,7 @@ const authMiddleware = require('./middleware/auth');
 const rateLimit = require('./middleware/rateLimit');
 const { validateOrderRequest, validateProductRequest } = require('./middleware/validation');
 const { startWatcher } = require('./watcher');
+const debugRoutes = require('./routes/debug');
 
 const app = express();
 
@@ -49,6 +50,9 @@ app.use('/api/kaspa', kaspaRoutes);
 
 // Events routes
 app.use('/api/events', eventsRoutes);
+
+// Debug routes (protected by ADMIN_TOKEN header)
+app.use('/api/debug', debugRoutes);
 
 // Bookings routes (protected)
 app.use('/api/bookings', bookingsRoutes);
