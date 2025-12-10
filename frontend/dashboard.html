@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Klassik</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+  <!-- Background Animation -->
+  <div class="background">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <h1 class="logo">🎭 Klassik</h1>
+        <div class="header-actions">
+          <button id="logoutBtn" class="btn btn-secondary">
+            <span>🚪</span>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="container">
+      
+      <!-- User Info Card -->
+      <section class="card user-card">
+        <div class="card-header">
+          <h2>👤 User Information</h2>
+          <span class="badge badge-success">Authenticated</span>
+        </div>
+        <div class="card-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Username</span>
+              <span class="info-value" id="username">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Wallet Address</span>
+              <span class="info-value mono" id="address">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">User ID</span>
+              <span class="info-value" id="userId">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">JWT Token</span>
+              <span class="info-value mono small" id="token">-</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- API Tester -->
+      <section class="card api-card">
+        <div class="card-header">
+          <h2>🔌 API Tester</h2>
+          <span class="badge badge-info">Live Testing</span>
+        </div>
+        <div class="card-body">
+          
+          <!-- Endpoint Selector -->
+          <div class="endpoint-selector">
+            <button class="endpoint-btn active" data-endpoint="me">
+              <span>👤</span>
+              <span>Get User (/api/auth/me)</span>
+            </button>
+            <button class="endpoint-btn" data-endpoint="events">
+              <span>📅</span>
+              <span>List Events (/api/events)</span>
+            </button>
+            <button class="endpoint-btn" data-endpoint="bookings">
+              <span>🎫</span>
+              <span>My Bookings (/api/bookings/my)</span>
+            </button>
+            <button class="endpoint-btn" data-endpoint="products">
+              <span>🛍️</span>
+              <span>List Products (/api/products)</span>
+            </button>
+            <button class="endpoint-btn" data-endpoint="orders">
+              <span>📦</span>
+              <span>My Orders (/api/orders/my)</span>
+            </button>
+          </div>
+
+          <!-- Test Button -->
+          <div class="test-controls">
+            <button id="testBtn" class="btn btn-primary">
+              <span>⚡</span>
+              <span>Execute API Call</span>
+            </button>
+            <div class="status-indicator">
+              <span class="status-dot"></span>
+              <span id="apiStatus">Ready</span>
+            </div>
+          </div>
+
+          <!-- Response Display -->
+          <div class="response-container">
+            <div class="response-header">
+              <span>Response</span>
+              <button id="copyBtn" class="btn-icon" title="Copy to clipboard">📋</button>
+            </div>
+            <pre id="response" class="response-body">// Click "Execute API Call" to test an endpoint...</pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Create Event (Admin) -->
+      <section class="card create-card">
+        <div class="card-header">
+          <h2>➕ Create Event</h2>
+          <span class="badge badge-warning">Admin Only</span>
+        </div>
+        <div class="card-body">
+          <form id="createEventForm" class="form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="eventTitle">Event Title</label>
+                <input type="text" id="eventTitle" placeholder="Concert in Vienna" required>
+              </div>
+              <div class="form-group">
+                <label for="eventDate">Date</label>
+                <input type="datetime-local" id="eventDate" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="eventVenue">Venue</label>
+                <input type="text" id="eventVenue" placeholder="Musikverein" required>
+              </div>
+              <div class="form-group">
+                <label for="eventPrice">Price (KAS)</label>
+                <input type="number" id="eventPrice" placeholder="100" step="0.01" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="eventDescription">Description</label>
+              <textarea id="eventDescription" rows="3" placeholder="Event details..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">
+              <span>✨</span>
+              <span>Create Event</span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Create Booking -->
+      <section class="card create-card">
+        <div class="card-header">
+          <h2>🎫 Create Booking</h2>
+        </div>
+        <div class="card-body">
+          <form id="createBookingForm" class="form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bookingEventId">Event ID</label>
+                <input type="number" id="bookingEventId" placeholder="1" required>
+              </div>
+              <div class="form-group">
+                <label for="bookingTickets">Number of Tickets</label>
+                <input type="number" id="bookingTickets" placeholder="2" min="1" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <span>🎟️</span>
+              <span>Book Tickets</span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>Klassik Dashboard - Wallet-Only Authentication</p>
+      <p class="footer-links">
+        <a href="index.html">← Back to Login</a>
+        <span>•</span>
+        <a href="https://github.com/meme-2025/klassik-app" target="_blank">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="assets/js/dashboard.js"></script>
+</body>
+</html>
