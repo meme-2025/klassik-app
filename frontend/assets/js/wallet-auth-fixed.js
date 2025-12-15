@@ -2,9 +2,12 @@
 // KLASSIK - WALLET AUTH LOGIC
 // ============================================
 
+// CSP-compliant API URL configuration
+// Use HTTPS without port for production (nginx proxy)
+// Use localhost with port for local development
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8130'
-  : `http://${window.location.hostname}:8130`;
+  : 'https://klassik.99pace.space'; // HTTPS only, no port (nginx handles routing)
 
 let currentAddress = null;
 let currentToken = null;
