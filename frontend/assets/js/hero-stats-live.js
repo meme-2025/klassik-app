@@ -81,6 +81,11 @@ async function fetchKaspaStats() {
   }
 }
 
-document.getElementById('stats-refresh').addEventListener('click', fetchKaspaStats);
+const statsRefreshBtn = document.getElementById('stats-refresh');
+if (statsRefreshBtn) {
+  statsRefreshBtn.addEventListener('click', fetchKaspaStats);
+}
+
+// Initial load
 fetchKaspaStats();
 setInterval(fetchKaspaStats, 30000);
