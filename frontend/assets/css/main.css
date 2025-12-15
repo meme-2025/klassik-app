@@ -984,6 +984,29 @@ section {
 @media (max-width: 968px) {
   .nav-links {
     display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    flex-direction: column;
+    padding: 1rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .nav-links.show {
+    display: flex;
+  }
+  
+  .nav-links .nav-link {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  
+  .nav-links .nav-link:hover {
+    background: rgba(255,255,255,0.05);
   }
   
   .mobile-menu-btn {
