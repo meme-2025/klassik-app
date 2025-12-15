@@ -1,9 +1,11 @@
-document.getElementById('createOrder')?.addEventListener('click', async ()=>{
-  const from = document.getElementById('fromChain').value;
-  const to = document.getElementById('toChain').value;
-  const amount = document.getElementById('amount').value;
-  const statusLog = document.getElementById('statusLog');
-  if (statusLog) statusLog.innerText += `Creating order: ${amount} from ${from} to ${to}\n`;
+const createOrderBtn = document.getElementById('createOrder');
+if (createOrderBtn) {
+  createOrderBtn.addEventListener('click', async ()=>{
+    const from = document.getElementById('fromChain')?.value;
+    const to = document.getElementById('toChain')?.value;
+    const amount = document.getElementById('amount')?.value;
+    const statusLog = document.getElementById('statusLog');
+    if (statusLog) statusLog.innerText += `Creating order: ${amount} from ${from} to ${to}\n`;
 
   // address: prefer connected wallet state or fallback to stored address
   const address = window.walletState && window.walletState.address ? window.walletState.address : localStorage.getItem('klassik_address');
@@ -29,7 +31,8 @@ document.getElementById('createOrder')?.addEventListener('click', async ()=>{
   }catch(e){
     statusLog.innerText += `Error: ${e.message}\n`;
   }
-});
+  });
+}
 
 async function handleSwap(event) {
   event.preventDefault();

@@ -198,28 +198,28 @@ function initMobileMenu() {
 }
 
 // Modal Functions
-function openModal(modalId) {
+const _openModal = function(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
   }
-}
+};
 
-function closeModal(modalId) {
+const _closeModal = function(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.classList.remove('show');
     document.body.style.overflow = '';
   }
-}
+};
 
 function initModals() {
   // Close modals when clicking outside
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        closeModal(modal.id);
+        _closeModal(modal.id);
       }
     });
   });
@@ -229,7 +229,7 @@ function initModals() {
     btn.addEventListener('click', () => {
       const modal = btn.closest('.modal');
       if (modal) {
-        closeModal(modal.id);
+        _closeModal(modal.id);
       }
     });
   });
@@ -238,7 +238,7 @@ function initModals() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal.show').forEach(modal => {
-        closeModal(modal.id);
+        _closeModal(modal.id);
       });
     }
   });
@@ -367,6 +367,7 @@ function initAnimations() {
   initStatsCounter();
   initParallax();
   initMobileMenu();
+  initLazyBlockDAG();
   initModals();
   initContactForm();
   initLazyLoad();
@@ -375,15 +376,15 @@ function initAnimations() {
 }
 
 // Export functions for use in other files
-window.AnimationHelpers = {
-  openModal,
-  closeModal,
+window.AnimationHelpers = Object.assign(window.AnimationHelpers || {}, {
+  openModal: _openModal,
+  closeModal: _closeModal,
   showToast,
   setLoadingState,
   showFormError,
   copyToClipboard,
   animateCounter
-};
+});
 
 // Auto-initialize when DOM is ready
 if (document.readyState === 'loading') {

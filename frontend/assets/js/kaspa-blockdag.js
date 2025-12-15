@@ -35,6 +35,14 @@ class BlockDAGVisualizer {
       parallaxFactor: 0.05,
     };
 
+    // Adjust workload for small screens
+    try {
+      const w = window.innerWidth || document.documentElement.clientWidth;
+      if (w < 480) this.config.blockCount = 6;
+      else if (w < 1024) this.config.blockCount = 10;
+      else this.config.blockCount = 15;
+    } catch (e) {}
+
     this.init();
   }
 
@@ -270,12 +278,27 @@ class BlockDAGVisualizer {
   }
 
   animate() {
+    if (!this.canvas || !this.ctx) return;
+
     this.clear();
     this.updateBlocks();
     this.drawConnections();
     this.drawBlocks();
 
     this.animationFrameId = requestAnimationFrame(() => this.animate());
+  }
+
+  pause() {
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+  }
+
+  resume() {
+    if (!this.animationFrameId) {
+      this.animate();
+    }
   }
 
   destroy() {
@@ -293,6 +316,21 @@ window.initBlockDAG = function initBlockDAG() {
   if (canvas) {
     try {
       window.blockDAGVisualizer = new BlockDAGVisualizer('blockdag-canvas');
+
+      // Pause/resume when page visibility changes to save CPU
+      const onVisibility = () => {
+        if (!window.blockDAGVisualizer) return;
+        if (document.hidden) {
+          window.blockDAGVisualizer.pause();
+        } else {
+          window.blockDAGVisualizer.resume();
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibility);
+
+      // Also pause on window blur, resume on focus
+      window.addEventListener('blur', () => window.blockDAGVisualizer && window.blockDAGVisualizer.pause());
+      window.addEventListener('focus', () => window.blockDAGVisualizer && window.blockDAGVisualizer.resume());
     } catch (err) {
       console.error('Failed to initialize BlockDAGVisualizer', err);
     }

@@ -1,5 +1,8 @@
 // KLASSIK - WALLET AUTH LOGIC
-const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:8130' : `http://${window.location.hostname}:8130`;
+// Use HTTPS via nginx reverse proxy in production, localhost for dev
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:8130'
+  : 'https://klassik.99pace.space';
 let currentAddress = null;
 let currentToken = null;
 const elements = {
@@ -14,14 +17,15 @@ const elements = {
   username: document.getElementById('username')
 };
 function showStatus(message, type, icon) {
+  if (!elements.status) return;
   elements.status.innerHTML = `<span>${icon}</span><span>${message}</span>`;
   elements.status.className = `status ${type} show`;
 }
 function hideAll() {
-  elements.connectBtn.style.display = 'none';
-  elements.registerForm.classList.remove('show');
-  elements.loginBtn.style.display = 'none';
-  elements.userInfo.classList.remove('show');
+  elements.connectBtn && (elements.connectBtn.style.display = 'none');
+  elements.registerForm && elements.registerForm.classList.remove('show');
+  elements.loginBtn && (elements.loginBtn.style.display = 'none');
+  elements.userInfo && elements.userInfo.classList.remove('show');
 }
 async function connectWallet() {
   if (!window.ethereum) { showStatus('MetaMask not installed!', 'error', ''); return; }
@@ -35,14 +39,14 @@ async function connectWallet() {
   hideAll();
   if (data.registered) {
     showStatus(`Welcome back, ${data.user.username}!`, 'info', '');
-    elements.loginBtn.style.display = 'block';
+    elements.loginBtn && (elements.loginBtn.style.display = 'block');
   } else {
     showStatus('Not registered. Choose username.', 'info', '');
-    elements.registerForm.classList.add('show');
+    elements.registerForm && elements.registerForm.classList.add('show');
   }
 }
 async function register() {
-  const username = elements.username.value.trim();
+  const username = elements.username ? elements.username.value.trim() : '';
   if (!username || username.length < 3) { showStatus('Username too short', 'error', ''); return; }
   const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${currentAddress}`);
   const nonce = await nonceRes.json();
@@ -58,11 +62,11 @@ async function register() {
   localStorage.setItem('klassik_token', data.token);
   localStorage.setItem('klassik_user', JSON.stringify(data.user));
   hideAll();
-  elements.userInfo.classList.add('show');
-  document.getElementById('infoUsername').textContent = data.user.username;
-  document.getElementById('infoAddress').textContent = data.user.address;
-  document.getElementById('infoUserId').textContent = data.user.id;
-  document.getElementById('infoToken').textContent = data.token.substring(0, 60) + '...';
+  elements.userInfo && elements.userInfo.classList.add('show');
+  document.getElementById('infoUsername') && (document.getElementById('infoUsername').textContent = data.user.username);
+  document.getElementById('infoAddress') && (document.getElementById('infoAddress').textContent = data.user.address);
+  document.getElementById('infoUserId') && (document.getElementById('infoUserId').textContent = data.user.id);
+  document.getElementById('infoToken') && (document.getElementById('infoToken').textContent = data.token.substring(0, 60) + '...');
   showStatus(`Welcome, ${data.user.username}!`, 'success', '');
 }
 async function login() {
@@ -79,33 +83,33 @@ async function login() {
   localStorage.setItem('klassik_token', data.token);
   localStorage.setItem('klassik_user', JSON.stringify(data.user));
   hideAll();
-  elements.userInfo.classList.add('show');
-  document.getElementById('infoUsername').textContent = data.user.username;
-  document.getElementById('infoAddress').textContent = data.user.address;
-  document.getElementById('infoUserId').textContent = data.user.id;
+  elements.userInfo && elements.userInfo.classList.add('show');
+  document.getElementById('infoUsername') && (document.getElementById('infoUsername').textContent = data.user.username);
+  document.getElementById('infoAddress') && (document.getElementById('infoAddress').textContent = data.user.address);
+  document.getElementById('infoUserId') && (document.getElementById('infoUserId').textContent = data.user.id);
   showStatus(`Welcome, ${data.user.username}!`, 'success', '');
 }
 function logout() {
   localStorage.clear();
   hideAll();
-  elements.connectBtn.style.display = 'flex';
+  elements.connectBtn && (elements.connectBtn.style.display = 'flex');
   showStatus('Logged out', 'info', '');
 }
-elements.connectBtn.addEventListener('click', connectWallet);
-elements.registerBtn.addEventListener('click', register);
-elements.loginBtn.addEventListener('click', login);
-elements.logoutBtn.addEventListener('click', logout);
-elements.dashboardBtn.addEventListener('click', () => window.location.href = 'dashboard.html');
+elements.connectBtn && elements.connectBtn.addEventListener('click', connectWallet);
+elements.registerBtn && elements.registerBtn.addEventListener('click', register);
+elements.loginBtn && elements.loginBtn.addEventListener('click', login);
+elements.logoutBtn && elements.logoutBtn.addEventListener('click', logout);
+elements.dashboardBtn && elements.dashboardBtn.addEventListener('click', () => window.location.href = 'dashboard.html');
 window.addEventListener('load', () => {
   const token = localStorage.getItem('klassik_token');
   const user = localStorage.getItem('klassik_user');
   if (token && user) {
     const userData = JSON.parse(user);
     hideAll();
-    elements.userInfo.classList.add('show');
-    document.getElementById('infoUsername').textContent = userData.username;
-    document.getElementById('infoAddress').textContent = userData.address;
-    document.getElementById('infoUserId').textContent = userData.id;
+    elements.userInfo && elements.userInfo.classList.add('show');
+    document.getElementById('infoUsername') && (document.getElementById('infoUsername').textContent = userData.username);
+    document.getElementById('infoAddress') && (document.getElementById('infoAddress').textContent = userData.address);
+    document.getElementById('infoUserId') && (document.getElementById('infoUserId').textContent = userData.id);
     showStatus(`Welcome back, ${userData.username}!`, 'success', '');
   }
 });

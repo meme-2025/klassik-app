@@ -21,9 +21,12 @@ async function connectWallet(){
 
     signer = provider.getSigner();
     userAddress = await signer.getAddress();
-    document.getElementById('connectBtn').innerText = `${userAddress}`;
-    document.getElementById('accountArea').style.display = 'block';
-    document.getElementById('accountAddress').innerText = userAddress;
+    const connectBtnEl = document.getElementById('connectBtn');
+    const accountAreaEl = document.getElementById('accountArea');
+    const accountAddressEl = document.getElementById('accountAddress');
+    if (connectBtnEl) connectBtnEl.innerText = `${userAddress}`;
+    if (accountAreaEl) accountAreaEl.style.display = 'block';
+    if (accountAddressEl) accountAddressEl.innerText = userAddress;
 
     // Query backend for user
     await fetchAndShowUser(userAddress);
@@ -65,8 +68,10 @@ function showRegisterForm(address) {
     <button id="doRegister">Register</button>
   `;
 
-  document.getElementById('doRegister').addEventListener('click', async () => {
-    const email = document.getElementById('registerEmail').value;
+  const doRegisterBtn = document.getElementById('doRegister');
+  if (doRegisterBtn) {
+    doRegisterBtn.addEventListener('click', async () => {
+      const email = document.getElementById('registerEmail')?.value;
     if (!email) return alert('Bitte Email angeben');
     try {
       const r = await fetch(`${API_URL}/api/auth/user`, {
@@ -88,7 +93,7 @@ function showRegisterForm(address) {
       alert('Registration failed');
     }
   });
-}
+  }
 
 async function authenticateWallet(address) {
   try {
@@ -184,7 +189,7 @@ function isAuthenticated() {
   }
 }
 
-document.getElementById('connectBtn').addEventListener('click', connectWallet);
+document.getElementById('connectBtn')?.addEventListener('click', connectWallet);
 
 // Mode switch: auth vs booking
 const modeSelect = document.getElementById('modeSelect');
