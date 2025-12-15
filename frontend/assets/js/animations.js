@@ -146,6 +146,28 @@ function initParallax() {
   });
 }
 
+// Lazy-initialize heavy visualizations (BlockDAG) when visible
+function initLazyBlockDAG() {
+  const canvas = document.getElementById('blockdag-canvas');
+  if (!canvas) return;
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          if (window.initBlockDAG) window.initBlockDAG();
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    observer.observe(canvas);
+  } else {
+    // Fallback: init immediately
+    if (window.initBlockDAG) window.initBlockDAG();
+  }
+}
+
 // Mobile Menu Toggle
 function initMobileMenu() {
   const menuBtn = document.querySelector('.mobile-menu-btn');
@@ -153,19 +175,25 @@ function initMobileMenu() {
   
   if (!menuBtn || !navLinks) return;
   
-  menuBtn.addEventListener('click', () => {
+  // Support both touchstart and click for faster mobile response
+  const toggleMenu = (e) => {
+    e && e.preventDefault();
     navLinks.classList.toggle('show');
     menuBtn.innerHTML = navLinks.classList.contains('show') 
       ? '<i class="fas fa-times"></i>' 
       : '<i class="fas fa-bars"></i>';
-  });
-  
-  // Close menu when clicking on a link
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => {
+  };
+
+  menuBtn.addEventListener('click', toggleMenu);
+  menuBtn.addEventListener('touchstart', toggleMenu, { passive: false });
+
+  // Use event delegation: close menu when clicking/tapping a nav link
+  navLinks.addEventListener('click', (e) => {
+    const link = e.target.closest('.nav-link');
+    if (link) {
       navLinks.classList.remove('show');
       menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-    });
+    }
   });
 }
 
