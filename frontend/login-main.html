@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klassik - Wallet Auth</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/wallet-modern.css">
+</head>
+<body>
+<div class="container">
+<div class="logo">
+<div class="logo-icon">🎵</div>
+<h1>Klassik</h1>
+<p class="subtitle">Wallet Authentication</p>
+</div>
+
+<div id="status" class="status"></div>
+
+<button id="connectBtn" class="btn btn-primary">
+<span>🦊</span><span>Connect Wallet</span>
+</button>
+
+<div id="registerForm">
+<div class="input-group">
+<label for="username">Choose Username</label>
+<input type="text" id="username" placeholder="crypto_enthusiast" pattern="[a-zA-Z0-9_]{3,30}" autocomplete="off" required>
+<p class="input-hint">3-30 characters • Letters, numbers, underscore only</p>
+</div>
+<button id="registerBtn" class="btn btn-primary">
+<span>✍️</span><span>Sign & Register</span>
+</button>
+</div>
+
+<button id="loginBtn" class="btn btn-primary" style="display:none;">
+<span>✨</span><span>Sign & Login</span>
+</button>
+
+<div id="userInfo" class="user-card">
+<h3><span>✅</span><span>Authenticated</span></h3>
+<div class="info-row">
+<span class="info-label">Username</span>
+<span class="info-value" id="infoUsername">-</span>
+</div>
+<div class="info-row">
+<span class="info-label">Wallet</span>
+<span class="info-value" id="infoAddress">-</span>
+</div>
+<div class="info-row">
+<span class="info-label">User ID</span>
+<span class="info-value" id="infoUserId">-</span>
+</div>
+<div class="info-row">
+<span class="info-label">Token</span>
+<span class="info-value" id="infoToken" style="font-size:10px;">-</span>
+</div>
+<button id="dashboardBtn" class="btn btn-primary" style="margin-top:16px;">
+<span>📊</span><span>Open Dashboard</span>
+</button>
+<button id="logoutBtn" class="btn btn-secondary">
+<span>🚪</span><span>Logout</span>
+</button>
+</div>
+</div>
+
+<!-- ethers.js from local assets -->
+  <script src="assets/js/ethers.umd.min.js?v=1.0.0"></script>
+  <script src="assets/js/wallet-auth-fixed.js?v=1.0.1"></script>
+</body>
+</html>

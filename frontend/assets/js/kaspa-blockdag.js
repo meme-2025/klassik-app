@@ -285,17 +285,35 @@ class BlockDAGVisualizer {
   }
 }
 
-// Initialize BlockDAG visualization when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+// Expose lazy init and destroy helpers to allow IntersectionObserver-driven startup
+window.blockDAGVisualizer = null;
+window.initBlockDAG = function initBlockDAG() {
+  if (window.blockDAGVisualizer) return;
   const canvas = document.getElementById('blockdag-canvas');
   if (canvas) {
-    window.blockDAGVisualizer = new BlockDAGVisualizer('blockdag-canvas');
+    try {
+      window.blockDAGVisualizer = new BlockDAGVisualizer('blockdag-canvas');
+    } catch (err) {
+      console.error('Failed to initialize BlockDAGVisualizer', err);
+    }
   }
-});
+};
+
+window.destroyBlockDAG = function destroyBlockDAG() {
+  if (window.blockDAGVisualizer) {
+    try {
+      window.blockDAGVisualizer.destroy();
+    } catch (err) {
+      console.error('Failed to destroy BlockDAGVisualizer', err);
+    }
+    window.blockDAGVisualizer = null;
+  }
+};
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
   if (window.blockDAGVisualizer) {
     window.blockDAGVisualizer.destroy();
+    window.blockDAGVisualizer = null;
   }
 });
