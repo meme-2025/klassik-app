@@ -21,9 +21,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="assets/css/kaspa.css">
-    <link rel="stylesheet" href="assets/css/animations.css">
-    <link rel="stylesheet" href="assets/css/wallet-auth.css">
+    <link rel="stylesheet" href="assets/css/kaspa.css?v=3.0">
+    <link rel="stylesheet" href="assets/css/animations.css?v=3.0">
+    <link rel="stylesheet" href="assets/css/wallet-auth.css?v=3.0">
 </head>
 <body>
     <!-- Background Effects -->
@@ -836,11 +836,26 @@
 
     <!-- Scripts (deferred to avoid render-blocking) -->
     <script defer src="https://cdn.jsdelivr.net/npm/tsparticles@3.1.0/tsparticles.bundle.min.js"></script>
-    <script defer src="assets/js/tsparticles-config.js?v=2.0"></script>
-    <script defer src="assets/js/hero-stats-live.js?v=2.0"></script>
-    <script defer src="assets/js/animations.js?v=2.0"></script>
-    <script defer src="assets/js/auth.js?v=2.0"></script>
-    <script defer src="assets/js/kaspa-blockdag.js?v=2.0"></script>
-    <script defer src="assets/js/app.js?v=2.0"></script>
+    <script defer src="assets/js/tsparticles-config.js?v=3.0"></script>
+    <script defer src="assets/js/hero-stats-live.js?v=3.0"></script>
+    <script defer src="assets/js/animations.js?v=3.0"></script>
+    <script defer src="assets/js/auth.js?v=3.0"></script>
+    <script defer src="assets/js/kaspa-blockdag.js?v=3.0"></script>
+    <script defer src="assets/js/app.js?v=3.0"></script>
+    
+    <!-- Debug: Verify mobile menu initialization -->
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const menuBtn = document.querySelector('.mobile-menu-btn');
+                const navLinks = document.querySelector('.nav-links');
+                if (menuBtn && navLinks) {
+                    console.log('✅ Mobile menu elements found');
+                } else {
+                    console.error('❌ Mobile menu elements missing:', { menuBtn, navLinks });
+                }
+            }, 500);
+        });
+    </script>
 </body>
 </html>
