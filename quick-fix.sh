@@ -14,7 +14,7 @@ echo ""
 
 # 1. Products-Tabelle Migration
 echo "[1/4] Running Products migration..."
-cd /var/www/klassik/backend
+cd /opt/klassik/backend
 if [ -f "migrations/001_add_products.js" ]; then
     node migrations/001_add_products.js
     echo "✓ Products migration completed"
@@ -68,7 +68,7 @@ fi
 # 5. Backend neu starten
 echo ""
 echo "[5/5] Restarting backend..."
-cd /var/www/klassik
+cd /opt/klassik
 docker-compose restart backend
 
 echo ""
