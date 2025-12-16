@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KaspaHub Sacrifice - Join the revolution and earn exclusive rewards">
+    <title>🔥 SACRIFICE | KaspaHub</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff88;
+            --neon-yellow: #ffff00;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-green));
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(0,243,255,0.05);
+            border: 1px solid rgba(0,243,255,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+        }
+
+        .card {
+            background: rgba(10,10,30,0.8);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            animation: borderGlow 3s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { border-color: var(--neon-cyan); box-shadow: 0 0 30px var(--neon-cyan); }
+            33% { border-color: var(--neon-pink); box-shadow: 0 0 30px var(--neon-pink); }
+            66% { border-color: var(--neon-green); box-shadow: 0 0 30px var(--neon-green); }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: conic-gradient(from 0deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-green), var(--neon-cyan));
+            opacity: 0.1;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .wallet-section {
+            margin-bottom: 30px;
+        }
+
+        .wallet-info {
+            display: none;
+            background: rgba(0,243,255,0.1);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .wallet-address {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--neon-cyan);
+            word-break: break-all;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-cyan);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 50px var(--neon-cyan);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-yellow));
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-green);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 50px var(--neon-green);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-group {
+            margin: 25px 0;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--neon-cyan);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            background: rgba(0,243,255,0.1);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        .quick-amounts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .quick-btn {
+            padding: 12px;
+            background: rgba(0,243,255,0.1);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 8px;
+            color: var(--neon-cyan);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-btn:hover {
+            background: rgba(0,243,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .tier-display {
+            background: rgba(255,0,255,0.1);
+            border: 1px solid var(--neon-pink);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .tier-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neon-pink);
+            margin-bottom: 10px;
+        }
+
+        .tier-points {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neon-yellow);
+        }
+
+        .info-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,153,0,0.1);
+            border: 1px solid rgba(255,153,0,0.5);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px 15px; }
+            .title { font-size: 2rem; }
+            .card { padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="container">
+        <h1 class="title">🔥 SACRIFICE NOW 🔥</h1>
+        <p class="subtitle">Join the KaspaHub revolution and earn exclusive rewards</p>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalSacrificed">0</div>
+                <div class="stat-label">Total KAS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalParticipants">0</div>
+                <div class="stat-label">Participants</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="yourPoints">0</div>
+                <div class="stat-label">Your Points</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <div class="wallet-section">
+                    <button class="btn btn-primary" id="connectBtn">
+                        <i class="fas fa-wallet"></i> CONNECT WALLET
+                    </button>
+                    
+                    <div class="wallet-info" id="walletInfo">
+                        <div class="wallet-address" id="walletAddress"></div>
+                    </div>
+                </div>
+
+                <div id="sacrificeSection" style="display: none;">
+                    <div class="input-group">
+                        <label class="input-label">
+                            <i class="fas fa-coins"></i> Amount (KAS)
+                        </label>
+                        <input type="number" class="input-field" id="amountInput" 
+                               placeholder="Enter amount" min="1000" step="100">
+                    </div>
+
+                    <div class="quick-amounts">
+                        <button class="quick-btn" onclick="setAmount(1000)">1K</button>
+                        <button class="quick-btn" onclick="setAmount(5000)">5K</button>
+                        <button class="quick-btn" onclick="setAmount(10000)">10K</button>
+                        <button class="quick-btn" onclick="setAmount(50000)">50K</button>
+                        <button class="quick-btn" onclick="setAmount(100000)">100K</button>
+                        <button class="quick-btn" onclick="setMax()">MAX</button>
+                    </div>
+
+                    <div class="tier-display">
+                        <div class="tier-name" id="tierName">Select Amount</div>
+                        <div class="tier-points" id="tierPoints">0 Points</div>
+                    </div>
+
+                    <button class="btn btn-success" id="sacrificeBtn">
+                        🔥 SACRIFICE NOW 🔥
+                    </button>
+                </div>
+
+                <div class="info-section">
+                    <strong>📍 Sacrifice Address:</strong><br>
+                    <code style="color: var(--neon-cyan); word-break: break-all;">kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc</code><br><br>
+                    <strong>💎 Tiers:</strong> Bronze (1K-9.9K), Silver (10K-49.9K), Gold (50K-99.9K), Diamond (100K+)<br>
+                    <strong>⚠️ Warning:</strong> Sacrificed KAS will be permanently sent to the address above.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // ===== PRODUCTION CONFIGURATION =====
+        const CONFIG = {
+            SACRIFICE_ADDRESS: 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc',
+            SOMPI_PER_KAS: 100000000,
+            TIERS: {
+                BRONZE: { min: 1000, max: 9999, pointsPerK: 2500, bonus: 0.25, name: 'Bronze 🥉' },
+                SILVER: { min: 10000, max: 49999, pointsPerK: 3750, bonus: 0.50, name: 'Silver 🥈' },
+                GOLD: { min: 50000, max: 99999, pointsPerK: 4375, bonus: 0.75, name: 'Gold 🥇' },
+                DIAMOND: { min: 100000, max: Infinity, pointsPerK: 5000, bonus: 1.00, name: 'Diamond 💎' }
+            }
+        };
+
+        // ===== STATE =====
+        let state = {
+            connected: false,
+            walletAddress: null,
+            balance: 0,
+            walletType: null
+        };
+
+        // ===== UTILITIES =====
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num);
+        }
+
+        function calculateTier(amount) {
+            for (const tier of Object.values(CONFIG.TIERS)) {
+                if (amount >= tier.min && amount <= tier.max) return tier;
+            }
+            return null;
+        }
+
+        function calculatePoints(amount) {
+            const tier = calculateTier(amount);
+            return tier ? Math.floor((amount / 1000) * tier.pointsPerK) : 0;
+        }
+
+        function updateTierDisplay(amount) {
+            const tier = calculateTier(amount);
+            const points = calculatePoints(amount);
+            
+            document.getElementById('tierName').textContent = tier ? tier.name : 'Select Amount';
+            document.getElementById('tierPoints').textContent = `${formatNumber(points)} Points`;
+        }
+
+        function setAmount(value) {
+            document.getElementById('amountInput').value = value;
+            updateTierDisplay(value);
+        }
+
+        function setMax() {
+            const maxAmount = Math.floor(state.balance);
+            setAmount(maxAmount);
+        }
+
+        // ===== WALLET CONNECTION =====
+        async function connectWallet() {
+            const btn = document.getElementById('connectBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Connecting...';
+
+            try {
+                let address, balance = 0;
+
+                // Try KasWare
+                if (window.kasware) {
+                    const accounts = await window.kasware.requestAccounts();
+                    address = accounts[0];
+                    const bal = await window.kasware.getBalance();
+                    balance = bal.confirmed / CONFIG.SOMPI_PER_KAS;
+                    state.walletType = 'kasware';
+                }
+                // Try Kaspium
+                else if (window.kaspium) {
+                    const result = await window.kaspium.connect();
+                    address = result.address;
+                    balance = (result.balance || 0) / CONFIG.SOMPI_PER_KAS;
+                    state.walletType = 'kaspium';
+                }
+                // Try Kaspa Desktop
+                else if (window.kaspa) {
+                    address = await window.kaspa.getAddress();
+                    balance = (await window.kaspa.getBalance()) / CONFIG.SOMPI_PER_KAS;
+                    state.walletType = 'kaspa';
+                }
+                else {
+                    throw new Error('No Kaspa wallet detected! Please install KasWare or Kaspium.');
+                }
+
+                state.connected = true;
+                state.walletAddress = address;
+                state.balance = balance;
+
+                // Update UI
+                document.getElementById('walletInfo').style.display = 'block';
+                document.getElementById('walletAddress').textContent = 
+                    `${address.substring(0, 15)}...${address.substring(address.length - 10)} | ${formatNumber(balance)} KAS`;
+                document.getElementById('sacrificeSection').style.display = 'block';
+                btn.style.display = 'none';
+
+                // Save to localStorage
+                localStorage.setItem('kaspa_wallet', JSON.stringify({ 
+                    address, 
+                    type: state.walletType 
+                }));
+
+                console.log('✅ Wallet connected:', address);
+            } catch (error) {
+                alert('❌ ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECT WALLET';
+            }
+        }
+
+        // ===== SACRIFICE TRANSACTION =====
+        async function executeSacrifice() {
+            const amountInput = document.getElementById('amountInput');
+            const amount = parseFloat(amountInput.value);
+            const btn = document.getElementById('sacrificeBtn');
+
+            // Validation
+            if (!amount || amount < 1000) {
+                alert('⚠️ Minimum sacrifice is 1,000 KAS');
+                return;
+            }
+
+            if (amount > state.balance) {
+                alert('⚠️ Insufficient balance!');
+                return;
+            }
+
+            const tier = calculateTier(amount);
+            const points = calculatePoints(amount);
+
+            // Confirmation
+            if (!confirm(
+                `🔥 SACRIFICE CONFIRMATION\n\n` +
+                `Amount: ${formatNumber(amount)} KAS\n` +
+                `Tier: ${tier.name}\n` +
+                `Points: ${formatNumber(points)}\n\n` +
+                `To: ${CONFIG.SACRIFICE_ADDRESS}\n\n` +
+                `⚠️ THIS IS IRREVERSIBLE!\n\n` +
+                `Continue?`
+            )) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+            try {
+                const amountInSompi = Math.floor(amount * CONFIG.SOMPI_PER_KAS);
+                let txid;
+
+                if (state.walletType === 'kasware') {
+                    txid = await window.kasware.sendKaspa(CONFIG.SACRIFICE_ADDRESS, amountInSompi);
+                } else if (state.walletType === 'kaspium') {
+                    const tx = await window.kaspium.sendTransaction({
+                        to: CONFIG.SACRIFICE_ADDRESS,
+                        amount: amountInSompi
+                    });
+                    txid = tx.transactionId;
+                } else if (state.walletType === 'kaspa') {
+                    txid = await window.kaspa.send(CONFIG.SACRIFICE_ADDRESS, amountInSompi);
+                }
+
+                // Success!
+                showConfetti();
+                
+                setTimeout(() => {
+                    alert(
+                        `🎉 SACRIFICE SUCCESSFUL!\n\n` +
+                        `Amount: ${formatNumber(amount)} KAS\n` +
+                        `Points: ${formatNumber(points)}\n` +
+                        `Tier: ${tier.name}\n\n` +
+                        `TX ID: ${txid}\n\n` +
+                        `View on Explorer:\n` +
+                        `https://explorer.kaspa.org/txs/${txid}`
+                    );
+                }, 500);
+
+                // Save to localStorage
+                const sacrifices = JSON.parse(localStorage.getItem('kaspa_sacrifices') || '[]');
+                sacrifices.push({
+                    txid,
+                    amount,
+                    points,
+                    tier: tier.name,
+                    timestamp: Date.now(),
+                    address: state.walletAddress
+                });
+                localStorage.setItem('kaspa_sacrifices', JSON.stringify(sacrifices));
+
+                // Reset form
+                amountInput.value = '';
+                updateTierDisplay(0);
+
+                // Reload stats
+                loadStats();
+            } catch (error) {
+                alert('❌ Transaction failed: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔥 SACRIFICE NOW 🔥';
+            }
+        }
+
+        // ===== STATS LOADER =====
+        async function loadStats() {
+            try {
+                // Load from localStorage
+                const sacrifices = JSON.parse(localStorage.getItem('kaspa_sacrifices') || '[]');
+                
+                let total = 0;
+                const addresses = new Set();
+                let userPoints = 0;
+
+                for (const sac of sacrifices) {
+                    total += sac.amount;
+                    addresses.add(sac.address);
+                    if (sac.address === state.walletAddress) {
+                        userPoints += sac.points;
+                    }
+                }
+
+                document.getElementById('totalSacrificed').textContent = formatNumber(total);
+                document.getElementById('totalParticipants').textContent = addresses.size;
+                document.getElementById('yourPoints').textContent = formatNumber(userPoints);
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
+        }
+
+        // ===== CONFETTI =====
+        function showConfetti() {
+            const colors = ['#00f3ff', '#ff00ff', '#00ff88', '#ffff00'];
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.cssText = `
+                        position: fixed;
+                        width: 10px;
+                        height: 10px;
+                        background: ${colors[Math.floor(Math.random() * colors.length)]};
+                        left: ${Math.random() * 100}vw;
+                        top: -20px;
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 10000;
+                        transition: all 3s ease-out;
+                    `;
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.style.top = '100vh';
+                        confetti.style.opacity = '0';
+                        confetti.style.transform = `rotate(${Math.random() * 720}deg)`;
+                    }, 10);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 20);
+            }
+        }
+
+        // ===== PARTICLES =====
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80 },
+                color: { value: ['#00f3ff', '#ff00ff', '#00ff88'] },
+                shape: { type: 'circle' },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#00f3ff',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: 'none',
+                    random: true,
+                    out_mode: 'out'
+                }
+            },
+            interactivity: {
+                events: {
+                    onhover: { enable: true, mode: 'grab' },
+                    onclick: { enable: true, mode: 'push' }
+                }
+            }
+        });
+
+        // ===== EVENT LISTENERS =====
+        document.getElementById('connectBtn').addEventListener('click', connectWallet);
+        document.getElementById('sacrificeBtn').addEventListener('click', executeSacrifice);
+        document.getElementById('amountInput').addEventListener('input', (e) => {
+            updateTierDisplay(parseFloat(e.target.value) || 0);
+        });
+
+        // ===== INITIALIZATION =====
+        window.addEventListener('load', () => {
+            loadStats();
+            
+            // Try to restore previous session
+            const saved = localStorage.getItem('kaspa_wallet');
+            if (saved) {
+                const { address, type } = JSON.parse(saved);
+                console.log('Previous session found:', address);
+            }
+        });
+
+        console.log('🚀 KaspaHub Sacrifice Dashboard LIVE');
+        console.log('📍 Sacrifice Address:', CONFIG.SACRIFICE_ADDRESS);
+    </script>
+</body>
+</html>
