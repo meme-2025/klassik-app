@@ -3,745 +3,702 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="KaspaHub Sacrifice Dashboard - Join the Revolution. Real-time wallet tracking, live analytics, and exclusive early adopter rewards.">
-    <title>🔥 Sacrifice Dashboard | KaspaHub - Beyond The Block</title>
+    <meta name="description" content="KaspaHub Sacrifice - Join the revolution and earn exclusive rewards">
+    <title>🔥 SACRIFICE | KaspaHub</title>
     
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Chart.js for analytics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <!-- Particles.js for background effects -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="assets/css/kaspa.css">
-    <link rel="stylesheet" href="assets/css/animations.css">
-    <link rel="stylesheet" href="assets/css/sacrifice-dashboard.css">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff88;
+            --neon-yellow: #ffff00;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-green));
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(0,243,255,0.05);
+            border: 1px solid rgba(0,243,255,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+        }
+
+        .card {
+            background: rgba(10,10,30,0.8);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            animation: borderGlow 3s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { border-color: var(--neon-cyan); box-shadow: 0 0 30px var(--neon-cyan); }
+            33% { border-color: var(--neon-pink); box-shadow: 0 0 30px var(--neon-pink); }
+            66% { border-color: var(--neon-green); box-shadow: 0 0 30px var(--neon-green); }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: conic-gradient(from 0deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-green), var(--neon-cyan));
+            opacity: 0.1;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .wallet-section {
+            margin-bottom: 30px;
+        }
+
+        .wallet-info {
+            display: none;
+            background: rgba(0,243,255,0.1);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .wallet-address {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--neon-cyan);
+            word-break: break-all;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-cyan);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 50px var(--neon-cyan);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-yellow));
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-green);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 50px var(--neon-green);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-group {
+            margin: 25px 0;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--neon-cyan);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            background: rgba(0,243,255,0.1);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        .quick-amounts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .quick-btn {
+            padding: 12px;
+            background: rgba(0,243,255,0.1);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 8px;
+            color: var(--neon-cyan);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-btn:hover {
+            background: rgba(0,243,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .tier-display {
+            background: rgba(255,0,255,0.1);
+            border: 1px solid var(--neon-pink);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .tier-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neon-pink);
+            margin-bottom: 10px;
+        }
+
+        .tier-points {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neon-yellow);
+        }
+
+        .info-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,153,0,0.1);
+            border: 1px solid rgba(255,153,0,0.5);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px 15px; }
+            .title { font-size: 2rem; }
+            .card { padding: 25px; }
+        }
+    </style>
 </head>
-<body class="sacrifice-page">
-    <!-- Animated Background -->
-    <div class="sacrifice-bg-effects">
-        <div id="particles-sacrifice"></div>
-        <div class="gradient-orb orb-1"></div>
-        <div class="gradient-orb orb-2"></div>
-        <div class="gradient-orb orb-3"></div>
-        <canvas id="neural-network" class="neural-bg"></canvas>
-    </div>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="container">
+        <h1 class="title">🔥 SACRIFICE NOW 🔥</h1>
+        <p class="subtitle">Join the KaspaHub revolution and earn exclusive rewards</p>
 
-    <!-- Navigation -->
-    <nav class="navbar glass-nav">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <div class="logo-icon-kaspa pulse-glow">
-                    <div class="dag-node"></div>
-                    <div class="dag-node"></div>
-                    <div class="dag-node"></div>
-                </div>
-                <span class="logo-text">Kaspa<span class="logo-accent">Hub</span></span>
-                <span class="sacrifice-badge">SACRIFICE</span>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalSacrificed">0</div>
+                <div class="stat-label">Total KAS</div>
             </div>
-            
-            <div class="nav-links">
-                <a href="index.html" class="nav-link">
-                    <i class="fas fa-home"></i> Home
-                </a>
-                <a href="#dashboard" class="nav-link active">
-                    <i class="fas fa-chart-line"></i> Dashboard
-                </a>
-                <a href="#leaderboard" class="nav-link">
-                    <i class="fas fa-trophy"></i> Leaderboard
-                </a>
-                <a href="#analytics" class="nav-link">
-                    <i class="fas fa-analytics"></i> Analytics
-                </a>
+            <div class="stat-card">
+                <div class="stat-value" id="totalParticipants">0</div>
+                <div class="stat-label">Participants</div>
             </div>
-            
-            <div class="nav-actions">
-                <div class="wallet-status" id="walletStatus">
-                    <button class="btn-wallet pulse-glow" id="connectWalletBtn">
-                        <i class="fas fa-wallet"></i>
-                        <span>Connect Wallet</span>
+            <div class="stat-card">
+                <div class="stat-value" id="yourPoints">0</div>
+                <div class="stat-label">Your Points</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <div class="wallet-section">
+                    <button class="btn btn-primary" id="connectBtn">
+                        <i class="fas fa-wallet"></i> CONNECT WALLET
                     </button>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section with Live Stats -->
-    <section class="sacrifice-hero">
-        <div class="container">
-            <div class="hero-content text-center">
-                <!-- Countdown Timer -->
-                <div class="countdown-mega glass-ultra fade-in-up">
-                    <div class="countdown-label">
-                        <span class="badge-pulse"></span>
-                        <span>SACRIFICE ENDS IN</span>
-                    </div>
-                    <div class="countdown-display" id="countdownDisplay">
-                        <div class="countdown-unit">
-                            <div class="countdown-value" id="days">00</div>
-                            <div class="countdown-label-small">DAYS</div>
-                        </div>
-                        <div class="countdown-separator">:</div>
-                        <div class="countdown-unit">
-                            <div class="countdown-value" id="hours">00</div>
-                            <div class="countdown-label-small">HOURS</div>
-                        </div>
-                        <div class="countdown-separator">:</div>
-                        <div class="countdown-unit">
-                            <div class="countdown-value" id="minutes">00</div>
-                            <div class="countdown-label-small">MINUTES</div>
-                        </div>
-                        <div class="countdown-separator">:</div>
-                        <div class="countdown-unit">
-                            <div class="countdown-value" id="seconds">00</div>
-                            <div class="countdown-label-small">SECONDS</div>
-                        </div>
+                    
+                    <div class="wallet-info" id="walletInfo">
+                        <div class="wallet-address" id="walletAddress"></div>
                     </div>
                 </div>
 
-                <h1 class="hero-title-mega gradient-text-kaspa text-glow fade-in-up delay-100">
-                    <span class="fire-emoji">🔥</span> SACRIFICE DASHBOARD <span class="fire-emoji">🔥</span>
-                </h1>
-                
-                <p class="hero-subtitle-mega fade-in-up delay-150">
-                    Join the revolution. Be part of history. Early adopters get <span class="highlight-green">MAXIMUM REWARDS</span>
-                </p>
-
-                <!-- Live Global Stats -->
-                <div class="global-stats-grid fade-in-up delay-200">
-                    <div class="stat-card glass-card animated-border">
-                        <div class="stat-icon">
-                            <i class="fas fa-fire-alt burning"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-value gradient-text" id="totalSacrificed">
-                                <span class="counter" data-target="0">0</span> KAS
-                            </div>
-                            <div class="stat-label">Total Sacrificed</div>
-                            <div class="stat-trend up">
-                                <i class="fas fa-arrow-up"></i> +<span id="sacrifice24h">0</span>% (24h)
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stat-card glass-card animated-border">
-                        <div class="stat-icon">
-                            <i class="fas fa-users pulsing"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-value gradient-text" id="totalParticipants">
-                                <span class="counter" data-target="0">0</span>
-                            </div>
-                            <div class="stat-label">Participants</div>
-                            <div class="stat-trend up">
-                                <i class="fas fa-arrow-up"></i> +<span id="participants24h">0</span> (24h)
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stat-card glass-card animated-border">
-                        <div class="stat-icon">
-                            <i class="fas fa-coins spinning-slow"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-value gradient-text" id="avgSacrifice">
-                                <span class="counter" data-target="0">0</span> KAS
-                            </div>
-                            <div class="stat-label">Average Sacrifice</div>
-                            <div class="stat-trend">
-                                <i class="fas fa-chart-line"></i> Median: <span id="medianSacrifice">0</span> KAS
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stat-card glass-card animated-border highlight">
-                        <div class="stat-icon">
-                            <i class="fas fa-gift glowing"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-value gradient-text" id="yourPoints">
-                                <span class="counter" data-target="0">0</span>
-                            </div>
-                            <div class="stat-label">Your Points</div>
-                            <div class="stat-trend up">
-                                <i class="fas fa-star"></i> Rank: <span id="yourRank">#-</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Main Dashboard -->
-    <section id="dashboard" class="dashboard-section">
-        <div class="container">
-            <!-- Sacrifice Panel -->
-            <div class="sacrifice-panel glass-ultra animated-border-rainbow">
-                <div class="panel-glow"></div>
-                
-                <div class="sacrifice-panel-header">
-                    <h2 class="panel-title">
-                        <i class="fas fa-fire-alt burning"></i>
-                        Make Your Sacrifice
-                    </h2>
-                    <p class="panel-subtitle">Connect your wallet and join the early adopters</p>
-                </div>
-
-                <!-- Wallet Connection State -->
-                <div id="walletConnectState" class="wallet-connect-state">
-                    <div class="connect-prompt glass-card">
-                        <div class="connect-icon">
-                            <i class="fas fa-wallet pulsing"></i>
-                        </div>
-                        <h3>Connect Your Wallet</h3>
-                        <p>Connect your Kaspa wallet to participate in the sacrifice event</p>
-                        <button class="btn-hero-mega pulse-glow" id="connectWalletBtnMain">
-                            <i class="fas fa-link"></i>
-                            <span>Connect Wallet</span>
-                        </button>
-                        <div class="supported-wallets">
-                            <span>Supported:</span>
-                            <img src="https://kaspa.org/favicon.ico" alt="Kaspa" title="Kaspa Wallet">
-                            <span>KasWare</span>
-                            <span>Kaspa Desktop</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sacrifice Form (shown after wallet connection) -->
-                <div id="sacrificeForm" class="sacrifice-form" style="display: none;">
-                    <!-- Wallet Info -->
-                    <div class="wallet-info-box glass-card">
-                        <div class="wallet-header">
-                            <div class="wallet-address">
-                                <i class="fas fa-wallet"></i>
-                                <span id="connectedAddress">kaspa:...</span>
-                                <button class="btn-copy" id="copyAddressBtn" title="Copy Address">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                            <button class="btn-disconnect" id="disconnectBtn">
-                                <i class="fas fa-unlink"></i> Disconnect
-                            </button>
-                        </div>
-                        <div class="wallet-balance">
-                            <div class="balance-item">
-                                <span class="balance-label">Balance:</span>
-                                <span class="balance-value" id="walletBalance">0 KAS</span>
-                            </div>
-                            <div class="balance-item">
-                                <span class="balance-label">Your Total Sacrificed:</span>
-                                <span class="balance-value highlight-green" id="userTotalSacrificed">0 KAS</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tier Selection -->
-                    <div class="tier-selection">
-                        <h3 class="section-subtitle">
-                            <i class="fas fa-layer-group"></i>
-                            Select Your Tier
-                        </h3>
-                        <div class="tiers-grid">
-                            <div class="tier-card" data-tier="bronze" data-min="1000" data-max="9999" data-bonus="25">
-                                <div class="tier-badge bronze">
-                                    <i class="fas fa-medal"></i>
-                                </div>
-                                <h4>Bronze Tier</h4>
-                                <div class="tier-bonus">+25% Bonus</div>
-                                <div class="tier-range">1,000 - 9,999 KAS</div>
-                                <div class="tier-points">2,500 Points per 1K KAS</div>
-                            </div>
-
-                            <div class="tier-card featured" data-tier="silver" data-min="10000" data-max="49999" data-bonus="50">
-                                <div class="tier-badge silver">
-                                    <i class="fas fa-medal"></i>
-                                </div>
-                                <div class="popular-badge">POPULAR</div>
-                                <h4>Silver Tier</h4>
-                                <div class="tier-bonus">+50% Bonus</div>
-                                <div class="tier-range">10,000 - 49,999 KAS</div>
-                                <div class="tier-points">3,750 Points per 1K KAS</div>
-                            </div>
-
-                            <div class="tier-card" data-tier="gold" data-min="50000" data-max="99999" data-bonus="75">
-                                <div class="tier-badge gold">
-                                    <i class="fas fa-medal"></i>
-                                </div>
-                                <h4>Gold Tier</h4>
-                                <div class="tier-bonus">+75% Bonus</div>
-                                <div class="tier-range">50,000 - 99,999 KAS</div>
-                                <div class="tier-points">4,375 Points per 1K KAS</div>
-                            </div>
-
-                            <div class="tier-card" data-tier="diamond" data-min="100000" data-max="999999999" data-bonus="100">
-                                <div class="tier-badge diamond">
-                                    <i class="fas fa-gem"></i>
-                                </div>
-                                <div class="exclusive-badge">VIP</div>
-                                <h4>Diamond Tier</h4>
-                                <div class="tier-bonus">+100% Bonus</div>
-                                <div class="tier-range">100,000+ KAS</div>
-                                <div class="tier-points">5,000 Points per 1K KAS</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Amount Input -->
-                    <div class="amount-input-section">
-                        <label for="sacrificeAmountInput" class="input-label">
-                            <i class="fas fa-coins"></i>
-                            Enter Sacrifice Amount
+                <div id="sacrificeSection" style="display: none;">
+                    <div class="input-group">
+                        <label class="input-label">
+                            <i class="fas fa-coins"></i> Amount (KAS)
                         </label>
-                        <div class="input-wrapper">
-                            <input 
-                                type="number" 
-                                id="sacrificeAmountInput" 
-                                class="amount-input glass-input" 
-                                placeholder="Enter amount in KAS"
-                                min="1000"
-                                step="100"
-                            >
-                            <span class="input-suffix">KAS</span>
-                        </div>
-                        <div class="quick-amounts">
-                            <button class="quick-btn" data-amount="1000">1K</button>
-                            <button class="quick-btn" data-amount="5000">5K</button>
-                            <button class="quick-btn" data-amount="10000">10K</button>
-                            <button class="quick-btn" data-amount="50000">50K</button>
-                            <button class="quick-btn" data-amount="100000">100K</button>
-                            <button class="quick-btn" id="maxBtn">MAX</button>
-                        </div>
+                        <input type="number" class="input-field" id="amountInput" 
+                               placeholder="Enter amount" min="1000" step="100">
                     </div>
 
-                    <!-- Calculation Preview -->
-                    <div class="calculation-preview glass-card">
-                        <h4><i class="fas fa-calculator"></i> Your Rewards Preview</h4>
-                        <div class="calc-grid">
-                            <div class="calc-item">
-                                <span class="calc-label">Sacrifice Amount:</span>
-                                <span class="calc-value" id="previewAmount">0 KAS</span>
-                            </div>
-                            <div class="calc-item">
-                                <span class="calc-label">Selected Tier:</span>
-                                <span class="calc-value" id="previewTier">-</span>
-                            </div>
-                            <div class="calc-item">
-                                <span class="calc-label">Bonus Multiplier:</span>
-                                <span class="calc-value highlight-green" id="previewBonus">+0%</span>
-                            </div>
-                            <div class="calc-item highlight-box">
-                                <span class="calc-label">Total Points:</span>
-                                <span class="calc-value-big gradient-text" id="previewPoints">0</span>
-                            </div>
-                            <div class="calc-item">
-                                <span class="calc-label">Estimated Tokens:</span>
-                                <span class="calc-value" id="previewTokens">0 KHUB</span>
-                            </div>
-                            <div class="calc-item">
-                                <span class="calc-label">Your New Rank:</span>
-                                <span class="calc-value" id="previewRank">#-</span>
-                            </div>
-                        </div>
+                    <div class="quick-amounts">
+                        <button class="quick-btn" onclick="setAmount(1000)">1K</button>
+                        <button class="quick-btn" onclick="setAmount(5000)">5K</button>
+                        <button class="quick-btn" onclick="setAmount(10000)">10K</button>
+                        <button class="quick-btn" onclick="setAmount(50000)">50K</button>
+                        <button class="quick-btn" onclick="setAmount(100000)">100K</button>
+                        <button class="quick-btn" onclick="setMax()">MAX</button>
                     </div>
 
-                    <!-- Sacrifice Button -->
-                    <button class="btn-sacrifice-mega pulse-glow" id="executeSacrificeBtn">
-                        <span class="btn-icon"><i class="fas fa-fire-alt"></i></span>
-                        <span class="btn-text">Execute Sacrifice</span>
-                        <span class="btn-shine"></span>
+                    <div class="tier-display">
+                        <div class="tier-name" id="tierName">Select Amount</div>
+                        <div class="tier-points" id="tierPoints">0 Points</div>
+                    </div>
+
+                    <button class="btn btn-success" id="sacrificeBtn">
+                        🔥 SACRIFICE NOW 🔥
                     </button>
+                </div>
 
-                    <!-- Info Box -->
-                    <div class="info-box glass-card">
-                        <i class="fas fa-info-circle"></i>
-                        <p><strong>How it works:</strong> Sacrificed KAS will be permanently burned. You receive points based on your tier and amount. Points determine your token allocation at TGE (Token Generation Event). Higher points = Higher allocation. Early sacrifices get bonus multipliers!</p>
-                    </div>
+                <div class="info-section">
+                    <strong>📍 Sacrifice Address:</strong><br>
+                    <code style="color: var(--neon-cyan); word-break: break-all;">kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc</code><br><br>
+                    <strong>💎 Tiers:</strong> Bronze (1K-9.9K), Silver (10K-49.9K), Gold (50K-99.9K), Diamond (100K+)<br>
+                    <strong>⚠️ Warning:</strong> Sacrificed KAS will be permanently sent to the address above.
                 </div>
             </div>
-
-            <!-- Live Transaction Feed & Analytics Grid -->
-            <div class="dashboard-grid">
-                <!-- Live Transactions Feed -->
-                <div class="panel glass-card">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-broadcast-tower pulsing"></i> Live Sacrifice Feed</h3>
-                        <span class="live-indicator">
-                            <span class="live-dot"></span>
-                            LIVE
-                        </span>
-                    </div>
-                    <div class="transactions-feed" id="liveTransactionsFeed">
-                        <!-- Dynamically populated -->
-                        <div class="feed-item glass-mini">
-                            <div class="feed-icon">
-                                <i class="fas fa-fire"></i>
-                            </div>
-                            <div class="feed-content">
-                                <div class="feed-address">kaspa:qz...7k8x</div>
-                                <div class="feed-amount">+15,000 KAS</div>
-                            </div>
-                            <div class="feed-time">2s ago</div>
-                        </div>
-                        <div class="feed-item glass-mini">
-                            <div class="feed-icon">
-                                <i class="fas fa-fire"></i>
-                            </div>
-                            <div class="feed-content">
-                                <div class="feed-address">kaspa:qr...3m9p</div>
-                                <div class="feed-amount">+50,000 KAS</div>
-                            </div>
-                            <div class="feed-time">5s ago</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Your Sacrifice History -->
-                <div class="panel glass-card">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-history"></i> Your History</h3>
-                        <button class="btn-ghost btn-sm" id="refreshHistoryBtn">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                    <div class="history-list" id="userHistoryList">
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No sacrifices yet. Be the first!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Leaderboard Section -->
-    <section id="leaderboard" class="leaderboard-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-trophy"></i>
-                    Leaderboard
-                    <span class="gradient-text">Top Sacrificers</span>
-                </h2>
-                <p class="section-subtitle">Compete for the top spot and maximum rewards</p>
-            </div>
-
-            <!-- Podium for Top 3 -->
-            <div class="podium">
-                <div class="podium-place second glass-card">
-                    <div class="place-number">2</div>
-                    <div class="place-avatar">
-                        <i class="fas fa-user-astronaut"></i>
-                    </div>
-                    <div class="place-address" id="rank2Address">kaspa:...</div>
-                    <div class="place-amount" id="rank2Amount">0 KAS</div>
-                    <div class="place-points" id="rank2Points">0 pts</div>
-                    <div class="place-badge silver">
-                        <i class="fas fa-medal"></i>
-                    </div>
-                </div>
-
-                <div class="podium-place first glass-card">
-                    <div class="crown">👑</div>
-                    <div class="place-number">1</div>
-                    <div class="place-avatar">
-                        <i class="fas fa-user-astronaut"></i>
-                    </div>
-                    <div class="place-address" id="rank1Address">kaspa:...</div>
-                    <div class="place-amount" id="rank1Amount">0 KAS</div>
-                    <div class="place-points" id="rank1Points">0 pts</div>
-                    <div class="place-badge gold">
-                        <i class="fas fa-crown"></i>
-                    </div>
-                </div>
-
-                <div class="podium-place third glass-card">
-                    <div class="place-number">3</div>
-                    <div class="place-avatar">
-                        <i class="fas fa-user-astronaut"></i>
-                    </div>
-                    <div class="place-address" id="rank3Address">kaspa:...</div>
-                    <div class="place-amount" id="rank3Amount">0 KAS</div>
-                    <div class="place-points" id="rank3Points">0 pts</div>
-                    <div class="place-badge bronze">
-                        <i class="fas fa-medal"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Full Leaderboard Table -->
-            <div class="leaderboard-table-container glass-card">
-                <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Address</th>
-                            <th>Total Sacrificed</th>
-                            <th>Points</th>
-                            <th>Transactions</th>
-                            <th>Tier</th>
-                            <th>Last Active</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboardTableBody">
-                        <!-- Dynamically populated -->
-                        <tr class="loading-row">
-                            <td colspan="7">
-                                <div class="loading-spinner"></div>
-                                <span>Loading leaderboard...</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <div class="pagination">
-                <button class="pagination-btn" id="prevPage">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <span class="pagination-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
-                <button class="pagination-btn" id="nextPage">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Analytics Section -->
-    <section id="analytics" class="analytics-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-chart-bar"></i>
-                    <span class="gradient-text">Advanced Analytics</span>
-                </h2>
-                <p class="section-subtitle">Deep insights into the sacrifice event</p>
-            </div>
-
-            <div class="analytics-grid">
-                <!-- Sacrifice Over Time Chart -->
-                <div class="chart-panel glass-card">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-chart-line"></i> Sacrifice Volume Over Time</h3>
-                        <div class="chart-controls">
-                            <button class="chart-btn active" data-range="24h">24H</button>
-                            <button class="chart-btn" data-range="7d">7D</button>
-                            <button class="chart-btn" data-range="30d">30D</button>
-                            <button class="chart-btn" data-range="all">ALL</button>
-                        </div>
-                    </div>
-                    <canvas id="volumeChart"></canvas>
-                </div>
-
-                <!-- Tier Distribution Chart -->
-                <div class="chart-panel glass-card">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-chart-pie"></i> Tier Distribution</h3>
-                    </div>
-                    <canvas id="tierChart"></canvas>
-                    <div class="tier-stats">
-                        <div class="tier-stat-item">
-                            <span class="tier-dot bronze"></span>
-                            <span>Bronze: <strong id="bronzeCount">0</strong></span>
-                        </div>
-                        <div class="tier-stat-item">
-                            <span class="tier-dot silver"></span>
-                            <span>Silver: <strong id="silverCount">0</strong></span>
-                        </div>
-                        <div class="tier-stat-item">
-                            <span class="tier-dot gold"></span>
-                            <span>Gold: <strong id="goldCount">0</strong></span>
-                        </div>
-                        <div class="tier-stat-item">
-                            <span class="tier-dot diamond"></span>
-                            <span>Diamond: <strong id="diamondCount">0</strong></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Participants Growth -->
-                <div class="chart-panel glass-card">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-users"></i> Participants Growth</h3>
-                    </div>
-                    <canvas id="participantsChart"></canvas>
-                </div>
-
-                <!-- Top Hours Activity -->
-                <div class="chart-panel glass-card">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-clock"></i> Activity Heatmap (24h)</h3>
-                    </div>
-                    <canvas id="heatmapChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Additional Stats -->
-            <div class="stats-grid">
-                <div class="stat-mini glass-card">
-                    <i class="fas fa-exchange-alt"></i>
-                    <div class="stat-mini-value" id="totalTransactions">0</div>
-                    <div class="stat-mini-label">Total Transactions</div>
-                </div>
-                <div class="stat-mini glass-card">
-                    <i class="fas fa-wallet"></i>
-                    <div class="stat-mini-value" id="uniqueWallets">0</div>
-                    <div class="stat-mini-label">Unique Wallets</div>
-                </div>
-                <div class="stat-mini glass-card">
-                    <i class="fas fa-chart-line"></i>
-                    <div class="stat-mini-value" id="avgPerTx">0 KAS</div>
-                    <div class="stat-mini-label">Avg per Transaction</div>
-                </div>
-                <div class="stat-mini glass-card">
-                    <i class="fas fa-fire"></i>
-                    <div class="stat-mini-value" id="burnRate">0%</div>
-                    <div class="stat-mini-label">Burn Rate (24h)</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ Section -->
-    <section class="faq-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <span class="gradient-text">Frequently Asked Questions</span>
-                </h2>
-            </div>
-
-            <div class="faq-grid">
-                <div class="faq-item glass-card">
-                    <div class="faq-question">
-                        <i class="fas fa-question-circle"></i>
-                        <h4>What is a Sacrifice Event?</h4>
-                    </div>
-                    <div class="faq-answer">
-                        <p>A sacrifice event is a way for early supporters to show commitment to the project. You send KAS (which gets permanently burned), and in return, you receive points that determine your token allocation at TGE. It's not an investment - it's a demonstration of support.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item glass-card">
-                    <div class="faq-question">
-                        <i class="fas fa-question-circle"></i>
-                        <h4>How are points calculated?</h4>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Points are calculated based on your sacrifice amount and tier. Bronze: 2,500 pts/1K KAS (+25%), Silver: 3,750 pts/1K KAS (+50%), Gold: 4,375 pts/1K KAS (+75%), Diamond: 5,000 pts/1K KAS (+100%). Early sacrifices may receive additional bonuses.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item glass-card">
-                    <div class="faq-question">
-                        <i class="fas fa-question-circle"></i>
-                        <h4>When will I receive my tokens?</h4>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Tokens will be distributed at the Token Generation Event (TGE), which will be announced after the sacrifice event ends. Your allocation will be proportional to your points vs total points in the system.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item glass-card">
-                    <div class="faq-question">
-                        <i class="fas fa-question-circle"></i>
-                        <h4>Can I sacrifice multiple times?</h4>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Yes! You can make multiple sacrifices. All your points will be accumulated. Making larger individual sacrifices may unlock higher tiers with better multipliers.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item glass-card">
-                    <div class="faq-question">
-                        <i class="fas fa-question-circle"></i>
-                        <h4>What happens to the sacrificed KAS?</h4>
-                    </div>
-                    <div class="faq-answer">
-                        <p>All sacrificed KAS is permanently burned (sent to a provably unspendable address). This reduces the total KAS supply and demonstrates genuine support for the project. You can verify all burns on the Kaspa blockchain.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item glass-card">
-                    <div class="faq-question">
-                        <i class="fas fa-question-circle"></i>
-                        <h4>Is there a minimum or maximum?</h4>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Minimum sacrifice: 1,000 KAS (Bronze tier). There is no maximum - the more you sacrifice, the higher your tier and bonus multiplier. Diamond tier starts at 100,000 KAS with +100% bonus.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer glass-card">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="logo-icon-kaspa">
-                        <div class="dag-node"></div>
-                        <div class="dag-node"></div>
-                        <div class="dag-node"></div>
-                    </div>
-                    <span class="logo-text">Kaspa<span class="logo-accent">Hub</span></span>
-                </div>
-                <div class="footer-links">
-                    <a href="index.html">Home</a>
-                    <a href="#dashboard">Dashboard</a>
-                    <a href="#leaderboard">Leaderboard</a>
-                    <a href="#analytics">Analytics</a>
-                </div>
-                <div class="footer-socials">
-                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 KaspaHub. All rights reserved. | <strong>NOT FINANCIAL ADVICE</strong></p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Toast Notifications -->
-    <div id="toastContainer" class="toast-container"></div>
-
-    <!-- Transaction Success Modal -->
-    <div id="successModal" class="modal">
-        <div class="modal-content glass-ultra">
-            <div class="success-animation">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h2>Sacrifice Successful! 🎉</h2>
-            <p>Your sacrifice has been recorded and points have been awarded!</p>
-            <div class="success-details" id="successDetails"></div>
-            <button class="btn-hero-mega" id="closeModalBtn">
-                <span>View Leaderboard</span>
-            </button>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="assets/js/sacrifice-dashboard.js"></script>
-    <script src="assets/js/sacrifice-wallet.js"></script>
-    <script src="assets/js/sacrifice-analytics.js"></script>
-    <script src="assets/js/sacrifice-animations.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // ===== PRODUCTION CONFIGURATION =====
+        const CONFIG = {
+            SACRIFICE_ADDRESS: 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc',
+            SOMPI_PER_KAS: 100000000,
+            TIERS: {
+                BRONZE: { min: 1000, max: 9999, pointsPerK: 2500, bonus: 0.25, name: 'Bronze 🥉' },
+                SILVER: { min: 10000, max: 49999, pointsPerK: 3750, bonus: 0.50, name: 'Silver 🥈' },
+                GOLD: { min: 50000, max: 99999, pointsPerK: 4375, bonus: 0.75, name: 'Gold 🥇' },
+                DIAMOND: { min: 100000, max: Infinity, pointsPerK: 5000, bonus: 1.00, name: 'Diamond 💎' }
+            }
+        };
+
+        // ===== STATE =====
+        let state = {
+            connected: false,
+            walletAddress: null,
+            balance: 0,
+            walletType: null
+        };
+
+        // ===== UTILITIES =====
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num);
+        }
+
+        function calculateTier(amount) {
+            for (const tier of Object.values(CONFIG.TIERS)) {
+                if (amount >= tier.min && amount <= tier.max) return tier;
+            }
+            return null;
+        }
+
+        function calculatePoints(amount) {
+            const tier = calculateTier(amount);
+            return tier ? Math.floor((amount / 1000) * tier.pointsPerK) : 0;
+        }
+
+        function updateTierDisplay(amount) {
+            const tier = calculateTier(amount);
+            const points = calculatePoints(amount);
+            
+            document.getElementById('tierName').textContent = tier ? tier.name : 'Select Amount';
+            document.getElementById('tierPoints').textContent = `${formatNumber(points)} Points`;
+        }
+
+        function setAmount(value) {
+            document.getElementById('amountInput').value = value;
+            updateTierDisplay(value);
+        }
+
+        function setMax() {
+            const maxAmount = Math.floor(state.balance);
+            setAmount(maxAmount);
+        }
+
+        // ===== WALLET CONNECTION =====
+        async function connectWallet() {
+            const btn = document.getElementById('connectBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Connecting...';
+
+            try {
+                let address, balance = 0;
+
+                // Try KasWare
+                if (window.kasware) {
+                    const accounts = await window.kasware.requestAccounts();
+                    address = accounts[0];
+                    const bal = await window.kasware.getBalance();
+                    balance = bal.confirmed / CONFIG.SOMPI_PER_KAS;
+                    state.walletType = 'kasware';
+                }
+                // Try Kaspium
+                else if (window.kaspium) {
+                    const result = await window.kaspium.connect();
+                    address = result.address;
+                    balance = (result.balance || 0) / CONFIG.SOMPI_PER_KAS;
+                    state.walletType = 'kaspium';
+                }
+                // Try Kaspa Desktop
+                else if (window.kaspa) {
+                    address = await window.kaspa.getAddress();
+                    balance = (await window.kaspa.getBalance()) / CONFIG.SOMPI_PER_KAS;
+                    state.walletType = 'kaspa';
+                }
+                else {
+                    throw new Error('No Kaspa wallet detected! Please install KasWare or Kaspium.');
+                }
+
+                state.connected = true;
+                state.walletAddress = address;
+                state.balance = balance;
+
+                // Update UI
+                document.getElementById('walletInfo').style.display = 'block';
+                document.getElementById('walletAddress').textContent = 
+                    `${address.substring(0, 15)}...${address.substring(address.length - 10)} | ${formatNumber(balance)} KAS`;
+                document.getElementById('sacrificeSection').style.display = 'block';
+                btn.style.display = 'none';
+
+                // Save to localStorage
+                localStorage.setItem('kaspa_wallet', JSON.stringify({ 
+                    address, 
+                    type: state.walletType 
+                }));
+
+                console.log('✅ Wallet connected:', address);
+            } catch (error) {
+                alert('❌ ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECT WALLET';
+            }
+        }
+
+        // ===== SACRIFICE TRANSACTION =====
+        async function executeSacrifice() {
+            const amountInput = document.getElementById('amountInput');
+            const amount = parseFloat(amountInput.value);
+            const btn = document.getElementById('sacrificeBtn');
+
+            // Validation
+            if (!amount || amount < 1000) {
+                alert('⚠️ Minimum sacrifice is 1,000 KAS');
+                return;
+            }
+
+            if (amount > state.balance) {
+                alert('⚠️ Insufficient balance!');
+                return;
+            }
+
+            const tier = calculateTier(amount);
+            const points = calculatePoints(amount);
+
+            // Confirmation
+            if (!confirm(
+                `🔥 SACRIFICE CONFIRMATION\n\n` +
+                `Amount: ${formatNumber(amount)} KAS\n` +
+                `Tier: ${tier.name}\n` +
+                `Points: ${formatNumber(points)}\n\n` +
+                `To: ${CONFIG.SACRIFICE_ADDRESS}\n\n` +
+                `⚠️ THIS IS IRREVERSIBLE!\n\n` +
+                `Continue?`
+            )) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Processing...';
+
+            try {
+                const amountInSompi = Math.floor(amount * CONFIG.SOMPI_PER_KAS);
+                let txid;
+
+                if (state.walletType === 'kasware') {
+                    txid = await window.kasware.sendKaspa(CONFIG.SACRIFICE_ADDRESS, amountInSompi);
+                } else if (state.walletType === 'kaspium') {
+                    const tx = await window.kaspium.sendTransaction({
+                        to: CONFIG.SACRIFICE_ADDRESS,
+                        amount: amountInSompi
+                    });
+                    txid = tx.transactionId;
+                } else if (state.walletType === 'kaspa') {
+                    txid = await window.kaspa.send(CONFIG.SACRIFICE_ADDRESS, amountInSompi);
+                }
+
+                // Success!
+                showConfetti();
+                
+                setTimeout(() => {
+                    alert(
+                        `🎉 SACRIFICE SUCCESSFUL!\n\n` +
+                        `Amount: ${formatNumber(amount)} KAS\n` +
+                        `Points: ${formatNumber(points)}\n` +
+                        `Tier: ${tier.name}\n\n` +
+                        `TX ID: ${txid}\n\n` +
+                        `View on Explorer:\n` +
+                        `https://explorer.kaspa.org/txs/${txid}`
+                    );
+                }, 500);
+
+                // Save to localStorage
+                const sacrifices = JSON.parse(localStorage.getItem('kaspa_sacrifices') || '[]');
+                sacrifices.push({
+                    txid,
+                    amount,
+                    points,
+                    tier: tier.name,
+                    timestamp: Date.now(),
+                    address: state.walletAddress
+                });
+                localStorage.setItem('kaspa_sacrifices', JSON.stringify(sacrifices));
+
+                // Reset form
+                amountInput.value = '';
+                updateTierDisplay(0);
+
+                // Reload stats
+                loadStats();
+            } catch (error) {
+                alert('❌ Transaction failed: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔥 SACRIFICE NOW 🔥';
+            }
+        }
+
+        // ===== STATS LOADER =====
+        async function loadStats() {
+            try {
+                // Load from localStorage
+                const sacrifices = JSON.parse(localStorage.getItem('kaspa_sacrifices') || '[]');
+                
+                let total = 0;
+                const addresses = new Set();
+                let userPoints = 0;
+
+                for (const sac of sacrifices) {
+                    total += sac.amount;
+                    addresses.add(sac.address);
+                    if (sac.address === state.walletAddress) {
+                        userPoints += sac.points;
+                    }
+                }
+
+                document.getElementById('totalSacrificed').textContent = formatNumber(total);
+                document.getElementById('totalParticipants').textContent = addresses.size;
+                document.getElementById('yourPoints').textContent = formatNumber(userPoints);
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
+        }
+
+        // ===== CONFETTI =====
+        function showConfetti() {
+            const colors = ['#00f3ff', '#ff00ff', '#00ff88', '#ffff00'];
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.cssText = `
+                        position: fixed;
+                        width: 10px;
+                        height: 10px;
+                        background: ${colors[Math.floor(Math.random() * colors.length)]};
+                        left: ${Math.random() * 100}vw;
+                        top: -20px;
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 10000;
+                        transition: all 3s ease-out;
+                    `;
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.style.top = '100vh';
+                        confetti.style.opacity = '0';
+                        confetti.style.transform = `rotate(${Math.random() * 720}deg)`;
+                    }, 10);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 20);
+            }
+        }
+
+        // ===== PARTICLES =====
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80 },
+                color: { value: ['#00f3ff', '#ff00ff', '#00ff88'] },
+                shape: { type: 'circle' },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#00f3ff',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: 'none',
+                    random: true,
+                    out_mode: 'out'
+                }
+            },
+            interactivity: {
+                events: {
+                    onhover: { enable: true, mode: 'grab' },
+                    onclick: { enable: true, mode: 'push' }
+                }
+            }
+        });
+
+        // ===== EVENT LISTENERS =====
+        document.getElementById('connectBtn').addEventListener('click', connectWallet);
+        document.getElementById('sacrificeBtn').addEventListener('click', executeSacrifice);
+        document.getElementById('amountInput').addEventListener('input', (e) => {
+            updateTierDisplay(parseFloat(e.target.value) || 0);
+        });
+
+        // ===== INITIALIZATION =====
+        window.addEventListener('load', () => {
+            loadStats();
+            
+            // Try to restore previous session
+            const saved = localStorage.getItem('kaspa_wallet');
+            if (saved) {
+                const { address, type } = JSON.parse(saved);
+                console.log('Previous session found:', address);
+            }
+        });
+
+        console.log('🚀 KaspaHub Sacrifice Dashboard LIVE');
+        console.log('📍 Sacrifice Address:', CONFIG.SACRIFICE_ADDRESS);
+    </script>
 </body>
 </html>

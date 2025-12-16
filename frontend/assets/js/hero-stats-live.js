@@ -8,7 +8,7 @@ async function fetchKaspaStatsData() {
   try {
     // Kaspa REST API endpoints
     const [infoRes, coinsupplyRes] = await Promise.all([
-      fetch(`${KASPA_API}/info/blocksdag`, { signal: AbortSignal.timeout(5000) }).catch(() => null),
+      fetch(`${KASPA_API}/info/blockdag`, { signal: AbortSignal.timeout(5000) }).catch(() => null),
       fetch(`${KASPA_API}/info/coinsupply`, { signal: AbortSignal.timeout(5000) }).catch(() => null)
     ]);
 
