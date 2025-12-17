@@ -290,13 +290,13 @@ function displayUserInfo(user, token) {
   }
   
   if (isIndexPage) {
-    // Für index-v0.1.html - Desktop
+    // Für index-v0.1.html & index-v0.2.html - Desktop
     if (indexElements.loginBtn) indexElements.loginBtn.style.display = 'none';
     if (indexElements.registerBtn) indexElements.registerBtn.style.display = 'none';
     if (indexElements.userMenu) indexElements.userMenu.style.display = 'flex';
     if (indexElements.userName) indexElements.userName.textContent = user.username;
     
-    // Für index-v0.1.html - Mobile
+    // Für index-v0.1.html & index-v0.2.html - Mobile
     if (indexElements.mobileLoginBtn) indexElements.mobileLoginBtn.style.display = 'none';
     if (indexElements.mobileProfileWrapper) indexElements.mobileProfileWrapper.style.display = 'flex';
     if (indexElements.profileHoverName) indexElements.profileHoverName.textContent = user.username;
@@ -305,10 +305,15 @@ function displayUserInfo(user, token) {
       indexElements.profileHoverWallet.textContent = `${addr.substring(0, 6)}...${addr.substring(38)}`;
     }
     
-    // Login Modal schließen
+    // Modals schließen (Login UND Register)
     if (window.AnimationHelpers && window.AnimationHelpers.closeModal) {
-      window.AnimationHelpers.closeModal('loginModal');
+      setTimeout(() => {
+        window.AnimationHelpers.closeModal('loginModal');
+        window.AnimationHelpers.closeModal('registerModal');
+      }, 500);
     }
+    
+    console.log('✅ UI updated - User logged in:', user.username);
   }
   
   // Save to localStorage
@@ -469,10 +474,30 @@ window.addEventListener('load', () => {
     try {
       currentToken = savedToken;
       const user = JSON.parse(savedUser);
-      displayUserInfo(user, savedToken);
-      showStatus(`Welcome back, ${user.username}!`, 'success', '✅');
+      currentAddress = user.address;
+      
+      // UI sofort aktualisieren
+      if (isIndexPage) {
+        if (indexElements.loginBtn) indexElements.loginBtn.style.display = 'none';
+        if (indexElements.registerBtn) indexElements.registerBtn.style.display = 'none';
+        if (indexElements.userMenu) indexElements.userMenu.style.display = 'flex';
+        if (indexElements.userName) indexElements.userName.textContent = user.username;
+        
+        if (indexElements.mobileLoginBtn) indexElements.mobileLoginBtn.style.display = 'none';
+        if (indexElements.mobileProfileWrapper) indexElements.mobileProfileWrapper.style.display = 'flex';
+        if (indexElements.profileHoverName) indexElements.profileHoverName.textContent = user.username;
+        if (indexElements.profileHoverWallet) {
+          const addr = user.address;
+          indexElements.profileHoverWallet.textContent = `${addr.substring(0, 6)}...${addr.substring(38)}`;
+        }
+        
+        console.log('✅ Auto-login successful:', user.username);
+      } else if (elements.userInfo) {
+        displayUserInfo(user, savedToken);
+        showStatus(`Welcome back, ${user.username}!`, 'success', '✅');
+      }
     } catch (err) {
-      console.error('Auto-login error:', err);
+      console.error('❌ Auto-login error:', err);
       localStorage.clear();
     }
   }
