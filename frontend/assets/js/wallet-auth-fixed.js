@@ -59,10 +59,10 @@ function showStatus(message, type = 'info', icon = 'ℹ️') {
 }
 
 function hideAll() {
-  elements.connectBtn.style.display = 'none';
-  elements.registerForm.classList.remove('show');
-  elements.loginBtn.style.display = 'none';
-  elements.userInfo.classList.remove('show');
+  if (elements.connectBtn) elements.connectBtn.style.display = 'none';
+  if (elements.registerForm) elements.registerForm.classList.remove('show');
+  if (elements.loginBtn) elements.loginBtn.style.display = 'none';
+  if (elements.userInfo) elements.userInfo.classList.remove('show');
 }
 
 async function connectWallet() {
