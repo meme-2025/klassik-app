@@ -122,9 +122,11 @@ async function connectWallet() {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     currentAddress = accounts[0];
     
+    console.log('🔗 Wallet connected:', currentAddress);
     showStatus(`Connected: ${currentAddress.substring(0, 6)}...${currentAddress.substring(38)}`, 'success', '✅');
     
     // Check if wallet is registered
+    console.log('🔍 Checking wallet registration...');
     await checkWalletRegistration();
     
   } catch (err) {
@@ -141,22 +143,41 @@ async function connectWallet() {
 
 async function checkWalletRegistration() {
   try {
-    const response = await fetch(`${API_URL}/api/auth/check?address=${currentAddress}`);
+    console.log('📡 Checking wallet registration...');
+    console.log('📡 API URL:', API_URL);
+    console.log('📡 Address:', currentAddress);
+    console.log('📡 isIndexPage:', isIndexPage);
+    
+    const checkUrl = `${API_URL}/api/auth/check?address=${currentAddress}`;
+    console.log('📡 Full URL:', checkUrl);
+    
+    const response = await fetch(checkUrl);
+    console.log('📥 Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ API Error:', errorText);
+      throw new Error(`API returned status ${response.status}: ${errorText}`);
+    }
+    
     const data = await response.json();
+    console.log('📥 API Response data:', JSON.stringify(data, null, 2));
     
     if (isIndexPage) {
+      console.log('🌐 Index page flow detected');
       // Für index-v0.1.html & index-v0.2.html
       if (data.registered) {
         // Wallet ist registriert → DIREKT einloggen
-        console.log('✅ Wallet registered, auto-login for:', data.user.username);
+        console.log('✅ Wallet registered, starting auto-login for:', data.user.username);
         showStatus(`Welcome back, ${data.user.username}! Please sign to login...`, 'info', '👋');
         await autoLogin();
       } else {
         // Wallet nicht registriert → Username abfragen
-        console.log('🆕 New wallet detected, requesting username');
+        console.log('🆕 New wallet detected, starting registration flow');
         await promptUsername();
       }
     } else {
+      console.log('📄 Login-main page flow detected');
       // Für login-main.html
       hideAll();
       
