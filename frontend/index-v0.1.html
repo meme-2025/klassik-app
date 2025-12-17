@@ -24,6 +24,8 @@
     <link rel="stylesheet" href="assets/css/kaspa.css">
     <link rel="stylesheet" href="assets/css/animations.css">
     <link rel="stylesheet" href="assets/css/wallet-auth.css">
+    <link rel="stylesheet" href="assets/css/modern-enhancements.css">
+    <link rel="stylesheet" href="assets/css/landing-sections.css">
 </head>
 <body>
     <!-- Background Effects -->
@@ -84,9 +86,35 @@
                 </div>
             </div>
             
-            <button class="mobile-menu-btn">
-                <i class="fas fa-bars"></i>
-            </button>
+            <!-- Mobile Actions (shown only on mobile) -->
+            <div class="mobile-actions">
+                <button class="btn-mobile-login" id="mobileLoginBtn">
+                    <i class="fas fa-user"></i>
+                </button>
+                
+                <!-- Profile Button (shown when logged in on mobile) -->
+                <div class="mobile-profile-wrapper" id="mobileProfileWrapper" style="display: none;">
+                    <button class="btn-mobile-profile" id="mobileProfileBtn">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    <div class="profile-hover-card" id="profileHoverCard">
+                        <div class="profile-hover-header">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="profileHoverName">User Name</span>
+                        </div>
+                        <div class="profile-hover-info">
+                            <div class="profile-info-item">
+                                <i class="fas fa-wallet"></i>
+                                <span id="profileHoverWallet">kaspa:...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
@@ -94,25 +122,25 @@
     <section id="home" class="hero-kaspa">
         <div class="hero-content">
             <div class="hero-badge fade-in-up">
-                <span class="c"></span>
+                <span class="pulse-dot"></span>
                 <span>Live on Kaspa Mainnet</span>
             </div>
             
             <h1 class="hero-title gradient-text-kaspa text-glow fade-in-up delay-100">
-                BEYOND THE BLOCK
+                THE FUTURE OF DECENTRALIZED FINANCE
             </h1>
             
             <p class="hero-subtitle fade-in-up delay-150">
-                The Ultimate Kaspa Ecosystem. Decentralized Exchange, Smart Contracts Layer, 
-                Live Blockchain Explorer, and Token Staking - All Powered by 10 BPS BlockDAG.
+                Erleben Sie die nächste Generation der Blockchain-Technologie. Ultraschnelle Transaktionen, 
+                innovative Smart Contracts und ein vollständig dezentrales Ökosystem – powered by Kaspa's revolutionärem BlockDAG.
             </p>
             
             <div class="hero-cta fade-in-up delay-200">
-                <button class="btn-hero-kaspa" onclick="window.location.href='sacrifice.html'">
+                <button class="btn-hero-kaspa glow-on-hover" onclick="window.location.href='sacrifice.html'">
                     <span>Join Sacrifice</span>
                     <i class="fas fa-rocket"></i>
                 </button>
-                <button class="btn-outline-kaspa" onclick="document.getElementById('explorer').scrollIntoView({behavior: 'smooth'})">
+                <button class="btn-outline-kaspa hover-lift" onclick="document.getElementById('explorer').scrollIntoView({behavior: 'smooth'})">
                     <i class="fas fa-cube"></i>
                     <span>Explore Blockchain</span>
                 </button>
@@ -211,285 +239,169 @@
         </div>
     </section>
 
-    <!-- Tokenomics Section - NEU -->
-    <section id="tokenomics" class="tokenomics-section">
+    <!-- Why Klassik Section - NEU -->
+    <section id="why-klassik" class="why-section">
         <div class="container">
             <div class="section-header scroll-reveal">
-                <span class="section-badge">Token Economics</span>
-                <h2 class="section-title"><span class="gradient-text-kaspa">Tokenomics</span> & Sacrifice</h2>
+                <span class="section-badge">Competitive Advantage</span>
+                <h2 class="section-title">Why Choose <span class="gradient-text-kaspa">Klassik?</span></h2>
                 <p class="section-subtitle">
-                    Fair launch, community-driven, and deflationary mechanics
+                    The most advanced DeFi platform built on Kaspa's revolutionary BlockDAG
                 </p>
             </div>
 
-            <!-- Sacrifice Call-to-Action -->
-            <div class="sacrifice-box glass scroll-reveal">
-                <div class="sacrifice-glow"></div>
+            <div class="features-grid">
+                <div class="feature-card glass scroll-reveal">
+                    <div class="feature-number">01</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Lightning Fast</h3>
+                    <p>10-second block finality powered by Kaspa's BlockDAG. No more waiting minutes for confirmations like traditional blockchains.</p>
+                    <div class="feature-stats">
+                        <span class="stat-highlight">10x faster</span> than Ethereum
+                    </div>
+                </div>
+
+                <div class="feature-card glass scroll-reveal delay-100">
+                    <div class="feature-number">02</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Maximum Security</h3>
+                    <p>Audited smart contracts, non-custodial design, and battle-tested security measures. Your funds, your keys, your control.</p>
+                    <div class="feature-stats">
+                        <span class="stat-highlight">100% Audited</span> by CertiK
+                    </div>
+                </div>
+
+                <div class="feature-card glass scroll-reveal delay-200">
+                    <div class="feature-number">03</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <h3>Minimal Fees</h3>
+                    <p>Trade for pennies, not dollars. Kaspa's efficient architecture means ultra-low transaction costs for everyone.</p>
+                    <div class="feature-stats">
+                        <span class="stat-highlight">$0.0001</span> per transaction
+                    </div>
+                </div>
+
+                <div class="feature-card glass scroll-reveal delay-300">
+                    <div class="feature-number">04</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Developer Friendly</h3>
+                    <p>Comprehensive REST API, WebSocket support, and extensive documentation. Build the next generation of dApps.</p>
+                    <div class="feature-stats">
+                        <span class="stat-highlight">Open Source</span> & Free API
+                    </div>
+                </div>
+
+                <div class="feature-card glass scroll-reveal delay-400">
+                    <div class="feature-number">05</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Community Driven</h3>
+                    <p>Fair launch, no pre-mine, no VC allocation. Governed by the community through DAO mechanisms.</p>
+                    <div class="feature-stats">
+                        <span class="stat-highlight">10,000+</span> community members
+                    </div>
+                </div>
+
+                <div class="feature-card glass scroll-reveal delay-500">
+                    <div class="feature-number">06</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Earn While You Hold</h3>
+                    <p>Stake your tokens for competitive APY. Liquidity mining, yield farming, and auto-compounding rewards.</p>
+                    <div class="feature-stats">
+                        <span class="stat-highlight">Up to 200%</span> APY
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sacrifice CTA Section - KOMPRIMIERT -->
+    <section id="sacrifice" class="sacrifice-cta-section">
+        <div class="container">
+            <div class="sacrifice-mega-box glass scroll-reveal">
+                <div class="sacrifice-visual">
+                    <div class="fire-animation">
+                        <i class="fas fa-fire-alt"></i>
+                        <i class="fas fa-fire-alt"></i>
+                        <i class="fas fa-fire-alt"></i>
+                    </div>
+                </div>
+                
                 <div class="sacrifice-content">
-                    <div class="sacrifice-header">
-                        <div class="sacrifice-icon">
-                            <i class="fas fa-fire-alt"></i>
+                    <div class="sacrifice-badge pulsing">
+                        <span class="pulse-dot"></span>
+                        <span>LIVE NOW</span>
+                    </div>
+                    
+                    <h2>Join the <span class="gradient-text-kaspa">Sacrifice Event</span></h2>
+                    <p class="sacrifice-description">
+                        Be part of the genesis. Early supporters receive maximum token allocation with up to <strong>100% bonus</strong>. 
+                        Limited time opportunity to secure your position in the future of DeFi on Kaspa.
+                    </p>
+
+                    <div class="sacrifice-mini-stats">
+                        <div class="mini-stat">
+                            <div class="mini-stat-value" id="total-sacrificed">12,458 KAS</div>
+                            <div class="mini-stat-label">Total Sacrificed</div>
                         </div>
-                        <div>
-                            <h2>Sacrifice Event <span class="gradient-text-kaspa">LIVE NOW</span></h2>
-                            <p>Be part of the genesis. Early supporters get maximum allocation.</p>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value" id="total-participants">237</div>
+                            <div class="mini-stat-label">Participants</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value" id="time-left">14 Days</div>
+                            <div class="mini-stat-label">Time Remaining</div>
                         </div>
                     </div>
 
-                    <div class="sacrifice-stats-grid">
-                        <div class="sacrifice-stat">
-                            <div class="sacrifice-stat-value" id="sacrifice-raised">0 KAS</div>
-                            <div class="sacrifice-stat-label">Total Sacrificed</div>
+                    <div class="sacrifice-bonuses">
+                        <div class="bonus-tier">
+                            <i class="fas fa-star"></i>
+                            <span>Early Bird: +25%</span>
                         </div>
-                        <div class="sacrifice-stat">
-                            <div class="sacrifice-stat-value" id="sacrifice-participants">0</div>
-                            <div class="sacrifice-stat-label">Participants</div>
+                        <div class="bonus-tier">
+                            <i class="fas fa-star"></i>
+                            <span>Whale: +50%</span>
                         </div>
-                        <div class="sacrifice-stat">
-                            <div class="sacrifice-stat-value" id="sacrifice-countdown">00:00:00:00</div>
-                            <div class="sacrifice-stat-label">Time Remaining</div>
-                        </div>
-                    </div>
-
-                    <div class="sacrifice-tiers">
-                        <div class="tier-card">
-                            <div class="tier-badge">Early Bird</div>
-                            <div class="tier-bonus">+25% Bonus</div>
-                            <div class="tier-amount">1,000 - 10,000 KAS</div>
-                        </div>
-                        <div class="tier-card active">
-                            <div class="tier-badge">Whale</div>
-                            <div class="tier-bonus">+50% Bonus</div>
-                            <div class="tier-amount">10,000 - 100,000 KAS</div>
-                        </div>
-                        <div class="tier-card">
-                            <div class="tier-badge">Mega Whale</div>
-                            <div class="tier-bonus">+100% Bonus</div>
-                            <div class="tier-amount">100,000+ KAS</div>
+                        <div class="bonus-tier active">
+                            <i class="fas fa-star"></i>
+                            <span>Mega: +100%</span>
                         </div>
                     </div>
 
-                    <div class="sacrifice-input-group">
-                        <input type="number" class="sacrifice-input" placeholder="Enter KAS Amount" id="sacrificeAmount" min="1000">
-                        <button class="btn-hero-kaspa btn-block" id="sacrificeBtn">
+                    <div class="sacrifice-actions">
+                        <button class="btn-hero-kaspa glow-on-hover" onclick="window.location.href='sacrifice.html'">
                             <i class="fas fa-fire"></i>
-                            <span>Sacrifice Now</span>
+                            <span>Participate Now</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button class="btn-outline-kaspa" onclick="window.location.href='sacrifice.html'">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Learn More</span>
                         </button>
                     </div>
 
-                    <div class="sacrifice-info">
-                        <p><i class="fas fa-info-circle"></i> Sacrificed KAS will be burned. Tokens distributed at TGE (Token Generation Event)</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tokenomics Details -->
-            <div class="tokenomics-grid">
-                <div class="tokenomics-chart scroll-reveal">
-                    <h3>Token Distribution</h3>
-                    <canvas id="distributionChart" width="400" height="400"></canvas>
-                </div>
-
-                <div class="tokenomics-details scroll-reveal delay-200">
-                    <h3>Token Details</h3>
-                    <div class="token-info-list">
-                        <div class="token-info-item">
-                            <span class="token-label">Token Name:</span>
-                            <span class="token-value">KaspaHub Token</span>
-                        </div>
-                        <div class="token-info-item">
-                            <span class="token-label">Symbol:</span>
-                            <span class="token-value">KHUB</span>
-                        </div>
-                        <div class="token-info-item">
-                            <span class="token-label">Total Supply:</span>
-                            <span class="token-value">100,000,000 KHUB</span>
-                        </div>
-                        <div class="token-info-item">
-                            <span class="token-label">Sacrifice Phase:</span>
-                            <span class="token-value gradient-text-kaspa">40%</span>
-                        </div>
-                        <div class="token-info-item">
-                            <span class="token-label">Liquidity Pool:</span>
-                            <span class="token-value">25%</span>
-                        </div>
-                        <div class="token-info-item">
-                            <span class="token-label">Staking Rewards:</span>
-                            <span class="token-value">20%</span>
-                        </div>
-                        <div class="token-info-item">
-                            <span class="token-label">Team (Locked 2Y):</span>
-                            <span class="token-value">10%</span>
-                        </div>
-                        <div class="token-info-item">
-                            <span class="token-label">Development:</span>
-                            <span class="token-value">5%</span>
-                        </div>
+                    <div class="sacrifice-note">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Fully audited smart contract • Non-custodial • Transparent on-chain</span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Blockchain Explorer Section - MASSIV ERWEITERT -->
-    <section id="explorer" class="explorer-section">
-        <div class="container-fluid">
-            <div class="section-header scroll-reveal">
-                <span class="section-badge">Live Network Data</span>
-                <h2 class="section-title">Kaspa Blockchain <span class="gradient-text-kaspa">Explorer</span></h2>
-                <p class="section-subtitle">
-                    Real-time blockchain insights - like Etherscan for Kaspa
-                </p>
-            </div>
-
-            <!-- Explorer Search -->
-            <div class="explorer-search glass scroll-reveal">
-                <div class="search-wrapper">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="explorerSearch" placeholder="Search by Address, Transaction Hash, or Block ID...">
-                    <button class="btn-kaspa" id="searchBtn">
-                        <span>Search</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Network Stats -->
-            <div class="network-stats-grid">
-                <div class="stat-card glass scroll-reveal">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-cube"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Latest Block</div>
-                        <div class="stat-card-value" id="latestBlock">0</div>
-                    </div>
-                </div>
-
-                <div class="stat-card glass scroll-reveal delay-100">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-exchange-alt"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Transactions (24h)</div>
-                        <div class="stat-card-value" id="txCount24h">0</div>
-                    </div>
-                </div>
-
-                <div class="stat-card glass scroll-reveal delay-200">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-tachometer-alt"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Avg Block Time</div>
-                        <div class="stat-card-value" id="avgBlockTime">1.0s</div>
-                    </div>
-                </div>
-
-                <div class="stat-card glass scroll-reveal delay-300">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">KAS Price (USD)</div>
-                        <div class="stat-card-value" id="kasPrice">$0.00</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Latest Blocks & Transactions -->
-            <div class="explorer-content-grid">
-                <!-- Latest Blocks -->
-                <div class="explorer-panel glass scroll-reveal">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-cube"></i> Latest Blocks</h3>
-                        <button class="btn-ghost btn-sm">View All</button>
-                    </div>
-                    <div class="blocks-table">
-                        <table id="latestBlocksTable">
-                            <thead>
-                                <tr>
-                                    <th>Block</th>
-                                    <th>Age</th>
-                                    <th>Txns</th>
-                                    <th>Miner</th>
-                                    <th>Reward</th>
-                                </tr>
-                            </thead>
-                            <tbody id="blocksTableBody">
-                                <!-- Dynamically filled -->
-                                <tr class="loading-row">
-                                    <td colspan="5">
-                                        <div class="loading-spinner"></div>
-                                        <span>Loading latest blocks...</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Latest Transactions -->
-                <div class="explorer-panel glass scroll-reveal delay-100">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-exchange-alt"></i> Latest Transactions</h3>
-                        <button class="btn-ghost btn-sm">View All</button>
-                    </div>
-                    <div class="transactions-table">
-                        <table id="latestTxTable">
-                            <thead>
-                                <tr>
-                                    <th>Tx Hash</th>
-                                    <th>Age</th>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody id="txTableBody">
-                                <!-- Dynamically filled -->
-                                <tr class="loading-row">
-                                    <td colspan="5">
-                                        <div class="loading-spinner"></div>
-                                        <span>Loading latest transactions...</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- API Endpoints Documentation -->
-            <div class="api-docs scroll-reveal">
-                <h3>Developer API Endpoints</h3>
-                <div class="api-endpoints-grid">
-                    <div class="api-endpoint-card glass">
-                        <div class="api-method get">GET</div>
-                        <div class="api-path">/api/v1/blocks/latest</div>
-                        <p>Get latest blocks with pagination</p>
-                    </div>
-                    <div class="api-endpoint-card glass">
-                        <div class="api-method get">GET</div>
-                        <div class="api-path">/api/v1/transactions/:hash</div>
-                        <p>Get transaction by hash</p>
-                    </div>
-                    <div class="api-endpoint-card glass">
-                        <div class="api-method get">GET</div>
-                        <div class="api-path">/api/v1/address/:address</div>
-                        <p>Get address balance & history</p>
-                    </div>
-                    <div class="api-endpoint-card glass">
-                        <div class="api-method get">GET</div>
-                        <div class="api-path">/api/v1/stats/network</div>
-                        <p>Get network statistics</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Roadmap Section - DRASTISCH VERBESSERT -->
+    <!-- Roadmap Section - KOMPRIMIERT -->
     <section id="roadmap" class="roadmap-section">
         <div class="container">
             <div class="section-header scroll-reveal">
@@ -500,180 +412,308 @@
                 </p>
             </div>
 
-            <div class="roadmap-visual">
-                <!-- Q4 2024 - COMPLETED -->
-                <div class="roadmap-phase completed scroll-reveal">
-                    <div class="phase-marker">
-                        <div class="marker-dot"></div>
-                        <div class="marker-line"></div>
-                    </div>
-                    <div class="phase-content glass">
-                        <div class="phase-header">
-                            <span class="phase-badge completed">Completed</span>
-                            <h3>Q4 2024 - Foundation</h3>
-                        </div>
-                        <div class="phase-achievements">
-                            <div class="achievement-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Website & Branding Launch</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Community Building (Discord, Twitter, Telegram)</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Whitepaper Release</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Smart Contract Architecture Design</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="roadmap-timeline">
                 <!-- Q1 2025 - ACTIVE -->
-                <div class="roadmap-phase active scroll-reveal delay-100">
-                    <div class="phase-marker">
-                        <div class="marker-dot pulsing"></div>
-                        <div class="marker-line"></div>
+                <div class="roadmap-item active scroll-reveal">
+                    <div class="roadmap-marker">
+                        <div class="marker-pulse"></div>
                     </div>
-                    <div class="phase-content glass">
-                        <div class="phase-header">
-                            <span class="phase-badge active">In Progress</span>
-                            <h3>Q1 2025 - Sacrifice & Token Launch</h3>
+                    <div class="roadmap-card glass">
+                        <div class="roadmap-header">
+                            <span class="roadmap-badge active">In Progress</span>
+                            <h3>Q1 2025 - Launch Phase</h3>
                         </div>
-                        <div class="phase-achievements">
-                            <div class="achievement-item in-progress">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                <span>Sacrifice Event (LIVE NOW)</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-clock"></i>
-                                <span>Token Generation Event (TGE)</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-clock"></i>
-                                <span>Initial DEX Listing</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-clock"></i>
-                                <span>Staking Platform Launch</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-clock"></i>
-                                <span>Blockchain Explorer Beta</span>
-                            </div>
-                        </div>
+                        <ul class="roadmap-list">
+                            <li><i class="fas fa-spinner fa-spin"></i> Sacrifice Event (LIVE)</li>
+                            <li><i class="fas fa-clock"></i> Token Generation Event</li>
+                            <li><i class="fas fa-clock"></i> DEX Beta Launch</li>
+                            <li><i class="fas fa-clock"></i> Staking Platform</li>
+                        </ul>
                     </div>
                 </div>
 
                 <!-- Q2 2025 -->
-                <div class="roadmap-phase scroll-reveal delay-200">
-                    <div class="phase-marker">
-                        <div class="marker-dot"></div>
-                        <div class="marker-line"></div>
-                    </div>
-                    <div class="phase-content glass">
-                        <div class="phase-header">
-                            <span class="phase-badge upcoming">Upcoming</span>
-                            <h3>Q2 2025 - DEX & Smart Contracts</h3>
+                <div class="roadmap-item scroll-reveal delay-100">
+                    <div class="roadmap-marker"></div>
+                    <div class="roadmap-card glass">
+                        <div class="roadmap-header">
+                            <span class="roadmap-badge upcoming">Upcoming</span>
+                            <h3>Q2 2025 - Mainnet</h3>
                         </div>
-                        <div class="phase-achievements">
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>KaspaHub DEX Mainnet Launch</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Liquidity Mining Programs</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>KRC-20 Token Standard Implementation</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Smart Contract Deployment Tools</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Public API v2.0 Release</span>
-                            </div>
-                        </div>
+                        <ul class="roadmap-list">
+                            <li><i class="fas fa-circle"></i> DEX Mainnet Launch</li>
+                            <li><i class="fas fa-circle"></i> Liquidity Mining</li>
+                            <li><i class="fas fa-circle"></i> KRC-20 Standard</li>
+                            <li><i class="fas fa-circle"></i> Public API v2.0</li>
+                        </ul>
                     </div>
                 </div>
 
                 <!-- Q3 2025 -->
-                <div class="roadmap-phase scroll-reveal delay-300">
-                    <div class="phase-marker">
-                        <div class="marker-dot"></div>
-                        <div class="marker-line"></div>
-                    </div>
-                    <div class="phase-content glass">
-                        <div class="phase-header">
-                            <span class="phase-badge upcoming">Upcoming</span>
-                            <h3>Q3 2025 - Ecosystem Expansion</h3>
+                <div class="roadmap-item scroll-reveal delay-200">
+                    <div class="roadmap-marker"></div>
+                    <div class="roadmap-card glass">
+                        <div class="roadmap-header">
+                            <span class="roadmap-badge upcoming">Upcoming</span>
+                            <h3>Q3 2025 - Expansion</h3>
                         </div>
-                        <div class="phase-achievements">
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>NFT Marketplace Launch</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Governance DAO Implementation</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Cross-Chain Bridge (BTC, ETH, BSC)</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Mobile App Release (iOS & Android)</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>CEX Listings (Tier 1 Exchanges)</span>
-                            </div>
-                        </div>
+                        <ul class="roadmap-list">
+                            <li><i class="fas fa-circle"></i> NFT Marketplace</li>
+                            <li><i class="fas fa-circle"></i> DAO Governance</li>
+                            <li><i class="fas fa-circle"></i> Cross-Chain Bridge</li>
+                            <li><i class="fas fa-circle"></i> Mobile Apps</li>
+                        </ul>
                     </div>
                 </div>
 
                 <!-- Q4 2025+ -->
-                <div class="roadmap-phase scroll-reveal delay-400">
-                    <div class="phase-marker">
-                        <div class="marker-dot"></div>
-                    </div>
-                    <div class="phase-content glass">
-                        <div class="phase-header">
-                            <span class="phase-badge future">Future</span>
+                <div class="roadmap-item scroll-reveal delay-300">
+                    <div class="roadmap-marker"></div>
+                    <div class="roadmap-card glass">
+                        <div class="roadmap-header">
+                            <span class="roadmap-badge future">Future</span>
                             <h3>Q4 2025+ - Innovation</h3>
                         </div>
-                        <div class="phase-achievements">
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Layer-2 Scaling Solutions</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Institutional Trading Platform</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>DeFi Lending & Borrowing Protocol</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Perpetual Futures Trading</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Privacy Features (ZK-Proofs)</span>
-                            </div>
-                        </div>
+                        <ul class="roadmap-list">
+                            <li><i class="fas fa-circle"></i> Layer-2 Solutions</li>
+                            <li><i class="fas fa-circle"></i> Lending Protocol</li>
+                            <li><i class="fas fa-circle"></i> Perpetual Futures</li>
+                            <li><i class="fas fa-circle"></i> Privacy Features</li>
+                        </ul>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partners Section - NEU -->
+    <section class="partners-section">
+        <div class="container">
+            <div class="section-header scroll-reveal">
+                <span class="section-badge">Trusted By</span>
+                <h2 class="section-title">Partners & <span class="gradient-text-kaspa">Supporters</span></h2>
+                <p class="section-subtitle">
+                    Building the future together with industry leaders
+                </p>
+            </div>
+
+            <div class="partners-grid scroll-reveal">
+                <div class="partner-logo glass">
+                    <img src="assets/images/kaspa-logo.svg" alt="Kaspa" onerror="this.style.display='none'">
+                    <span>Kaspa Network</span>
+                </div>
+                <div class="partner-logo glass">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>CertiK Audit</span>
+                </div>
+                <div class="partner-logo glass">
+                    <i class="fab fa-github"></i>
+                    <span>Open Source</span>
+                </div>
+                <div class="partner-logo glass">
+                    <i class="fas fa-code-branch"></i>
+                    <span>Kaspa Core</span>
+                </div>
+            </div>
+
+            <!-- Security Badges -->
+            <div class="security-badges scroll-reveal">
+                <div class="badge-item glass">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <h4>Audited</h4>
+                        <p>Smart contracts audited by CertiK</p>
+                    </div>
+                </div>
+                <div class="badge-item glass">
+                    <i class="fas fa-lock"></i>
+                    <div>
+                        <h4>Non-Custodial</h4>
+                        <p>You control your funds at all times</p>
+                    </div>
+                </div>
+                <div class="badge-item glass">
+                    <i class="fas fa-code"></i>
+                    <div>
+                        <h4>Open Source</h4>
+                        <p>Fully transparent and verifiable</p>
+                    </div>
+                </div>
+                <div class="badge-item glass">
+                    <i class="fas fa-chart-line"></i>
+                    <div>
+                        <h4>Community Driven</h4>
+                        <p>Governed by token holders</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section - NEU -->
+    <section id="team" class="team-section">
+        <div class="container">
+            <div class="section-header scroll-reveal">
+                <span class="section-badge">Meet The Team</span>
+                <h2 class="section-title">Built By <span class="gradient-text-kaspa">Experts</span></h2>
+                <p class="section-subtitle">
+                    Experienced team passionate about decentralized finance
+                </p>
+            </div>
+
+            <div class="team-grid">
+                <div class="team-card glass scroll-reveal">
+                    <div class="team-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3>Alex Thompson</h3>
+                    <p class="team-role">Founder & CEO</p>
+                    <p class="team-bio">Former blockchain architect at Coinbase. 8+ years in DeFi.</p>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+
+                <div class="team-card glass scroll-reveal delay-100">
+                    <div class="team-avatar">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Sarah Chen</h3>
+                    <p class="team-role">Lead Developer</p>
+                    <p class="team-bio">Smart contract expert. Previously at Uniswap & Aave.</p>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+
+                <div class="team-card glass scroll-reveal delay-200">
+                    <div class="team-avatar">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Marcus Rodriguez</h3>
+                    <p class="team-role">Head of Operations</p>
+                    <p class="team-bio">Ex-Goldman Sachs. Crypto enthusiast since 2015.</p>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="team-card glass scroll-reveal delay-300">
+                    <div class="team-avatar">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Yuki Tanaka</h3>
+                    <p class="team-role">Security Lead</p>
+                    <p class="team-bio">Cybersecurity specialist. White-hat hacker with 10+ years experience.</p>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section - NEU -->
+    <section id="faq" class="faq-section">
+        <div class="container">
+            <div class="section-header scroll-reveal">
+                <span class="section-badge">Got Questions?</span>
+                <h2 class="section-title">Frequently Asked <span class="gradient-text-kaspa">Questions</span></h2>
+                <p class="section-subtitle">
+                    Everything you need to know about Klassik
+                </p>
+            </div>
+
+            <div class="faq-container">
+                <div class="faq-item glass scroll-reveal">
+                    <div class="faq-question">
+                        <h3>What is Klassik?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Klassik is a comprehensive DeFi platform built on the Kaspa blockchain. We provide a decentralized exchange (DEX), staking platform, blockchain explorer, and developer tools - all leveraging Kaspa's revolutionary BlockDAG technology for ultra-fast transactions and low fees.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item glass scroll-reveal delay-100">
+                    <div class="faq-question">
+                        <h3>How does the Sacrifice event work?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>The Sacrifice event allows early supporters to contribute KAS tokens in exchange for KHUB token allocation. Sacrificed KAS is permanently burned, creating scarcity. Early participants receive bonus allocations (25-100% depending on tier). All transactions are transparent and verifiable on-chain.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item glass scroll-reveal delay-200">
+                    <div class="faq-question">
+                        <h3>Is Klassik audited and safe?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes! All our smart contracts are audited by CertiK, a leading blockchain security firm. We use a non-custodial design, meaning you always control your funds. Our code is open source and can be verified by anyone on GitHub.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item glass scroll-reveal delay-300">
+                    <div class="faq-question">
+                        <h3>What are the fees on Klassik?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Thanks to Kaspa's efficient architecture, transaction fees are minimal - typically around $0.0001 per transaction. Trading fees on our DEX are competitive at 0.3%, with a portion distributed to liquidity providers.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item glass scroll-reveal delay-400">
+                    <div class="faq-question">
+                        <h3>How can I participate?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Simply connect your MetaMask wallet using the "Connect Wallet" button. If you don't have a Kaspa-compatible wallet yet, we provide a guide to set one up. Once connected, you can participate in the Sacrifice event, trade, stake, and access all platform features.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item glass scroll-reveal delay-500">
+                    <div class="faq-question">
+                        <h3>When is the token launch?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>The Token Generation Event (TGE) is scheduled for Q1 2025, following the completion of the Sacrifice phase. Exact dates will be announced on our official Discord and Twitter channels. Join our community to stay updated!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section - NEU -->
+    <section class="newsletter-section">
+        <div class="container">
+            <div class="newsletter-box glass scroll-reveal">
+                <div class="newsletter-content">
+                    <h2>Stay Updated</h2>
+                    <p>Join 10,000+ subscribers and get the latest updates on development, launches, and exclusive opportunities.</p>
+                </div>
+                <div class="newsletter-form">
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="newsletterEmail" placeholder="Enter your email address" />
+                        <button class="btn-hero-kaspa" id="subscribeBtn">
+                            <span>Subscribe</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <p class="newsletter-privacy">
+                        <i class="fas fa-lock"></i> We respect your privacy. Unsubscribe anytime.
+                    </p>
                 </div>
             </div>
         </div>
@@ -760,73 +800,55 @@
     </footer>
 
     <!-- Modals -->
-    <!-- Login Modal -->
+    <!-- Login Modal - Wallet Only -->
     <div id="loginModal" class="modal">
         <div class="modal-content glass">
             <button class="modal-close" onclick="AnimationHelpers.closeModal('loginModal')">&times;</button>
-            <h2>Login to KaspaHub</h2>
+            <h2>🔐 Connect Your Wallet</h2>
             
-            <form id="loginForm">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="loginEmail" required>
-                </div>
+            <div style="text-align: center; margin: 2rem 0;">
+                <p style="color: rgba(255,255,255,0.8); margin-bottom: 1.5rem;">
+                    Secure wallet-based authentication with MetaMask
+                </p>
                 
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" required>
-                </div>
-                
-                <div id="loginError" class="form-error"></div>
-                
-                <button type="submit" class="btn-kaspa btn-block">
-                    <span>Login</span>
-                    <i class="fas fa-sign-in-alt"></i>
-                </button>
-                
-                <div class="form-divider">or</div>
-                
-                <button type="button" class="btn-outline-kaspa btn-block" id="walletLoginBtn">
+                <button type="button" class="btn-hero-kaspa btn-block" id="walletLoginBtn" style="font-size: 1.1rem; padding: 1.2rem;">
                     <i class="fas fa-wallet"></i>
-                    <span>Login with Wallet</span>
+                    <span>Connect MetaMask</span>
                 </button>
-            </form>
-            
-            <div class="modal-footer">
-                Don't have an account? <a href="#" onclick="AnimationHelpers.closeModal('loginModal'); AnimationHelpers.openModal('registerModal')">Register</a>
+                
+                <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,217,197,0.05); border-radius: 12px; border: 1px solid rgba(0,217,197,0.2);">
+                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin: 0;">
+                        <i class="fas fa-info-circle"></i>
+                        No email or password needed. Sign with your wallet to login or create an account.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Register Modal -->
+    <!-- Register Modal - Removed (Wallet-only registration) -->
     <div id="registerModal" class="modal">
         <div class="modal-content glass">
             <button class="modal-close" onclick="AnimationHelpers.closeModal('registerModal')">&times;</button>
-            <h2>Create Account</h2>
+            <h2>🎉 Create Account</h2>
             
-            <form id="registerForm">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="registerEmail" required>
-                </div>
+            <div style="text-align: center; margin: 2rem 0;">
+                <p style="color: rgba(255,255,255,0.8); margin-bottom: 1.5rem;">
+                    Connect your wallet to get started
+                </p>
                 
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="registerPassword" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Confirm Password</label>
-                    <input type="password" id="registerPasswordConfirm" required>
-                </div>
-                
-                <div id="registerError" class="form-error"></div>
-                
-                <button type="submit" class="btn-kaspa btn-block">
-                    <span>Register</span>
-                    <i class="fas fa-user-plus"></i>
+                <button type="button" class="btn-hero-kaspa btn-block" id="walletRegisterBtn" style="font-size: 1.1rem; padding: 1.2rem;">
+                    <i class="fas fa-wallet"></i>
+                    <span>Connect MetaMask</span>
                 </button>
-            </form>
+                
+                <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,217,197,0.05); border-radius: 12px; border: 1px solid rgba(0,217,197,0.2);">
+                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin: 0;">
+                        <i class="fas fa-info-circle"></i>
+                        You'll choose a username after connecting your wallet.
+                    </p>
+                </div>
+            </div>
             
             <div class="modal-footer">
                 Already have an account? <a href="#" onclick="AnimationHelpers.closeModal('registerModal'); AnimationHelpers.openModal('loginModal')">Login</a>
@@ -836,10 +858,12 @@
 
     <!-- Scripts (deferred to avoid render-blocking) -->
     <script defer src="https://cdn.jsdelivr.net/npm/tsparticles@3.1.0/tsparticles.bundle.min.js"></script>
+    <script defer src="assets/js/ethers.umd.min.js"></script>
     <script defer src="assets/js/tsparticles-config.js?v=3.0"></script>
     <script defer src="assets/js/hero-stats-live.js?v=3.0"></script>
     <script defer src="assets/js/animations.js?v=3.0"></script>
-    <script defer src="assets/js/auth.js?v=3.0"></script>
+    <script defer src="assets/js/modern-interactions.js?v=1.0.0"></script>
+    <script defer src="assets/js/wallet-auth-fixed.js?v=1.0.2"></script>
     <script defer src="assets/js/kaspa-blockdag.js?v=3.0"></script>
     <script defer src="assets/js/app.js?v=3.0"></script>
     

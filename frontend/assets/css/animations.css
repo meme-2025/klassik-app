@@ -136,6 +136,43 @@
   }
 }
 
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 217, 197, 0.4),
+                0 0 40px rgba(0, 217, 197, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 217, 197, 0.6),
+                0 0 60px rgba(0, 217, 197, 0.3);
+  }
+}
+
+@keyframes slide-in-bounce {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 @keyframes glitch {
   0% {
     text-shadow: 2px 2px #ff00de, -2px -2px #00f0ff;
@@ -211,6 +248,42 @@
 
 .pulsing {
   animation: pulse 2s ease-in-out infinite;
+}
+
+.glow-on-hover {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.glow-on-hover:hover {
+  animation: glow-pulse 1.5s ease-in-out infinite;
+  transform: translateY(-3px) scale(1.02);
+}
+
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 40px rgba(0, 217, 197, 0.4);
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #00D9C5 0%,
+    #49E3D7 25%,
+    #7B68EE 50%,
+    #49E3D7 75%,
+    #00D9C5 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: text-shimmer 3s linear infinite;
 }
 
 .bouncing {
