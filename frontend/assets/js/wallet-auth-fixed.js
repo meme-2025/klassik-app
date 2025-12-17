@@ -144,19 +144,133 @@ async function checkWalletRegistration() {
     const response = await fetch(`${API_URL}/api/auth/check?address=${currentAddress}`);
     const data = await response.json();
     
-    hideAll();
-    
-    if (data.registered) {
-      showStatus(`Welcome back, ${data.user.username}! Please sign to login.`, 'info', '👋');
-      elements.loginBtn.style.display = 'block';
+    if (isIndexPage) {
+      // Für index-v0.1.html & index-v0.2.html
+      if (data.registered) {
+        // Wallet ist registriert → DIREKT einloggen
+        console.log('✅ Wallet registered, auto-login for:', data.user.username);
+        showStatus(`Welcome back, ${data.user.username}! Please sign to login...`, 'info', '👋');
+        await autoLogin();
+      } else {
+        // Wallet nicht registriert → Username abfragen
+        console.log('🆕 New wallet detected, requesting username');
+        await promptUsername();
+      }
     } else {
-      showStatus('Wallet not registered. Please choose a username.', 'info', '🆕');
-      elements.registerForm.classList.add('show');
-      elements.username.focus();
+      // Für login-main.html
+      hideAll();
+      
+      if (data.registered) {
+        showStatus(`Welcome back, ${data.user.username}! Please sign to login.`, 'info', '👋');
+        elements.loginBtn.style.display = 'block';
+      } else {
+        showStatus('Wallet not registered. Please choose a username.', 'info', '🆕');
+        elements.registerForm.classList.add('show');
+        elements.username.focus();
+      }
     }
   } catch (err) {
-    console.error('Check error:', err);
+    console.error('❌ Check error:', err);
     showStatus(`Check failed: ${err.message}`, 'error', '❌');
+  }
+}
+
+async function autoLogin() {
+  try {
+    console.log('🔄 Starting auto-login...');
+    
+    // 1. Get nonce
+    const nonceData = await getNonce();
+    
+    // 2. Sign message
+    showStatus('Please sign the message in MetaMask...', 'info', '✍️');
+    const signature = await signMessage(nonceData.message);
+    
+    // 3. Login
+    showStatus('Authenticating...', 'info', '🔐');
+    const response = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        address: currentAddress,
+        signature
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed');
+    }
+    
+    // Success!
+    currentToken = data.token;
+    console.log('✅ Login successful:', data.user.username);
+    showStatus(`Welcome back, ${data.user.username}!`, 'success', '✅');
+    displayUserInfo(data.user, data.token);
+    
+  } catch (err) {
+    console.error('❌ Auto-login error:', err);
+    showStatus(`Login failed: ${err.message}`, 'error', '❌');
+  }
+}
+
+async function promptUsername() {
+  // Für neue Wallets auf Index-Seiten
+  const username = prompt('Welcome! Please choose a username (min. 3 characters):');
+  
+  if (!username || username.length < 3) {
+    showStatus('Username must be at least 3 characters', 'error', '❌');
+    // Modal schließen
+    if (window.AnimationHelpers && window.AnimationHelpers.closeModal) {
+      window.AnimationHelpers.closeModal('loginModal');
+      window.AnimationHelpers.closeModal('registerModal');
+    }
+    return;
+  }
+  
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    showStatus('Username can only contain letters, numbers and underscore', 'error', '❌');
+    return;
+  }
+  
+  try {
+    console.log('🔄 Starting registration for:', username);
+    
+    // 1. Get nonce
+    const nonceData = await getNonce();
+    
+    // 2. Sign message
+    showStatus('Please sign the message in MetaMask...', 'info', '✍️');
+    const signature = await signMessage(nonceData.message);
+    
+    // 3. Register
+    showStatus('Creating account...', 'info', '⚙️');
+    const response = await fetch(`${API_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        address: currentAddress,
+        signature,
+        username
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Registration failed');
+    }
+    
+    // Success!
+    currentToken = data.token;
+    console.log('✅ Registration successful:', data.user.username);
+    showStatus(`Welcome, ${data.user.username}! Registration successful.`, 'success', '🎉');
+    displayUserInfo(data.user, data.token);
+    
+  } catch (err) {
+    console.error('❌ Registration error:', err);
+    showStatus(`Registration failed: ${err.message}`, 'error', '❌');
   }
 }
 
