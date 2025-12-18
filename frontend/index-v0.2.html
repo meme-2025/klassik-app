@@ -46,17 +46,6 @@
             
             <div class="nav-links">
                 <a href="#home" class="nav-link active">Home</a>
-                 <!--  <div class="nav-dropdown">
-                    <a href="#" class="nav-link dropdown-trigger">
-                        Platform
-                        <i class="fas fa-chevron-down"></i>
-                    </a>
-                    <div class="dropdown-menu">
-                        <a href="#vision" class="dropdown-item">Vision</a>
-                        <a href="#tokenomics" class="dropdown-item">Tokenomics</a>
-                        <a href="#roadmap" class="dropdown-item">Roadmap</a>
-                    </div>  
-                </div> -->
                 <a href="api.html" class="nav-link">API Explorer</a>
                 <a href="exchange.html" class="nav-link">Exchange</a>
                 <a href="merch.html" class="nav-link">Merch</a>
@@ -119,836 +108,37 @@
 
     <!-- Hero Section -->
     <section id="home" class="hero-kaspa">
-        <div class="hero-content" style="display: flex; align-items: center; gap: 3rem; max-width: 1400px; margin: 0 auto;">
-            <!-- Left Side: Main Hero Content -->
-            <div style="flex: 1; min-width: 0;">
-                <div class="hero-badge fade-in-up" style="justify-content: flex-start; margin-bottom: 2rem;">
-                    <span class="pulse-dot" style="background: #00ff88; box-shadow: 0 0 10px #00ff88;"></span>
-                    <span>Live on Kaspa Mainnet</span>
-                </div>
-                
-                <h1 class="hero-title gradient-text-kaspa text-glow fade-in-up delay-100" style="font-size: 3.5rem; margin-bottom: 1.5rem;">
-                    DeFi Hub on Kaspa
-                </h1>
-                
-                <p class="hero-subtitle fade-in-up delay-150" style="max-width: 600px; margin-bottom: 2.5rem;">
-                    Klassik is a modular DeFi hub built on Kaspa. Access real-time network data, experimental contribution mechanisms, and a growing suite of apps powered by Kaspa's BlockDAG.
-                </p>
-                
-                <div class="hero-cta fade-in-up delay-200">
-                    <button class="btn-hero-kaspa glow-on-hover" onclick="document.getElementById('products').scrollIntoView({behavior: 'smooth'})">
-                        <span>Launch App Suite</span>
-                        <i class="fas fa-rocket"></i>
-                    </button>
-                    <button class="btn-outline-kaspa hover-lift" onclick="window.location.href='api.html'">
-                        <i class="fas fa-cube"></i>
-                        <span>View API Explorer</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Right Side: Tech Panel / Console -->
-            <div class="fade-in-up delay-300" style="flex: 0 0 400px; max-width: 400px;">
-                <div class="glass" style="padding: 1.5rem; border-radius: 12px; background: rgba(0, 20, 40, 0.6); border: 1px solid rgba(0, 217, 197, 0.2); font-family: 'Courier New', monospace; font-size: 0.85rem;">
-                    <!-- Status Header -->
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(0, 217, 197, 0.2);">
-                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #00ff88; animation: pulse 2s ease-in-out infinite;"></div>
-                        <span style="color: #00d9c5; font-weight: 600; font-size: 0.9rem;">SYSTEM STATUS</span>
-                    </div>
-
-                    <!-- Live Metrics -->
-                    <div style="display: grid; gap: 0.75rem; margin-bottom: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: rgba(255, 255, 255, 0.6);">Latest Block:</span>
-                            <span style="color: #00d9c5; font-weight: 600;">#0</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: rgba(255, 255, 255, 0.6);">TPS (1m):</span>
-                            <span style="color: #00d9c5; font-weight: 600;">0.0</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: rgba(255, 255, 255, 0.6);">API Requests (60s):</span>
-                            <span style="color: #00d9c5; font-weight: 600;">0</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: rgba(255, 255, 255, 0.6);">Network Status:</span>
-                            <span style="color: #00ff88; font-weight: 600;">Healthy</span>
-                        </div>
-                    </div>
-
-                    <!-- Console Log -->
-                    <div style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 8px; border: 1px solid rgba(0, 217, 197, 0.1);">
-                        <div style="color: rgba(255, 255, 255, 0.5); margin-bottom: 0.5rem;">
-                            <span style="color: #00d9c5;">&gt;</span> Connecting to Kaspa mainnet…
-                        </div>
-                        <div style="color: rgba(255, 255, 255, 0.5); margin-bottom: 0.5rem;">
-                            <span style="color: #00d9c5;">&gt;</span> Subscribed to new blocks stream
-                        </div>
-                        <div style="color: rgba(255, 255, 255, 0.5);">
-                            <span style="color: #00d9c5;">&gt;</span> Awaiting API requests…
-                        </div>
-                        <div style="margin-top: 0.75rem; color: #00d9c5;">
-                            <span style="animation: blink 1s step-start infinite;">▋</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <style>
-            @keyframes blink {
-                50% { opacity: 0; }
-            }
-            @media (max-width: 992px) {
-                #home .hero-content {
-                    flex-direction: column !important;
-                    gap: 2rem !important;
-                }
-                #home .hero-content > div:last-child {
-                    flex: 1 1 auto !important;
-                    max-width: 100% !important;
-                    width: 100%;
-                }
-            }
-        </style>
-    </section>
-
-    <!-- Vision Section - ERWEITERT -->
-    <section id="vision" class="vision-section">
-        <div class="container">
-            <div class="section-header scroll-reveal">
-                <span class="section-badge">The Vision</span>
-                <h2 class="section-title">Building a Modular <span class="gradient-text-kaspa">DeFi Hub</span> on Kaspa</h2>
-                <p class="section-subtitle">
-                    Klassik is designed as a foundational layer for products, tools, and experiments on Kaspa.
-                </p>
-            </div>
+        <div class="hero-content" style="text-align: center; max-width: 800px; margin: 0 auto; padding: 6rem 2rem;">
+            <h1 class="hero-title fade-in-up" style="font-size: 3.5rem; margin-bottom: 1.5rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0; font-family: 'Space Grotesk', sans-serif;">
+                <span>Klassi</span>
+                <svg style="width: 6rem; height: 6rem; margin-left: -1rem;" viewBox="0 0 197.1 196.9" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="98.6" cy="97.8" r="40.8"/>
+                    <path fill="#FFFFFF" d="M149.4,76.3c-2.8-6.8-7.2-13-12.3-18.1s-11.6-8.9-18.4-11.7c-6.5-2.7-13.8-4.1-21.3-4.1s-15.2,0.3-21.7,3c-6.8,2.8-12.4,8.1-17.5,13.2s-11,10.5-13.8,17.3c-2.7,6.5-1.8,14.5-1.8,22s0.5,14.8,3.3,21.4c2.8,6.8,8.5,11.5,13.6,16.6c5.1,5.1,9.7,11.2,16.5,14c6.5,2.7,14,4.6,21.5,4.6s14.9-2.2,21.4-4.9c6.8-2.8,12.9-7.2,18-12.3c5.1-5.1,9.2-11.3,12-18.1c2.7-6.5,5.8-13.8,5.8-21.3S152.1,82.9,149.4,76.3L149.4,76.3z M113.2,129.8l-11.9-1.8l3.4-23l-24.9,19.2l-7.3-9.6l21.8-16.8L72.5,81.1l7.3-9.6l24.9,19.2l-3.4-23l11.9-1.8l4.7,32L113.2,129.8L113.2,129.8z"/>
+                </svg>
+            </h1>
             
-            <div class="vision-grid">
-                <div class="vision-card scroll-reveal delay-100">
-                    <div class="vision-icon">
-                        <i class="fas fa-exchange-alt"></i>
-                    </div>
-                    <h3>Decentralized Exchange (Planned)</h3>
-                    <p>A non-custodial DEX designed for Kaspa. Fast settlement, intuitive pools, and fair pricing powered by Kaspa's BlockDAG.</p>
-                    <ul class="vision-features">
-                        <li><i class="fas fa-check"></i> Non-custodial swap architecture</li>
-                        <li><i class="fas fa-check"></i> Pool-based liquidity and routing</li>
-                        <li><i class="fas fa-check"></i> Designed for low-latency settlement</li>
-                    </ul>
-                </div>
-                
-                <div class="vision-card scroll-reveal delay-200">
-                    <div class="vision-icon">
-                        <i class="fas fa-file-contract"></i>
-                    </div>
-                    <h3>Smart Contract Integrations</h3>
-                    <p>Klassik is built with future Kaspa smart contract capabilities in mind. As the ecosystem matures, new modules can plug into programmable contracts and token standards.</p>
-                    <ul class="vision-features">
-                        <li><i class="fas fa-check"></i> Designed for future token standards</li>
-                        <li><i class="fas fa-check"></i> Modular integration with on-chain protocols</li>
-                        <li><i class="fas fa-check"></i> Focus on composable building blocks</li>
-                    </ul>
-                </div>
-                
-                <div class="vision-card scroll-reveal delay-300">
-                    <div class="vision-icon">
-                        <i class="fas fa-database"></i>
-                    </div>
-                    <h3>Public API & Explorer</h3>
-                    <p>A clean, developer-focused interface for exploring Kaspa data. Query addresses, transactions, blocks, and network metrics programmatically or via UI.</p>
-                    <ul class="vision-features">
-                        <li><i class="fas fa-check"></i> REST and WebSocket endpoints (planned)</li>
-                        <li><i class="fas fa-check"></i> Real-time network metrics</li>
-                        <li><i class="fas fa-check"></i> Built for dashboards, bots, and dApps</li>
-                    </ul>
-                </div>
-                
-                <div class="vision-card scroll-reveal delay-400">
-                    <div class="vision-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <h3>Staking & Governance (Research Phase)</h3>
-                    <p>Experimental models for aligning long-term contributors with protocol decisions. Governance and staking mechanics will be introduced gradually and transparently.</p>
-                    <ul class="vision-features">
-                        <li><i class="fas fa-check"></i> Transparent, on-chain governance proposals</li>
-                        <li><i class="fas fa-check"></i> Community-driven parameters</li>
-                        <li><i class="fas fa-check"></i> Focus on long-term sustainability</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Why Klassik Section - NEW -->
-    <section id="why-klassik" class="why-section">
-        <div class="container">
-            <div class="section-header scroll-reveal">
-                <span class="section-badge">Why Klassik</span>
-                <h2 class="section-title">Why Build on <span class="gradient-text-kaspa">Klassik?</span></h2>
-                <p class="section-subtitle">
-                    A focused platform for builders, power users, and communities on Kaspa.
-                </p>
-            </div>
+            <p class="hero-subtitle fade-in-up delay-150" style="font-size: 1.25rem; color: rgba(255,255,255,0.8); margin-bottom: 3rem; line-height: 1.6;">
+                Klassik is your gateway to live Kaspa data, KAS tools, and new ways to participate in the ecosystem.
+            </p>
             
-            <div class="why-grid">
-                <div class="why-card glass scroll-reveal">
-                    <div class="why-icon">
-                        <i class="fas fa-rocket"></i>
-                    </div>
-                    <h3>Optimized for Throughput</h3>
-                    <p>Klassik is designed around Kaspa's BlockDAG to take advantage of fast confirmation times and scalable throughput.</p>
-                    <div class="why-highlight">
-                        <i class="fas fa-star"></i>
-                        <span>Built to handle frequent, real-time interactions</span>
-                    </div>
-                </div>
-
-                <div class="why-card glass scroll-reveal delay-100">
-                    <div class="why-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3>Security-First Architecture</h3>
-                    <p>Non-custodial designs, public code, and external security reviews planned before mainnet deployment of critical contracts.</p>
-                    <div class="why-highlight">
-                        <i class="fas fa-star"></i>
-                        <span>Non-custodial by default</span>
-                    </div>
-                </div>
-
-                <div class="why-card glass scroll-reveal delay-200">
-                    <div class="why-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <h3>Low-Cost Interactions</h3>
-                    <p>Kaspa's efficient design keeps network fees low, making it practical to experiment with new on-chain use cases.</p>
-                    <div class="why-highlight">
-                        <i class="fas fa-star"></i>
-                        <span>Designed for frequent micro-interactions</span>
-                    </div>
-                </div>
-
-                <div class="why-card glass scroll-reveal delay-300">
-                    <div class="why-icon">
-                        <i class="fas fa-code"></i>
-                    </div>
-                    <h3>Developer-Friendly</h3>
-                    <p>Clear interfaces, documented endpoints, and opinionated patterns for building on Kaspa. Klassik aims to reduce friction for new and experienced builders.</p>
-                    <div class="why-highlight">
-                        <i class="fas fa-star"></i>
-                        <span>Built for integrations and automation</span>
-                    </div>
-                </div>
-
-                <div class="why-card glass scroll-reveal delay-400">
-                    <div class="why-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Community-Oriented</h3>
-                    <p>Klassik is structured as an evolving project, shaped by its users and contributors, not by short-term speculation.</p>
-                    <div class="why-highlight">
-                        <i class="fas fa-star"></i>
-                        <span>Roadmap guided by real usage</span>
-                    </div>
-                </div>
-
-                <div class="why-card glass scroll-reveal delay-500">
-                    <div class="why-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3>Long-Term Alignment</h3>
-                    <p>All mechanisms—governance, incentives, and access—are designed to prioritize sustainability and clarity over hype.</p>
-                    <div class="why-highlight">
-                        <i class="fas fa-star"></i>
-                        <span>Explicitly long-term focused</span>
-                    </div>
-                </div>
+            <div class="hero-cta fade-in-up delay-200" style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;">
+                <button class="btn-hero-kaspa glow-on-hover" onclick="window.location.href='app.html'" style="width: 100%; max-width: 400px;">
+                    <span>Launch App Suite</span>
+                    <i class="fas fa-rocket"></i>
+                </button>
+                <button class="btn-outline-kaspa hover-lift" onclick="window.location.href='api.html'" style="width: 100%; max-width: 400px;">
+                    <i class="fas fa-cube"></i>
+                    <span>View API Explorer</span>
+                </button>
+                <button class="btn-outline-kaspa hover-lift" onclick="window.location.href='sacrifice.html'" style="width: 100%; max-width: 400px;">
+                    <i class="fas fa-fire"></i>
+                    <span>Join Sacrifice</span>
+                </button>
             </div>
         </div>
     </section>
 
-    <!-- Product Suite Section - NEW -->
-    <section id="products" class="products-section">
-        <div class="container">
-            <div class="section-header scroll-reveal">
-                <span class="section-badge">Product Suite</span>
-                <h2 class="section-title">Explore the Klassik <span class="gradient-text-kaspa">App Suite</span></h2>
-                <p class="section-subtitle">
-                    A growing set of tools and experiences built on Kaspa, accessible from a single interface.
-                </p>
-            </div>
 
-            <div class="products-grid">
-                <div class="product-card glass scroll-reveal">
-                    <div class="product-status in-development">Status: In development</div>
-                    <div class="product-icon">
-                        <i class="fas fa-cube"></i>
-                    </div>
-                    <h3>API Explorer</h3>
-                    <p>Discover and query Kaspa network data through a clean explorer and developer-friendly API.</p>
-                    <button class="btn-outline-kaspa" onclick="window.location.href='api.html'">
-                        <span>View API Explorer</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-
-                <div class="product-card glass scroll-reveal delay-100">
-                    <div class="product-status coming-soon">Status: Coming soon</div>
-                    <div class="product-icon">
-                        <i class="fas fa-shopping-bag"></i>
-                    </div>
-                    <h3>Merch Store</h3>
-                    <p>Curated, limited drops and community items connected to your on-chain identity.</p>
-                    <button class="btn-outline-kaspa" disabled>
-                        <span>Enter Store (coming soon)</span>
-                        <i class="fas fa-lock"></i>
-                    </button>
-                </div>
-
-                <div class="product-card glass scroll-reveal delay-200">
-                    <div class="product-status experimental">Status: Experimental</div>
-                    <div class="product-icon">
-                        <i class="fas fa-fire-alt"></i>
-                    </div>
-                    <h3>Sacrifice Program</h3>
-                    <p>An experimental, high-risk contribution mechanism for early community members. Participation is voluntary and should be considered speculative.</p>
-                    <button class="btn-outline-kaspa" onclick="window.location.href='sacrifice.html'">
-                        <span>Learn more</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-
-                <div class="product-card glass scroll-reveal delay-300">
-                    <div class="product-status research">Status: Research</div>
-                    <div class="product-icon">
-                        <i class="fas fa-ellipsis-h"></i>
-                    </div>
-                    <h3>More Apps</h3>
-                    <p>Additional modules for trading, automation, analytics, and governance are under active research and development.</p>
-                    <button class="btn-outline-kaspa" disabled>
-                        <span>Coming soon</span>
-                        <i class="fas fa-lock"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sacrifice Detail Section - Updated with Risk-Aware Copy -->
-    <section id="sacrifice-detail" class="tokenomics-section">
-        <div class="container">
-            <div class="section-header scroll-reveal">
-                <span class="section-badge">Experimental Mechanism</span>
-                <h2 class="section-title">The <span class="gradient-text-kaspa">Sacrifice Program</span></h2>
-                <p class="section-subtitle">
-                    A high-risk, experimental contribution model for early community members.
-                </p>
-            </div>
-
-            <!-- Sacrifice Explanation -->
-            <div class="sacrifice-box glass scroll-reveal">
-                <div class="sacrifice-content">
-                    <p style="margin-bottom: 1.5rem; line-height: 1.8;">
-                        The Sacrifice Program is an opt-in, on-chain mechanism for signaling long-term alignment with the project.
-                    </p>
-                    <p style="margin-bottom: 1.5rem; line-height: 1.8;">
-                        Participants permanently send KAS to a designated address. These funds are not controlled by Klassik and are not returned. 
-                        In exchange, participants may become eligible for future allocations of the project's native token under transparent, predefined criteria.
-                    </p>
-                    <p style="margin-bottom: 2rem; line-height: 1.8; font-weight: 500; color: rgba(255,100,100,0.9);">
-                        <i class="fas fa-exclamation-triangle"></i> 
-                        The Sacrifice Program is not a token sale, does not guarantee returns, and should be considered purely experimental. 
-                        Only participate if you fully understand the risks and can afford a complete loss of contributed funds.
-                    </p>
-
-                    <div class="sacrifice-stats-grid">
-                        <div class="sacrifice-stat">
-                            <div class="sacrifice-stat-label">Total KAS Contributed</div>
-                            <div class="sacrifice-stat-value" id="sacrifice-raised">0 KAS</div>
-                        </div>
-                        <div class="sacrifice-stat">
-                            <div class="sacrifice-stat-label">Number of Participants</div>
-                            <div class="sacrifice-stat-value" id="sacrifice-participants">0</div>
-                        </div>
-                        <div class="sacrifice-stat">
-                            <div class="sacrifice-stat-label">Program Status</div>
-                            <div class="sacrifice-stat-value" id="sacrifice-status">Active</div>
-                        </div>
-                    </div>
-
-                    <div class="sacrifice-mechanics" style="margin-top: 3rem;">
-                        <h3 style="margin-bottom: 1.5rem;">Illustrative Mechanics</h3>
-                        <div class="mechanics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                            <div class="mechanic-item glass" style="padding: 1.5rem; border-radius: 12px;">
-                                <h4 style="color: #00d9c5; margin-bottom: 0.5rem;">
-                                    <i class="fas fa-clock"></i> Early Participation
-                                </h4>
-                                <p>Time-based weighting</p>
-                            </div>
-                            <div class="mechanic-item glass" style="padding: 1.5rem; border-radius: 12px;">
-                                <h4 style="color: #00d9c5; margin-bottom: 0.5rem;">
-                                    <i class="fas fa-chart-bar"></i> Volume Contribution
-                                </h4>
-                                <p>Size-based weighting</p>
-                            </div>
-                            <div class="mechanic-item glass" style="padding: 1.5rem; border-radius: 12px;">
-                                <h4 style="color: #00d9c5; margin-bottom: 0.5rem;">
-                                    <i class="fas fa-handshake"></i> Long-Term Alignment
-                                </h4>
-                                <p>Ongoing program eligibility</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="sacrifice-disclaimer" style="margin-top: 2rem; padding: 1.5rem; background: rgba(255,100,100,0.05); border: 1px solid rgba(255,100,100,0.3); border-radius: 12px;">
-                        <p style="margin: 0; font-size: 0.9rem; line-height: 1.6;">
-                            <i class="fas fa-info-circle"></i> 
-                            <strong>Disclaimer:</strong> Participation in the Sacrifice Program is entirely voluntary, highly risky, and should not be treated as an investment. 
-                            Nothing on this page constitutes financial, legal, or tax advice.
-                        </p>
-                    </div>
-
-                    <div class="sacrifice-cta" style="margin-top: 2rem; text-align: center;">
-                        <button class="btn-hero-kaspa" onclick="window.location.href='sacrifice.html'">
-                            <i class="fas fa-fire"></i>
-                            <span>Go to Sacrifice Program</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Blockchain Explorer Section - MASSIV ERWEITERT -->
-    <section id="explorer" class="explorer-section">
-        <div class="container-fluid">
-            <div class="section-header scroll-reveal">
-                <span class="section-badge">Live Network Data</span>
-                <h2 class="section-title">Kaspa Blockchain <span class="gradient-text-kaspa">Explorer</span></h2>
-                <p class="section-subtitle">
-                    Real-time blockchain insights - like Etherscan for Kaspa
-                </p>
-            </div>
-
-            <!-- Explorer Search -->
-            <div class="explorer-search glass scroll-reveal">
-                <div class="search-wrapper">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="explorerSearch" placeholder="Search by Address, Transaction Hash, or Block ID...">
-                    <button class="btn-kaspa" id="searchBtn">
-                        <span>Search</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Network Stats -->
-            <div class="network-stats-grid">
-                <div class="stat-card glass scroll-reveal">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-cube"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Latest Block</div>
-                        <div class="stat-card-value" id="latestBlock">0</div>
-                    </div>
-                </div>
-
-                <div class="stat-card glass scroll-reveal delay-100">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-exchange-alt"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Transactions (24h)</div>
-                        <div class="stat-card-value" id="txCount24h">0</div>
-                    </div>
-                </div>
-
-                <div class="stat-card glass scroll-reveal delay-200">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-tachometer-alt"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">Avg Block Time</div>
-                        <div class="stat-card-value" id="avgBlockTime">1.0s</div>
-                    </div>
-                </div>
-
-                <div class="stat-card glass scroll-reveal delay-300">
-                    <div class="stat-card-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="stat-card-content">
-                        <div class="stat-card-label">KAS Price (USD)</div>
-                        <div class="stat-card-value" id="kasPrice">$0.00</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Latest Blocks & Transactions -->
-            <div class="explorer-content-grid">
-                <!-- Latest Blocks -->
-                <div class="explorer-panel glass scroll-reveal">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-cube"></i> Latest Blocks</h3>
-                        <button class="btn-ghost btn-sm">View All</button>
-                    </div>
-                    <div class="blocks-table">
-                        <table id="latestBlocksTable">
-                            <thead>
-                                <tr>
-                                    <th>Block</th>
-                                    <th>Age</th>
-                                    <th>Txns</th>
-                                    <th>Miner</th>
-                                    <th>Reward</th>
-                                </tr>
-                            </thead>
-                            <tbody id="blocksTableBody">
-                                <!-- Dynamically filled -->
-                                <tr class="loading-row">
-                                    <td colspan="5">
-                                        <div class="loading-spinner"></div>
-                                        <span>Loading latest blocks...</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Latest Transactions -->
-                <div class="explorer-panel glass scroll-reveal delay-100">
-                    <div class="panel-header">
-                        <h3><i class="fas fa-exchange-alt"></i> Latest Transactions</h3>
-                        <button class="btn-ghost btn-sm">View All</button>
-                    </div>
-                    <div class="transactions-table">
-                        <table id="latestTxTable">
-                            <thead>
-                                <tr>
-                                    <th>Tx Hash</th>
-                                    <th>Age</th>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody id="txTableBody">
-                                <!-- Dynamically filled -->
-                                <tr class="loading-row">
-                                    <td colspan="5">
-                                        <div class="loading-spinner"></div>
-                                        <span>Loading latest transactions...</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- API Endpoints Documentation -->
-            <div class="api-docs scroll-reveal">
-                <h3>Developer API Endpoints</h3>
-                <div class="api-endpoints-grid">
-                    <div class="api-endpoint-card glass">
-                        <div class="api-method get">GET</div>
-                        <div class="api-path">/api/v1/blocks/latest</div>
-                        <p>Get latest blocks with pagination</p>
-                    </div>
-                    <div class="api-endpoint-card glass">
-                        <div class="api-method get">GET</div>
-                        <div class="api-path">/api/v1/transactions/:hash</div>
-                        <p>Get transaction by hash</p>
-                    </div>
-                    <div class="api-endpoint-card glass">
-                        <div class="api-method get">GET</div>
-                        <div class="api-path">/api/v1/address/:address</div>
-                        <p>Get address balance & history</p>
-                    </div>
-                    <div class="api-endpoint-card glass">
-                        <div class="api-method get">GET</div>
-                        <div class="api-path">/api/v1/stats/network</div>
-                        <p>Get network statistics</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Roadmap Section - Updated -->
-    <section id="roadmap" class="roadmap-section">
-        <div class="container">
-            <div class="section-header scroll-reveal">
-                <span class="section-badge">Roadmap</span>
-                <h2 class="section-title">Planned <span class="gradient-text-kaspa">Milestones</span></h2>
-                <p class="section-subtitle">
-                    Klassik evolves step-by-step. Timelines and scope may change as the ecosystem grows.
-                </p>
-            </div>
-
-            <div class="roadmap-visual">
-                <!-- Phase 1 - Foundation -->
-                <div class="roadmap-phase completed scroll-reveal">
-                    <div class="phase-marker">
-                        <div class="marker-dot"></div>
-                        <div class="marker-line"></div>
-                    </div>
-                    <div class="phase-content glass">
-                        <div class="phase-header">
-                            <span class="phase-badge completed">Foundation</span>
-                            <h3>Phase 1 – Foundation</h3>
-                        </div>
-                        <div class="phase-achievements">
-                            <div class="achievement-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Initial landing page and project documentation</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Core branding and design system</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Early Sacrifice Program design and documentation</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>API Explorer architecture and prototypes</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Phase 2 - Apps -->
-                <div class="roadmap-phase active scroll-reveal delay-100">
-                    <div class="phase-marker">
-                        <div class="marker-dot pulsing"></div>
-                        <div class="marker-line"></div>
-                    </div>
-                    <div class="phase-content glass">
-                        <div class="phase-header">
-                            <span class="phase-badge active">Planned</span>
-                            <h3>Phase 2 – App Suite (Planned)</h3>
-                        </div>
-                        <div class="phase-achievements">
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>API Explorer public beta</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Merch store MVP</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>App launcher for unified navigation</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Feedback loops with early users</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Phase 3 - Integrations -->
-                <div class="roadmap-phase scroll-reveal delay-200">
-                    <div class="phase-marker">
-                        <div class="marker-dot"></div>
-                        <div class="marker-line"></div>
-                    </div>
-                    <div class="phase-content glass">
-                        <div class="phase-header">
-                            <span class="phase-badge upcoming">Planned</span>
-                            <h3>Phase 3 – Integrations (Planned)</h3>
-                        </div>
-                        <div class="phase-achievements">
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Deeper Kaspa node integrations</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Developer tooling and SDKs</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Additional analytics and automation modules</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Phase 4 - Governance -->
-                <div class="roadmap-phase scroll-reveal delay-300">
-                    <div class="phase-marker">
-                        <div class="marker-dot"></div>
-                    </div>
-                    <div class="phase-content glass">
-                        <div class="phase-header">
-                            <span class="phase-badge future">Research</span>
-                            <h3>Phase 4 – Governance & Advanced Features (Research)</h3>
-                        </div>
-                        <div class="phase-achievements">
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Governance experiments</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Advanced incentive mechanisms</span>
-                            </div>
-                            <div class="achievement-item">
-                                <i class="fas fa-circle"></i>
-                                <span>Further protocol integrations based on ecosystem needs</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="roadmap-footer" style="text-align: center; margin-top: 3rem; padding: 1.5rem; background: rgba(255,255,255,0.02); border-radius: 12px;">
-                <p style="margin: 0; font-size: 0.9rem; color: rgba(255,255,255,0.6);">
-                    <i class="fas fa-info-circle"></i> 
-                    All roadmap items are subject to change. Implementation depends on technical feasibility, security review, and ecosystem readiness.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Security & Transparency Section - NEW -->
-    <section id="security" class="security-section">
-        <div class="container">
-            <div class="section-header scroll-reveal">
-                <span class="section-badge">Security & Transparency</span>
-                <h2 class="section-title">How We Think About <span class="gradient-text-kaspa">Security</span></h2>
-                <p class="section-subtitle">
-                    Security is a continuous process, not a checkbox.
-                </p>
-            </div>
-
-            <div class="security-grid">
-                <div class="security-card glass scroll-reveal">
-                    <div class="security-icon">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <h3>Non-Custodial by Design</h3>
-                    <p>Klassik is built so that users retain control of their keys. Core flows are structured to avoid custody of user funds wherever possible.</p>
-                </div>
-
-                <div class="security-card glass scroll-reveal delay-100">
-                    <div class="security-icon">
-                        <i class="fas fa-code-branch"></i>
-                    </div>
-                    <h3>Open Components</h3>
-                    <p>Where practical, code and tooling are made public for community review and contributions.</p>
-                </div>
-
-                <div class="security-card glass scroll-reveal delay-200">
-                    <div class="security-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <h3>Independent Reviews</h3>
-                    <p>Before deploying critical contracts to mainnet, the goal is to undergo independent security reviews or audits. Details will be published transparently.</p>
-                </div>
-
-                <div class="security-card glass scroll-reveal delay-300">
-                    <div class="security-icon">
-                        <i class="fas fa-clipboard-list"></i>
-                    </div>
-                    <h3>Transparent Assumptions</h3>
-                    <p>Risks, limitations, and trade-offs are openly documented. No mechanism is presented as risk-free or guaranteed.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ Section - NEW -->
-    <section id="faq" class="faq-section">
-        <div class="container">
-            <div class="section-header scroll-reveal">
-                <span class="section-badge">FAQ</span>
-                <h2 class="section-title">Frequently Asked <span class="gradient-text-kaspa">Questions</span></h2>
-                <p class="section-subtitle">
-                    If you have more questions, you can always reach out to the team and community.
-                </p>
-            </div>
-
-            <div class="faq-grid">
-                <div class="faq-item glass scroll-reveal">
-                    <h3>
-                        <i class="fas fa-question-circle"></i>
-                        What is Klassik?
-                    </h3>
-                    <p>Klassik is a modular DeFi hub built on Kaspa. It focuses on infrastructure and tooling: an API explorer, experimental contribution mechanisms like the Sacrifice Program, and a growing set of apps that leverage Kaspa's BlockDAG.</p>
-                </div>
-
-                <div class="faq-item glass scroll-reveal delay-100">
-                    <h3>
-                        <i class="fas fa-question-circle"></i>
-                        Is Klassik a token?
-                    </h3>
-                    <p>Klassik is a project and a set of applications. A native token is planned, but details, timelines, and mechanics will be communicated transparently and may evolve over time. Nothing on this site should be interpreted as a token offering or solicitation.</p>
-                </div>
-
-                <div class="faq-item glass scroll-reveal delay-200">
-                    <h3>
-                        <i class="fas fa-question-circle"></i>
-                        Is Klassik audited and safe?
-                    </h3>
-                    <p>Klassik follows a security-first mindset: non-custodial designs, public components where possible, and independent reviews planned before mainnet deployment of critical contracts. However, any interaction with blockchain systems carries risk. Only use amounts you can afford to lose.</p>
-                </div>
-
-                <div class="faq-item glass scroll-reveal delay-300">
-                    <h3>
-                        <i class="fas fa-question-circle"></i>
-                        How does the Sacrifice Program work?
-                    </h3>
-                    <p>The Sacrifice Program is an experimental on-chain mechanism. Participants permanently send KAS to a specific address to signal alignment with the project. These funds are not returned. In return, participants may be eligible for future token allocations under predefined rules. It is not a sale, does not guarantee returns, and should be considered high risk.</p>
-                </div>
-
-                <div class="faq-item glass scroll-reveal delay-400">
-                    <h3>
-                        <i class="fas fa-question-circle"></i>
-                        Who is behind Klassik?
-                    </h3>
-                    <p>Klassik is built by a distributed group of contributors with backgrounds in Web3, infrastructure, and security. Over time, more information about contributors, processes, and governance will be published to increase transparency.</p>
-                </div>
-
-                <div class="faq-item glass scroll-reveal delay-500">
-                    <h3>
-                        <i class="fas fa-question-circle"></i>
-                        How can I start using Klassik?
-                    </h3>
-                    <p>You can begin by exploring the interface, reading the documentation, and following updates. As modules like the API Explorer and Merch Store move from "coming soon" to public beta, they will be accessible from the app launcher. Always review documentation and understand the risks before using any app.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container">
-            <div class="cta-box glass">
-                <div class="cta-content">
-                    <h2>Ready to Join the <span class="gradient-text-kaspa">Future?</span></h2>
-                    <p>Be part of the Kaspa revolution. Connect your wallet and start exploring.</p>
-                </div>
-                <div class="cta-actions">
-                    <button class="btn-hero-kaspa" id="ctaConnectWallet">
-                        <i class="fas fa-wallet"></i>
-                        <span>Connect Wallet</span>
-                    </button>
-                    <button class="btn-outline-kaspa" onclick="window.open('https://discord.gg/kaspa', '_blank')">
-                        <i class="fab fa-discord"></i>
-                        <span>Join Community</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Footer -->
     <footer class="footer-kaspa">
@@ -1037,37 +227,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Register Modal - Removed (Wallet-only registration) -->
-    <div id="registerModal" class="modal">
-        <div class="modal-content glass">
-            <button class="modal-close" onclick="AnimationHelpers.closeModal('registerModal')">&times;</button>
-            <h2>🎉 Create Account</h2>
-            
-            <div style="text-align: center; margin: 2rem 0;">
-                <p style="color: rgba(255,255,255,0.8); margin-bottom: 1.5rem;">
-                    Connect your wallet to get started
-                </p>
-                
-                <button type="button" class="btn-hero-kaspa btn-block" id="walletRegisterBtn" style="font-size: 1.1rem; padding: 1.2rem;">
-                    <i class="fas fa-wallet"></i>
-                    <span>Connect MetaMask</span>
-                </button>
-                
-                <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,217,197,0.05); border-radius: 12px; border: 1px solid rgba(0,217,197,0.2);">
-                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin: 0;">
-                        <i class="fas fa-info-circle"></i>
-                        You'll choose a username after connecting your wallet.
-                    </p>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                Already have an account? <a href="#" onclick="AnimationHelpers.closeModal('registerModal'); AnimationHelpers.openModal('loginModal')">Login</a>
-            </div>
-        </div>
-    </div>
-
+    
     <!-- Scripts (deferred to avoid render-blocking) -->
     <script defer src="https://cdn.jsdelivr.net/npm/tsparticles@3.1.0/tsparticles.bundle.min.js"></script>
     <script defer src="assets/js/ethers.umd.min.js"></script>
@@ -1092,6 +252,59 @@
                 }
             }, 500);
         });
+    </script>
+    
+    <!-- Rotating Keywords Animation -->
+    <script>
+        (function() {
+            const keywords = document.querySelectorAll('.keyword');
+            if (keywords.length === 0) return;
+            
+            let currentIndex = 0;
+
+            function rotateKeywords() {
+                keywords[currentIndex].classList.remove('active');
+                keywords[currentIndex].classList.add('exit');
+                
+                setTimeout(() => {
+                    keywords[currentIndex].classList.remove('exit');
+                }, 500);
+                
+                currentIndex = (currentIndex + 1) % keywords.length;
+                keywords[currentIndex].classList.add('active');
+            }
+
+            setInterval(rotateKeywords, 2500);
+        })();
+    </script>
+    
+    <!-- Stats Counter Animation -->
+    <script>
+        (function() {
+            const statValues = document.querySelectorAll('.stat-value[data-count]');
+            
+            function animateValue(element, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const current = Math.floor(progress * (end - start) + start);
+                    element.textContent = current;
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+            
+            // Start animation after page load
+            setTimeout(() => {
+                statValues.forEach(stat => {
+                    const targetValue = parseInt(stat.getAttribute('data-count'));
+                    animateValue(stat, 0, targetValue, 2000);
+                });
+            }, 500);
+        })();
     </script>
 </body>
 </html>

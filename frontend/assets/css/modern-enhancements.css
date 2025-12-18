@@ -734,6 +734,24 @@
     .vision-card:hover {
         transform: translateY(-6px) scale(1.01);
     }
+    
+    /* Force full-width buttons in hero-cta on mobile */
+    .hero-cta {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+    }
+    
+    .hero-cta .btn-hero-kaspa,
+    .hero-cta .btn-outline-kaspa,
+    .hero-cta button {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        display: flex !important;
+        flex: 1 1 100% !important;
+        box-sizing: border-box !important;
+    }
 }
 
 /* ========== ACCESSIBILITY ========== */
