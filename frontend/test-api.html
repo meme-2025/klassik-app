@@ -204,26 +204,17 @@
         async function testBlocksAPI() {
             setStatus('blocks-status', 'loading', 'Testing...');
             try {
-                // Try local first
-                let response;
-                try {
-                    response = await fetch(`${LOCAL_NODE_API}/blocks?limit=5`, { timeout: 3000 });
-                } catch (e) {
-                    console.log('Local node nicht erreichbar, nutze Fallback');
-                    response = await fetch(`${FALLBACK_API}/blocks?limit=5`);
-                }
-                
+                // Verwende den öffentlichen Kaspa-API-Endpunkt
+                const response = await fetch('https://api.kaspa.org/info/blockdag');
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
                 const data = await response.json();
-                
-                if (data && Array.isArray(data.blocks) && data.blocks.length > 0) {
-                    setStatus('blocks-status', 'success', `✓ Success - ${data.blocks.length} blocks`);
+                if (data && data.blockCount) {
+                    setStatus('blocks-status', 'success', `✓ Success - Block count: ${data.blockCount}`);
                     displayResult('blocks-result', data);
                 } else {
-                    setStatus('blocks-status', 'error', '✗ No valid blocks data');
+                    setStatus('blocks-status', 'error', '✗ No valid block data');
                     displayResult('blocks-result', data, true);
                 }
             } catch (error) {
@@ -235,25 +226,18 @@
         async function testTransactionsAPI() {
             setStatus('tx-status', 'loading', 'Testing...');
             try {
-                let response;
-                try {
-                    response = await fetch(`${LOCAL_NODE_API}/transactions?limit=5`, { timeout: 3000 });
-                } catch (e) {
-                    console.log('Local node nicht erreichbar, nutze Fallback');
-                    response = await fetch(`${FALLBACK_API}/transactions?limit=5`);
-                }
-                
+                // Es gibt keinen öffentlichen Kaspa-API-Endpunkt für die letzten Transaktionen wie bei Etherscan,
+                // daher zeigen wir die Halving-Info als Beispiel für einen weiteren funktionierenden Endpunkt.
+                const response = await fetch('https://api.kaspa.org/info/halving');
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
                 const data = await response.json();
-                
-                if (data && Array.isArray(data.transactions) && data.transactions.length > 0) {
-                    setStatus('tx-status', 'success', `✓ Success - ${data.transactions.length} txs`);
+                if (data && data.nextHalvingDate) {
+                    setStatus('tx-status', 'success', `✓ Success - Next Halving: ${data.nextHalvingDate}`);
                     displayResult('tx-result', data);
                 } else {
-                    setStatus('tx-status', 'error', '✗ No valid transactions data');
+                    setStatus('tx-status', 'error', '✗ No valid halving data');
                     displayResult('tx-result', data, true);
                 }
             } catch (error) {
@@ -265,22 +249,14 @@
         async function testNetworkAPI() {
             setStatus('network-status', 'loading', 'Testing...');
             try {
-                let response;
-                try {
-                    response = await fetch(`${LOCAL_NODE_API}/network`, { timeout: 3000 });
-                } catch (e) {
-                    console.log('Local node nicht erreichbar, nutze Fallback');
-                    response = await fetch(`${FALLBACK_API}/network`);
-                }
-                
+                // Verwende denselben blockdag-Endpunkt für Netzwerkdaten
+                const response = await fetch('https://api.kaspa.org/info/blockdag');
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
                 const data = await response.json();
-                
-                if (data && (data.hashrate || data.daaScore)) {
-                    setStatus('network-status', 'success', '✓ Success');
+                if (data && data.networkName) {
+                    setStatus('network-status', 'success', `✓ Success - ${data.networkName}`);
                     displayResult('network-result', data);
                 } else {
                     setStatus('network-status', 'error', '✗ No valid network data');

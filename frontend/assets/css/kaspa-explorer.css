@@ -537,6 +537,11 @@ body {
     font-size: 0.875rem;
     color: var(--gray-light);
 }
+.stat-info-2 {
+  display: flex;
+  gap: 1.5em;
+  align-items: center;
+}
 
 .stat-placeholder {
     opacity: 0.4;

@@ -14,6 +14,11 @@
             grid-template-columns: 1fr 1fr !important;
             gap: 1rem !important;
         }
+        .stat-info-2 {
+            display: flex;
+            gap: 1.5em;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -163,26 +168,30 @@
                             <!-- Right Column: 4 Main Stats -->
                             <div class="stats-right">
                                 <!-- 1R: Reserved (empty for now) -->
-                                <div class="stat-card stat-placeholder">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-chart-pie"></i>
+                                    <!-- 1R: Block Reward -->
+                                    <div class="stat-card">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-coins"></i>
+                                        </div>
+                                        <div class="stat-content">
+                                            <div class="stat-label">Block Reward</div>
+                                            <div class="stat-value" id="block-reward">Loading...</div>
+                                            <div class="stat-info-2">
+                                                <div class="stat-info" id="halving-amount">Loading...</div>
+                                                <div class="stat-info" id="halving-countdown">Loading...</div>
+                                            </div>   
+                                        </div>
                                     </div>
-                                    <div class="stat-content">
-                                        <div class="stat-label">Reserved</div>
-                                        <div class="stat-value">-</div>
-                                        <div class="stat-info">Future metric</div>
-                                    </div>
-                                </div>
                                 
-                                <!-- 2R: Reserved (empty for now) -->
-                                <div class="stat-card stat-placeholder">
+                                <!-- 2R: Last 24h Finalized Blocks -->
+                                <div class="stat-card">
                                     <div class="stat-icon">
-                                        <i class="fas fa-chart-bar"></i>
+                                        <i class="fas fa-cube"></i>
                                     </div>
                                     <div class="stat-content">
-                                        <div class="stat-label">Reserved</div>
-                                        <div class="stat-value">-</div>
-                                        <div class="stat-info">Future metric</div>
+                                        <div class="stat-label">Last 24h Finalized Blocks</div>
+                                        <div class="stat-value" id="finalized-blocks-24h">Loading...</div>
+                                        <div class="stat-info" id="finalized-blocks-total">Loading...</div>
                                     </div>
                                 </div>
                                 
@@ -615,6 +624,8 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
     <script src="assets/js/kaspa-explorer.js"></script>
 </body>
 </html>
+

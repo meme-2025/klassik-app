@@ -2,10 +2,6 @@
    Kaspa Explorer - Professional JavaScript
    Live Data, BlockDAG Visualization, Advanced Features
    ============================================ */
-
-// ============================================
-// State Management
-// ============================================
 const state = {
     currentView: 'home',
     isStatsActive: false, // Track if stats are active
@@ -64,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchInitialData();
     initializeCharts();
     initializeBlockDAG();
+    updateBlockReward();
 });
 
 // ============================================
@@ -247,7 +244,7 @@ async function fetchInitialData() {
 
 async function fetchNetworkInfo() {
     try {
-        const [networkRes, hashrateRes, blockdagRes, blueScoreRes, coinSupplyRes, priceRes, marketcapRes, blockRewardRes] = await Promise.all([
+        const [networkRes, hashrateRes, blockdagRes, blueScoreRes, coinSupplyRes, priceRes, marketcapRes, blockRewardRes, coingeckoRes, halvingRes] = await Promise.all([
             fetch('https://api.kaspa.org/info/kaspad'),
             fetch('https://api.kaspa.org/info/hashrate'),
             fetch('https://api.kaspa.org/info/blockdag'),
@@ -255,7 +252,9 @@ async function fetchNetworkInfo() {
             fetch('https://api.kaspa.org/info/coinsupply'),
             fetch('https://api.kaspa.org/info/price'),
             fetch('https://api.kaspa.org/info/marketcap'),
-            fetch('https://api.kaspa.org/info/blockreward')
+            fetch('https://api.kaspa.org/info/blockreward'),
+            fetch('https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd&include_24hr_change=true&include_7d_change=true&include_market_cap=true&include_24hr_vol=true'),
+            fetch('https://api.kaspa.org/info/halving')
         ]);
         
         const network = await networkRes.json();
@@ -266,6 +265,10 @@ async function fetchNetworkInfo() {
         const price = await priceRes.json();
         const marketcap = await marketcapRes.json();
         const blockReward = await blockRewardRes.json();
+        const coingecko = coingeckoRes.ok ? await coingeckoRes.json() : null;
+        const halving = await halvingRes.json();
+        
+        console.log('CoinGecko API response:', coingecko);
         
         // Preserve existing transaction data before updating
         const existingTxData = {
@@ -288,6 +291,8 @@ async function fetchNetworkInfo() {
             totalSupply: coinSupply?.totalSupply || coinSupply?.total || coinSupply?.maxSupply || NaN,
             maxSupply: coinSupply?.maxSupply || coinSupply?.max || 28700000000 || NaN,
             blockReward: blockReward?.blockreward || blockReward || NaN,
+            nextHalvingDate: halving?.nextHalvingDate || 'N/A',
+            nextHalvingAmount: halving?.nextHalvingAmount || NaN,
             // Restore transaction data
             coinbase24h: existingTxData.coinbase24h,
             regularTxs24h: existingTxData.regularTxs24h,
@@ -296,11 +301,13 @@ async function fetchNetworkInfo() {
         
         state.price = {
             current: price?.price || NaN,
-            change24h: price?.priceChange24h || price?.change24h || 0,
-            change7d: price?.priceChange7d || price?.change7d || 0,
-            marketCap: marketcap?.marketcap || NaN,
-            volume24h: NaN
+            change24h: coingecko?.kaspa?.usd_24h_change || 0,
+            change7d: coingecko?.kaspa?.usd_7d_change || 0,
+            marketCap: marketcap?.marketcap || coingecko?.kaspa?.usd_market_cap || NaN,
+            volume24h: coingecko?.kaspa?.usd_24h_vol || NaN
         };
+        
+        console.log('Final price state:', state.price);
     } catch (error) {
         console.error('Failed to fetch network info:', error);
         // Keep null values to show Loading... instead of 0
@@ -392,6 +399,45 @@ async function fetchLatestTransactions() {
 // ============================================
 // UI Updates
 // ============================================
+
+// Block Reward (1R) + Halving Info
+async function updateBlockReward() {
+    // Block Reward (optional, falls benötigt)
+    try {
+        const rewardRes = await fetch('https://api.kaspa.org/blockreward');
+        const rewardData = await rewardRes.json();
+        if(document.getElementById('block-reward'))
+            document.getElementById('block-reward').textContent = rewardData.reward + ' KAS';
+    } catch (e) {
+        if(document.getElementById('block-reward'))
+            document.getElementById('block-reward').textContent = 'Error';
+    }
+    // Halving Info
+    try {
+        const halvingRes = await fetch('https://api.kaspa.org/info/halving');
+        const halvingData = await halvingRes.json();
+        document.getElementById('halving-amount').textContent = `${halvingData.nextHalvingAmount} KAS`;
+        function updateCountdown() {
+            const now = Math.floor(Date.now() / 1000);
+            const diff = halvingData.nextHalvingTimestamp - now;
+            if (diff > 0) {
+                const d = Math.floor(diff / 86400);
+                const h = Math.floor((diff % 86400) / 3600);
+                const m = Math.floor((diff % 3600) / 60);
+                const s = diff % 60;
+                document.getElementById('halving-countdown').textContent = `in ${d}d ${h}h ${m}m ${s}s`;
+            } else {
+                document.getElementById('halving-countdown').textContent = 'Halving!';
+            }
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    } catch (e) {
+        document.getElementById('halving-amount').textContent = 'Error';
+        document.getElementById('halving-countdown').textContent = 'Error';
+    }
+}
+
 function updateUI() {
     updateQuickStats();
     updateBlocksTable();
@@ -482,6 +528,28 @@ function updateQuickStats() {
             }
         }
     }
+
+
+
+
+
+    // Finalized Blocks (2R)
+    const finalizedBlocks24hElem = document.getElementById('finalized-blocks-24h');
+    const finalizedBlocksTotalElem = document.getElementById('finalized-blocks-total');
+    if (finalizedBlocks24hElem) {
+        // Kaspa: approximately 1 block/second, so ~86400 blocks in 24h
+        const blocks24h = 86400;
+        finalizedBlocks24hElem.textContent = blocks24h.toLocaleString();
+    }
+    if (finalizedBlocksTotalElem) {
+        if (!isNaN(state.network.blueScore) && state.network.blueScore !== null && state.network.blueScore > 0) {
+            finalizedBlocksTotalElem.textContent = 'Total: ' + state.network.blueScore.toLocaleString();
+        } else {
+            finalizedBlocksTotalElem.textContent = 'Total: Loading...';
+        }
+    }
+
+
     
     // 3R: Gas Price (Kaspa uses Mass Units - calculate based on network)
     const gasPriceSompiElem = document.getElementById('gas-price-sompi');
@@ -654,6 +722,24 @@ function updateDataBlocks() {
             blockRewardElem.textContent = `${state.network.blockReward.toFixed(2)} KAS`;
         } else {
             blockRewardElem.textContent = 'Loading...';
+        }
+    }
+        // Halving Date
+    const halvingDateElem = document.getElementById('halving-date');
+    if (halvingDateElem) {
+        if (state.network.nextHalvingDate && state.network.nextHalvingDate !== 'N/A') {
+            halvingDateElem.textContent = state.network.nextHalvingDate;
+        } else {
+            halvingDateElem.textContent = 'Loading...';
+        }
+    }
+        // Halving Amount
+    const halvingAmountElem = document.getElementById('halving-amount');
+    if (halvingAmountElem) {
+        if (!isNaN(state.network.nextHalvingAmount) && state.network.nextHalvingAmount > 0) {
+            halvingAmountElem.textContent = `${state.network.nextHalvingAmount.toFixed(2)} KAS`;
+        } else {
+            halvingAmountElem.textContent = 'Loading...';
         }
     }
     
