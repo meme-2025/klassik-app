@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaspa Explorer | BlockDAG Explorer & Analytics</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓</text></svg>">
+    <link rel="stylesheet" href="assets/css/kaspa-explorer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Force 2-column layout with inline styles - highest priority */
+        .stats-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 1rem !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-cube"></i>
+                    <span class="logo-text">Kaspa<span class="logo-accent">Scan</span></span>
+                </div>
+                <nav class="nav">
+                    <button class="nav-item active" data-view="home">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </button>
+                    <button class="nav-item" data-view="blockdag">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>BlockDAG</span>
+                    </button>
+                    <button class="nav-item" data-view="analytics">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </button>
+                    <button class="nav-item" data-view="live">
+                        <i class="fas fa-broadcast-tower"></i>
+                        <span>Live Stats</span>
+                    </button>
+                </nav>
+                <div class="price-status" id="header-price">
+                    <div class="price-main">
+                        <i class="fas fa-coins"></i>
+                        <span class="price-value" id="header-price-value">$0.00</span>
+                    </div>
+                    <span class="price-change" id="header-price-change">0.00%</span>
+                </div>
+                <div class="refresh-timer" id="refresh-timer">
+                    <svg class="timer-circle" viewBox="0 0 36 36">
+                        <path class="timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="timer-progress" id="timer-progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                    <span class="timer-text" id="timer-text">60</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Home View -->
+        <div class="view active" id="home-view">
+            <!-- Hero Section with Search -->
+            <section class="hero">
+                <div class="container">
+                    <div class="hero-content">
+                        <h1 class="hero-title">Kaspa BlockDAG Explorer</h1>
+                        <p class="hero-subtitle">Real-time network data & transaction explorer</p>
+                        
+                        <!-- Search Bar -->
+                        <div class="search-container">
+                            <div class="search-wrapper">
+                                <i class="fas fa-search search-icon"></i>
+                                <input 
+                                    type="text" 
+                                    class="search-input" 
+                                    placeholder="Search by Address / Tx Hash / Block Hash"
+                                    id="main-search"
+                                    autocomplete="off"
+                                >
+                                <button class="search-btn" id="search-btn">
+                                    <span>Search</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                            <div class="search-suggestions" id="search-suggestions"></div>
+                        </div>
+
+                        <!-- Explore Stats Button -->
+                        <div style="text-align: center; margin-top: 2rem;">
+                            <button class="explore-stats-btn" id="explore-stats-btn">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Explore Stats</span>
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section (Hidden by default) -->
+            <section class="stats-section" id="stats-section">
+                <div class="container">
+                    <div class="hero-content">
+                        <!-- Quick Stats - 2 Column Layout -->
+                        <div class="stats-grid">
+                            <!-- Left Column: 4 Main Stats -->
+                            <div class="stats-left">
+                                <!-- 1L: KAS Price with 24h change -->
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-coins"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">KAS Price</div>
+                                        <div class="stat-value" id="price-stat">Loading...</div>
+                                        <div class="stat-change" id="price-change-24h">Loading...</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 2L: Market Cap -->
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-chart-area"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">Market Cap</div>
+                                        <div class="stat-value" id="mcap-stat">Loading...</div>
+                                        <div class="stat-info">Rank #72</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 3L: Transactions & TPS -->
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">Transactions</div>
+                                        <div class="stat-value" id="total-txs-stat">Loading...</div>
+                                        <div class="stat-info" id="tps-stat">TPS: Loading...</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 4L: Last Finalized Block -->
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-cube"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">Last Finalized Block</div>
+                                        <div class="stat-value" id="finalized-block">Loading...</div>
+                                        <div class="stat-info" id="finalized-time">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: 4 Main Stats -->
+                            <div class="stats-right">
+                                <!-- 1R: Reserved (empty for now) -->
+                                <div class="stat-card stat-placeholder">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-chart-pie"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">Reserved</div>
+                                        <div class="stat-value">-</div>
+                                        <div class="stat-info">Future metric</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 2R: Reserved (empty for now) -->
+                                <div class="stat-card stat-placeholder">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">Reserved</div>
+                                        <div class="stat-value">-</div>
+                                        <div class="stat-info">Future metric</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 3R: Gas Price -->
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-fire"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">Gas Price</div>
+                                        <div class="stat-value" id="gas-price-sompi">Loading...</div>
+                                        <div class="stat-info" id="gas-price-usd">($0.00)</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 4R: Latest Safe Block -->
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">Latest Safe Block</div>
+                                        <div class="stat-value" id="safe-block">Loading...</div>
+                                        <div class="stat-info" id="safe-block-time">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Data Blocks Below Stats -->
+                        <div class="stats-grid" style="margin-top: 1rem;">
+                            <div class="stats-left">
+                                <div class="data-block">
+                                    <div class="data-block-label">Total Supply</div>
+                                    <div class="data-block-value" id="total-supply">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Circulating Supply</div>
+                                    <div class="data-block-value" id="circ-supply">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Mineable Remaining</div>
+                                    <div class="data-block-value" id="mineable-supply">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Block Reward</div>
+                                    <div class="data-block-value" id="block-reward">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Avg Block Time</div>
+                                    <div class="data-block-value" id="avg-blocktime">~1s</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Miner Rewards (24h)</div>
+                                    <div class="data-block-value" id="coinbase-24h">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Regular TXs (24h)</div>
+                                    <div class="data-block-value" id="regular-txs-24h">Loading...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-right">
+                                <div class="data-block">
+                                    <div class="data-block-label">Hashrate</div>
+                                    <div class="data-block-value" id="hashrate-data">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Difficulty</div>
+                                    <div class="data-block-value" id="difficulty-data">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">DAA Score</div>
+                                    <div class="data-block-value" id="daa-data">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Network Nodes</div>
+                                    <div class="data-block-value" id="network-nodes">N/A</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Total Blocks</div>
+                                    <div class="data-block-value" id="total-blocks">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Daily Transactions</div>
+                                    <div class="data-block-value" id="daily-txs">Loading...</div>
+                                </div>
+                                <div class="data-block">
+                                    <div class="data-block-label">Network Version</div>
+                                    <div class="data-block-value" id="network-version">N/A</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Latest Blocks -->
+            <section class="section stats-content">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-cubes"></i>
+                            Latest Blocks
+                        </h2>
+                        <a href="kaspa-blocks.html" class="view-all-btn">
+                            View All <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Block Hash</th>
+                                    <th>Timestamp</th>
+                                    <th>Transactions</th>
+                                    <th>Size</th>
+                                    <th>Blue Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="latest-blocks">
+                                <tr>
+                                    <td colspan="5" class="loading-cell">
+                                        <i class="fas fa-spinner fa-spin"></i> Loading latest blocks...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Latest Transactions -->
+            <section class="section stats-content">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-exchange-alt"></i>
+                            Latest Transactions
+                        </h2>
+                        <a href="kaspa-transactions.html" class="view-all-btn">
+                            View All <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tx Hash</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Amount</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="latest-txs">
+                                <tr>
+                                    <td colspan="5" class="loading-cell">
+                                        <i class="fas fa-spinner fa-spin"></i> Loading latest transactions...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- BlockDAG View -->
+        <div class="view" id="blockdag-view">
+            <section class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-project-diagram"></i>
+                            Live BlockDAG Visualization
+                        </h2>
+                        <div class="controls">
+                            <button class="control-btn" id="dag-play">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="control-btn" id="dag-pause">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button class="control-btn" id="dag-reset">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="blockdag-container">
+                        <canvas id="blockdag-canvas"></canvas>
+                        <div class="blockdag-stats">
+                            <div class="dag-stat">
+                                <span class="dag-stat-label">Nodes:</span>
+                                <span class="dag-stat-value" id="dag-nodes">0</span>
+                            </div>
+                            <div class="dag-stat">
+                                <span class="dag-stat-label">Edges:</span>
+                                <span class="dag-stat-value" id="dag-edges">0</span>
+                            </div>
+                            <div class="dag-stat">
+                                <span class="dag-stat-label">FPS:</span>
+                                <span class="dag-stat-value" id="dag-fps">60</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Analytics View -->
+        <div class="view" id="analytics-view">
+            <section class="section">
+                <div class="container">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        Network Analytics
+                    </h2>
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Price History (7D)</h3>
+                                <select class="chart-select" id="price-timeframe">
+                                    <option value="24h">24H</option>
+                                    <option value="7d" selected>7D</option>
+                                    <option value="30d">30D</option>
+                                    <option value="90d">90D</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="price-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Hashrate History</h3>
+                                <select class="chart-select" id="hashrate-timeframe">
+                                    <option value="24h">24H</option>
+                                    <option value="7d" selected>7D</option>
+                                    <option value="30d">30D</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="hashrate-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Transaction Volume</h3>
+                                <select class="chart-select" id="tx-timeframe">
+                                    <option value="24h">24H</option>
+                                    <option value="7d" selected>7D</option>
+                                    <option value="30d">30D</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="tx-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Difficulty Adjustment</h3>
+                                <select class="chart-select" id="diff-timeframe">
+                                    <option value="24h">24H</option>
+                                    <option value="7d" selected>7D</option>
+                                    <option value="30d">30D</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="difficulty-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Live Stats View -->
+        <div class="view" id="live-view">
+            <section class="section">
+                <div class="container">
+                    <h2 class="section-title">
+                        <i class="fas fa-broadcast-tower"></i>
+                        Live Network Statistics
+                    </h2>
+                    <div class="live-grid">
+                        <div class="live-card">
+                            <div class="live-card-header">
+                                <i class="fas fa-server"></i>
+                                <h3>Network Info</h3>
+                            </div>
+                            <div class="live-card-body">
+                                <div class="live-row">
+                                    <span class="live-label">DAA Score:</span>
+                                    <span class="live-value" id="live-daa">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Blue Score:</span>
+                                    <span class="live-value" id="live-blue">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Virtual Parent Hashes:</span>
+                                    <span class="live-value" id="live-parents">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Difficulty:</span>
+                                    <span class="live-value" id="live-difficulty">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Block Count:</span>
+                                    <span class="live-value" id="live-blocks">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="live-card">
+                            <div class="live-card-header">
+                                <i class="fas fa-memory"></i>
+                                <h3>Mempool</h3>
+                            </div>
+                            <div class="live-card-body">
+                                <div class="live-row">
+                                    <span class="live-label">Pending Transactions:</span>
+                                    <span class="live-value" id="live-mempool">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Mempool Size:</span>
+                                    <span class="live-value" id="live-mempool-size">0 KB</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Avg Fee:</span>
+                                    <span class="live-value" id="live-fee">0 KAS</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="live-card">
+                            <div class="live-card-header">
+                                <i class="fas fa-chart-bar"></i>
+                                <h3>Mining Stats</h3>
+                            </div>
+                            <div class="live-card-body">
+                                <div class="live-row">
+                                    <span class="live-label">Network Hashrate:</span>
+                                    <span class="live-value" id="live-hashrate">0 PH/s</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Est. Next Diff:</span>
+                                    <span class="live-value" id="live-next-diff">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Block Time:</span>
+                                    <span class="live-value" id="live-blocktime">1s</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Blocks/Hour:</span>
+                                    <span class="live-value" id="live-bph">3600</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="live-card">
+                            <div class="live-card-header">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <h3>Market Data</h3>
+                            </div>
+                            <div class="live-card-body">
+                                <div class="live-row">
+                                    <span class="live-label">Price (USD):</span>
+                                    <span class="live-value" id="live-price">$0.00</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">24h Change:</span>
+                                    <span class="live-value" id="live-change-24h">+0.00%</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">7d Change:</span>
+                                    <span class="live-value" id="live-change-7d">+0.00%</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Volume (24h):</span>
+                                    <span class="live-value" id="live-volume">$0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Market Cap:</span>
+                                    <span class="live-value" id="live-mcap">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Activity Feed -->
+                    <div class="activity-section">
+                        <h3 class="activity-title">
+                            <i class="fas fa-stream"></i>
+                            Real-time Activity
+                        </h3>
+                        <div class="activity-feed" id="activity-feed">
+                            <!-- Activity items will be added dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>KaspaScan</h4>
+                    <p>Professional BlockDAG Explorer</p>
+                </div>
+                <div class="footer-section">
+                    <h4>API</h4>
+                    <a href="#">Documentation</a>
+                    <a href="#">Status</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <a href="#">GitHub</a>
+                    <a href="#">Discord</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Network</h4>
+                    <p id="footer-status">Active</p>
+                    <p id="footer-version">v1.0.0</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="assets/js/kaspa-explorer.js"></script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KlassikScan - Kaspa Blockchain Explorer</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/kaspa.css">
+    <link rel="stylesheet" href="assets/css/explorer-compact-v2.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div id="particles-js"></div>
+
+    <!-- Compact Navigation -->
+    <nav class="navbar-etherscan">
+        <div class="nav-container-etherscan">
+            <div class="nav-logo">
+                <i class="fas fa-cube"></i>
+                <span>KlassikScan</span>
+                <span class="beta">BETA</span>
+            </div>
+            
+            <div class="nav-links-compact">
+                <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                <a href="#"><i class="fas fa-cubes"></i> Blocks</a>
+                <a href="#"><i class="fas fa-exchange-alt"></i> Txns</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Bar Section -->
+    <section class="search-bar-etherscan">
+        <div class="compact-container search-container">
+            <div class="search-left">
+                <h1 class="title-etherscan">The Kaspa Blockchain Explorer</h1>
+                <div class="search-wrapper-etherscan">
+                    <input type="text" id="search-input" placeholder="Search by Address / Txn Hash / Block / DAA Score" class="search-input-etherscan" autocomplete="off">
+                    <button id="search-btn" class="search-btn-etherscan"><i class="fas fa-search"></i></button>
+                </div>
+                <div id="search-results" class="search-results"></div>
+            </div>
+            <div class="search-right">
+                <div class="sponsored-box">
+                    <div class="sponsored-label">Sponsored</div>
+                    <div class="sponsored-content">
+                        <i class="fas fa-rocket"></i>
+                        <div>
+                            <div class="sponsored-title">Join Kaspa Community</div>
+                            <div class="sponsored-sub">Discord • Telegram • Twitter</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="stats-overview-etherscan">
+        <div class="compact-container">
+            <div class="stats-row">
+                <div class="stat-group">
+                    <i class="fas fa-coins stat-icon-eth"></i>
+                    <div>
+                        <div class="stat-label-eth">KAS PRICE</div>
+                        <div class="stat-value-eth" id="kas-price-main">$0.0553 <span class="btc-price">@ 0.000052 BTC</span></div>
+                        <div class="stat-change-eth" id="price-change">(+7.0%)</div>
+                    </div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">MARKET CAP</div>
+                    <div class="stat-value-eth" id="market-cap-main">$1.49B <span class="rank">Rank #72</span></div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">24H VOLUME</div>
+                    <div class="stat-value-eth" id="volume-24h">$42.69M</div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">HASHRATE</div>
+                    <div class="stat-value-eth" id="hashrate-main">603.26 PH/s</div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">DAA SCORE</div>
+                    <div class="stat-value-eth" id="daa-score-main">292,873,111</div>
+                </div>
+                
+                <div class="stat-separator"></div>
+                
+                <div class="stat-item-eth">
+                    <div class="stat-label-eth">MEMPOOL</div>
+                    <div class="stat-value-eth" id="mempool-size">0 txns</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Network & Supply Info Panels -->
+    <section class="info-panels-section">
+        <div class="compact-container">
+            <div class="info-panels-grid">
+                
+                <!-- Coin Supply Panel -->
+                <div class="info-panel">
+                    <div class="info-panel-header">
+                        <i class="fas fa-coins"></i>
+                        <h3>Coin Supply</h3>
+                    </div>
+                    <div class="info-panel-body">
+                        <div class="info-row">
+                            <span class="info-label">Total Supply</span>
+                            <span class="info-value" id="supply-total">26,977,635,177 KAS</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Max Supply (approx.)</span>
+                            <span class="info-value">28,700,000,000 KAS</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Mined</span>
+                            <span class="info-value highlight">94.00%</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Block Reward</span>
+                            <span class="info-value" id="block-reward">3.89 KAS</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Reward Reduction</span>
+                            <span class="info-value">2025-12-04 to <strong>3.67 KAS</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Network Info Panel -->
+                <div class="info-panel">
+                    <div class="info-panel-header">
+                        <i class="fas fa-network-wired"></i>
+                        <h3>Network Info</h3>
+                    </div>
+                    <div class="info-panel-body">
+                        <div class="info-row">
+                            <span class="info-label">Network Name</span>
+                            <span class="info-value">KASPA MAINNET</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Virtual DAA Score</span>
+                            <span class="info-value" id="daa-score-detail">292,873,111</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Hashrate</span>
+                            <span class="info-value" id="hashrate-detail">603.26 PH/s</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Max Hashrate</span>
+                            <span class="info-value">1.59 EH/s <span class="sub-info">(2025-01-31 09:17)</span></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Normal Fee</span>
+                            <span class="info-value">1 Sompi / gram <span class="sub-info">(≈ 0.00003165 KAS)</span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Market Data Panel -->
+                <div class="info-panel">
+                    <div class="info-panel-header">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Market Data</h3>
+                    </div>
+                    <div class="info-panel-body">
+                        <div class="info-row">
+                            <span class="info-label">Price</span>
+                            <span class="info-value" id="price-detail">$0.0553 / KAS</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">1h Change</span>
+                            <span class="info-value negative" id="change-1h">-1.7%</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">24h Change</span>
+                            <span class="info-value positive" id="change-24h">+7.0%</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">7d Change</span>
+                            <span class="info-value positive" id="change-7d">+10.7%</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Market Cap</span>
+                            <span class="info-value" id="mcap-detail">$1.49B <span class="rank-badge">Rank #72</span></span>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content - Blocks & Transactions -->
+    <section class="main-content-etherscan">
+        <div class="compact-container">
+            <div class="content-columns">
+                
+                <!-- Latest Blocks Column -->
+                <div class="column-half">
+                    <div class="panel-etherscan">
+                        <div class="panel-header-eth">
+                            <h3><i class="fas fa-cube"></i> Latest Blocks</h3>
+                            <div class="live-indicator">
+                                <span class="pulse-dot"></span>
+                                <span>Live (~10 BPS)</span>
+                            </div>
+                        </div>
+                        <div class="panel-body-eth" id="blocks-list">
+                            <!-- Blocks populated by JS -->
+                        </div>
+                        <div class="panel-footer-eth">
+                            <a href="#" class="view-all-btn">View all blocks <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Latest Transactions Column -->
+                <div class="column-half">
+                    <div class="panel-etherscan">
+                        <div class="panel-header-eth">
+                            <h3><i class="fas fa-exchange-alt"></i> Latest Transactions</h3>
+                            <div class="live-indicator">
+                                <span class="pulse-dot"></span>
+                                <span>Live</span>
+                            </div>
+                        </div>
+                        <div class="panel-body-eth" id="transactions-list">
+                            <!-- Transactions populated by JS -->
+                        </div>
+                        <div class="panel-footer-eth">
+                            <a href="#" class="view-all-btn">View all transactions <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- Detail Modal -->
+    <div id="detail-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-compact">
+        <div class="compact-container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <p>&copy; 2025 KlassikScan - Kaspa Blockchain Explorer</p>
+                    <p class="footer-sub">Powered by Kaspa Network • Built with ❤️</p>
+                </div>
+                <div class="footer-right">
+                    <a href="#"><i class="fab fa-discord"></i></a>
+                    <a href="#"><i class="fab fa-telegram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="assets/js/particles-config.js"></script>
+    <script src="assets/js/explorer-compact-v2.js"></script>
+</body>
+</html>
