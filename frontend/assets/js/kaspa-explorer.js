@@ -404,7 +404,7 @@ async function fetchLatestTransactions() {
 async function updateBlockReward() {
     // Block Reward (optional, falls benötigt)
     try {
-        const rewardRes = await fetch('https://api.kaspa.org/blockreward');
+        const rewardRes = await fetch('https://api.kaspa.org/info/blockreward');
         const rewardData = await rewardRes.json();
         if(document.getElementById('block-reward'))
             document.getElementById('block-reward').textContent = rewardData.reward + ' KAS';
