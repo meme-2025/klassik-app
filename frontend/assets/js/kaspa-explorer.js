@@ -299,6 +299,11 @@ async function fetchNetworkInfo() {
             dailyTransactions: existingTxData.dailyTransactions
         };
         
+        // Calculate blocks in last 24h using binary search for timestamp
+        const targetTimestamp = Date.now() - 24 * 60 * 60 * 1000;
+        const oldBlueScore = await findBlueScoreForTimestamp(targetTimestamp);
+        state.network.blocks24h = state.network.blueScore - (oldBlueScore || (state.network.blueScore - 86400));
+        
         state.price = {
             current: price?.price || NaN,
             change24h: coingecko?.kaspa?.usd_24h_change || 0,
@@ -313,6 +318,53 @@ async function fetchNetworkInfo() {
         // Keep null values to show Loading... instead of 0
     }
 }
+
+
+
+
+
+
+
+// Function to find the blueScore closest to a target timestamp using binary search
+async function findBlueScoreForTimestamp(targetTimestamp) {
+    let low = 0;
+    let high = state.network.blueScore;
+    let closestBlueScore = null;
+    let closestDiff = Infinity;
+    
+    for (let i = 0; i < 25; i++) { // max 25 iterations for ~18M blueScore
+        const mid = Math.floor((low + high) / 2);
+        try {
+            const res = await fetch(`https://api.kaspa.org/blocks-from-bluescore?blueScore=${mid}&includeTransactions=false`);
+            const data = await res.json();
+            if (data && data.length > 0) {
+                const blockTimestamp = parseInt(data[0].header.timestamp);
+                const diff = Math.abs(blockTimestamp - targetTimestamp);
+                if (diff < closestDiff) {
+                    closestDiff = diff;
+                    closestBlueScore = mid;
+                }
+                if (blockTimestamp > targetTimestamp) {
+                    high = mid - 1;
+                } else if (blockTimestamp < targetTimestamp) {
+                    low = mid + 1;
+                } else {
+                    return mid; // exact match
+                }
+            } else {
+                high = mid - 1; // no block at this score
+            }
+        } catch (e) {
+            console.error('Error fetching block for blueScore', mid, e);
+            break;
+        }
+    }
+    return closestBlueScore;
+}
+
+
+
+
 
 // Price data now fetched in fetchNetworkInfo()
 
@@ -537,8 +589,8 @@ function updateQuickStats() {
     const finalizedBlocks24hElem = document.getElementById('finalized-blocks-24h');
     const finalizedBlocksTotalElem = document.getElementById('finalized-blocks-total');
     if (finalizedBlocks24hElem) {
-        // Kaspa: approximately 1 block/second, so ~86400 blocks in 24h
-        const blocks24h = 86400;
+        // Use calculated blocks from last 24h based on API timestamps
+        const blocks24h = state.network.blocks24h || 86400;
         finalizedBlocks24hElem.textContent = blocks24h.toLocaleString();
     }
     if (finalizedBlocksTotalElem) {
