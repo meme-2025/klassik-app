@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Landing - Address</title>
+  <style>
+    :root{--bg:#081023;--card:#091426;--muted:#94a3b8;--accent:#10b981;--white:#fff}
+    body{margin:0;background:linear-gradient(180deg,#020617,#071024);color:var(--white);font-family:Inter,Arial}
+    .wrap{max-width:980px;margin:36px auto;padding:20px}
+    .card{background:var(--card);border-radius:10px;padding:18px}
+    .controls{display:flex;gap:8px}
+    input{flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--white)}
+    button{background:var(--accent);border:none;padding:8px 10px;border-radius:6px;color:#001;cursor:pointer}
+    .two{display:grid;grid-template-columns:1fr 340px;gap:12px;margin-top:12px}
+    .panel{background:#071426;padding:12px;border-radius:8px}
+    .raw{white-space:pre-wrap;font-family:monospace;font-size:13px;color:#dbeafe;background:#051223;padding:10px;border-radius:6px}
+    .small{color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Address Lookup</h1>
+      <p class="small">Zeigt alle Felder, die die API für eine Adresse zurückliefert.</p>
+
+      <div class="controls">
+        <input id="addr" placeholder="kaspa:... oder Adresse" />
+        <button id="go">Load</button>
+        <button id="demo">Demo</button>
+      </div>
+
+      <div class="two">
+        <div class="panel">
+          <div id="render"><div class="small">Keine Daten geladen.</div></div>
+        </div>
+        <aside class="panel">
+          <div class="small">Raw JSON</div>
+          <div id="raw" class="raw">{ }</div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const addr = document.getElementById('addr');
+    const go = document.getElementById('go');
+    const demo = document.getElementById('demo');
+    const raw = document.getElementById('raw');
+    const render = document.getElementById('render');
+
+    const endpoints = [
+      a => `https://api.kaspa.org/address/${encodeURIComponent(a)}`,
+      a => `https://api.kaspa.org/addresses/${encodeURIComponent(a)}`
+    ];
+
+    async function loadAddress(a){
+      if(!a) return render.innerHTML = '<div class="small">Bitte Adresse eingeben</div>';
+      render.innerHTML = '<div class="small">Loading…</div>';
+      for(const e of endpoints){
+        try{
+          const url = e(a);
+          const res = await fetch(url);
+          if(res.ok){
+            const j = await res.json(); raw.textContent = JSON.stringify(j,null,2); render.innerHTML = format(j); return;
+          }
+        }catch(err){/* continue */}
+      }
+      render.innerHTML = '<div class="small">Keine Daten (endpoints failed)</div>';
+    }
+
+    function format(o){
+      if(o===null) return '<div class="small">null</div>';
+      if(typeof o !== 'object') return `<div>${String(o)}</div>`;
+      return '<div>'+Object.entries(o).map(([k,v])=>`<div style="margin-bottom:8px"><strong>${k}</strong><div style="margin-left:8px;color:#cbd5e1">${escapeHtml(JSON.stringify(v))}</div></div>`).join('')+'</div>';
+    }
+
+    function escapeHtml(s){ return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    go.addEventListener('click', ()=> loadAddress(addr.value.trim()));
+    demo.addEventListener('click', ()=>{ addr.value='kaspa:qp...'; loadAddress(addr.value); });
+
+    // auto-load query param
+    const p = new URL(location.href).searchParams.get('q'); if(p){ addr.value=p; loadAddress(p); }
+  </script>
+</body>
+</html>

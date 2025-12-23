@@ -26,7 +26,8 @@ const state = {
         change24h: null,
         change7d: null,
         marketCap: null,
-        volume24h: null
+        volume24h: null,
+        rank: null
     },
     blocks: [],
     transactions: [],
@@ -53,14 +54,24 @@ let charts = {};
 // Initialization
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    initializeNavigation();
-    initializeSearch();
-    initializeWebSocket();
-    initializeRefreshTimer();
-    fetchInitialData();
-    initializeCharts();
-    initializeBlockDAG();
-    updateBlockReward();
+    // Check if this is a landing page (no stats section)
+    const isLandingPage = !document.getElementById('stats-section');
+    
+    if (isLandingPage) {
+        // Landing page: only load prices and search
+        initializeSearch();
+        fetchLandingPagePrices();
+    } else {
+        // Full explorer: load everything
+        initializeNavigation();
+        initializeSearch();
+        initializeWebSocket();
+        initializeRefreshTimer();
+        fetchInitialData();
+        initializeCharts();
+        initializeBlockDAG();
+        updateBlockReward();
+    }
 });
 
 // ============================================
@@ -244,7 +255,7 @@ async function fetchInitialData() {
 
 async function fetchNetworkInfo() {
     try {
-        const [networkRes, hashrateRes, blockdagRes, blueScoreRes, coinSupplyRes, priceRes, marketcapRes, blockRewardRes, coingeckoRes, halvingRes] = await Promise.all([
+        const [networkRes, hashrateRes, blockdagRes, blueScoreRes, coinSupplyRes, priceRes, marketcapRes, blockRewardRes, coingeckoRes, coingeckoFullRes, halvingRes] = await Promise.all([
             fetch('https://api.kaspa.org/info/kaspad'),
             fetch('https://api.kaspa.org/info/hashrate'),
             fetch('https://api.kaspa.org/info/blockdag'),
@@ -254,6 +265,7 @@ async function fetchNetworkInfo() {
             fetch('https://api.kaspa.org/info/marketcap'),
             fetch('https://api.kaspa.org/info/blockreward'),
             fetch('https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd&include_24hr_change=true&include_7d_change=true&include_market_cap=true&include_24hr_vol=true'),
+            fetch('https://api.coingecko.com/api/v3/coins/kaspa'),
             fetch('https://api.kaspa.org/info/halving')
         ]);
         
@@ -266,6 +278,7 @@ async function fetchNetworkInfo() {
         const marketcap = await marketcapRes.json();
         const blockReward = await blockRewardRes.json();
         const coingecko = coingeckoRes.ok ? await coingeckoRes.json() : null;
+        const coingeckoFull = coingeckoFullRes.ok ? await coingeckoFullRes.json() : null;
         const halving = await halvingRes.json();
         
         console.log('CoinGecko API response:', coingecko);
@@ -309,7 +322,8 @@ async function fetchNetworkInfo() {
             change24h: coingecko?.kaspa?.usd_24h_change || 0,
             change7d: coingecko?.kaspa?.usd_7d_change || 0,
             marketCap: marketcap?.marketcap || coingecko?.kaspa?.usd_market_cap || NaN,
-            volume24h: coingecko?.kaspa?.usd_24h_vol || NaN
+            volume24h: coingecko?.kaspa?.usd_24h_vol || NaN,
+            rank: coingeckoFull?.market_cap_rank || 'N/A'
         };
         
         console.log('Final price state:', state.price);
@@ -501,7 +515,8 @@ function updateQuickStats() {
     const headerPriceValue = document.getElementById('header-price-value');
     const headerPriceChange = document.getElementById('header-price-change');
     if (headerPriceValue && !isNaN(state.price.current) && state.price.current > 0) {
-        headerPriceValue.textContent = `$${state.price.current.toFixed(2)}`;
+        const truncated = truncateDecimals(state.price.current, 2);
+        headerPriceValue.textContent = `$${truncated.toFixed(2)}`;
     }
     if (headerPriceChange && !isNaN(state.price.change24h)) {
         const change = state.price.change24h;
@@ -514,7 +529,8 @@ function updateQuickStats() {
     const priceChange24hElem = document.getElementById('price-change-24h');
     if (priceElem) {
         if (!isNaN(state.price.current) && state.price.current !== null && state.price.current > 0) {
-            priceElem.textContent = `$${state.price.current.toFixed(2)}`;
+            const truncated = truncateDecimals(state.price.current, 2);
+            priceElem.textContent = `$${truncated.toFixed(2)}`;
         } else {
             priceElem.textContent = 'Loading...';
         }
@@ -540,6 +556,16 @@ function updateQuickStats() {
             mcapElem.textContent = 'Loading...';
         }
     }
+
+    // Rank
+    const rankElem = document.getElementById('info-stat');
+    if (rankElem) {
+        if (state.price.rank && state.price.rank !== 'N/A') {
+            rankElem.textContent = `Rank #${state.price.rank}`;
+        } else {
+            rankElem.textContent = 'Loading...';
+        }
+    }
     
     // 3L: Transactions & TPS
     const totalTxsStatElem = document.getElementById('total-txs-stat');
@@ -549,7 +575,8 @@ function updateQuickStats() {
         const txCount = state.network.dailyTransactions || state.network.regularTxs24h || 0;
         console.log('Updating TX display with:', txCount, 'dailyTransactions:', state.network.dailyTransactions);
         if (!isNaN(txCount) && txCount > 0) {
-            totalTxsStatElem.textContent = txCount.toLocaleString();
+            const mintingPercent = state.network.coinbase24h && state.network.dailyTransactions ? (state.network.coinbase24h / state.network.dailyTransactions * 100).toFixed(1) : 0;
+            totalTxsStatElem.textContent = `${txCount.toLocaleString()} (${mintingPercent}% mint.)`;
             
             // Calculate TPS: transactions / 86400 seconds in 24h
             const tps = (txCount / 86400).toFixed(2);
@@ -986,7 +1013,7 @@ function updateLiveStats() {
         'live-next-diff': formatNumber(state.network.difficulty * 1.02),
         'live-blocktime': '1s',
         'live-bph': '3600',
-        'live-price': `$${state.price.current.toFixed(4)}`,
+        'live-price': `$${truncateDecimals(state.price.current || 0, 4).toFixed(4)}`,
         'live-change-24h': `${state.price.change24h >= 0 ? '+' : ''}${state.price.change24h.toFixed(2)}%`,
         'live-change-7d': `${state.price.change7d >= 0 ? '+' : ''}${state.price.change7d.toFixed(2)}%`,
         'live-volume': `$${formatNumber(state.price.volume24h)}`,
@@ -1383,6 +1410,13 @@ function formatNumber(num) {
     return num.toLocaleString();
 }
 
+// Truncate a number to a fixed number of decimal places without rounding
+function truncateDecimals(num, decimals) {
+    if (num === null || num === undefined || isNaN(num)) return 0;
+    const factor = Math.pow(10, decimals);
+    return Math.floor(num * factor) / factor;
+}
+
 function formatBytes(bytes) {
     if (bytes >= 1e6) return (bytes / 1e6).toFixed(2) + ' MB';
     if (bytes >= 1e3) return (bytes / 1e3).toFixed(2) + ' KB';
@@ -1427,6 +1461,37 @@ function displayBlockInfo(data) {
 }
 
 // ============================================
+// Landing Page Price Loading
+// ============================================
+async function fetchLandingPagePrices() {
+    try {
+        const [priceRes, coingeckoRes] = await Promise.all([
+            fetch('https://api.kaspa.org/info/price'),
+            fetch('https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd&include_24hr_change=true&include_7d_change=true&include_market_cap=true&include_24hr_vol=true')
+        ]);
+        
+        const price = await priceRes.json();
+        const coingecko = coingeckoRes.ok ? await coingeckoRes.json() : null;
+        
+        // Update price state
+        if (coingecko && coingecko.kaspa) {
+            state.price.current = coingecko.kaspa.usd || price?.price || 0;
+            state.price.change24h = coingecko.kaspa.usd_24h_change || 0;
+            state.price.change7d = coingecko.kaspa.usd_7d_change || 0;
+            state.price.marketCap = coingecko.kaspa.usd_market_cap || 0;
+            state.price.volume24h = coingecko.kaspa.usd_24h_vol || 0;
+        } else if (price?.price) {
+            state.price.current = price.price;
+            state.price.change24h = 0;
+        }
+        
+        updateQuickStats();
+    } catch (error) {
+        console.error('Error fetching landing page prices:', error);
+    }
+}
+
+// ============================================
 // Export for debugging
 // ============================================
 window.KaspaExplorer = {
@@ -1434,5 +1499,6 @@ window.KaspaExplorer = {
     switchView,
     updateUI,
     charts,
-    refreshAllData
+    refreshAllData,
+    fetchLandingPagePrices
 };

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Landing - Block</title>
+  <style>
+    body{margin:0;font-family:Inter,Arial;background:#030416;color:#fff}
+    .wrap{max-width:980px;margin:32px auto;padding:18px}
+    .card{background:#071026;padding:16px;border-radius:10px}
+    .row{display:flex;gap:8px}
+    input{flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff}
+    button{padding:8px 10px;border-radius:6px;background:#8b5cf6;border:none;color:#fff}
+    .cols{display:grid;grid-template-columns:1fr 360px;gap:12px;margin-top:12px}
+    .raw{background:#05102a;padding:10px;font-family:monospace;border-radius:6px}
+    .small{color:#94a3b8}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Block Lookup</h2>
+      <p class="small">Gebe Block-Hash oder Height ein. Die Seite versucht mehrere Standard-APIs.</p>
+
+      <div class="row">
+        <input id="id" placeholder="block hash oder height" />
+        <button id="load">Load</button>
+        <button id="hint">Hints</button>
+      </div>
+
+      <div class="cols">
+        <div>
+          <div id="out" class="panel"></div>
+        </div>
+        <aside>
+          <div class="raw" id="raw">{ }</div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const id = document.getElementById('id');
+    const load = document.getElementById('load');
+    const raw = document.getElementById('raw');
+    const out = document.getElementById('out');
+
+    const tryEndpoints = [
+      v => `https://api.kaspa.org/block/${v}`,
+      v => `https://api.kaspa.org/blocks/${v}`,
+      v => `https://api.kaspa.org/blocks-from-bluescore?blueScore=${v}`
+    ];
+
+    async function fetchBlock(v){
+      out.innerHTML = '<div class="small">Loading…</div>';
+      raw.textContent = '{ }';
+      for(const f of tryEndpoints){
+        const url = f(v);
+        try{
+          const res = await fetch(url);
+          if(res.ok){const j = await res.json(); raw.textContent = JSON.stringify(j,null,2); out.innerHTML = render(j,url); return;}
+        }catch(e){}
+      }
+      out.innerHTML = '<div class="small">Keine Daten gefunden</div>';
+    }
+
+    function render(obj, url){
+      if(!obj) return '<div class="small">empty</div>';
+      let html = `<div class="small">Loaded from <a style="color:#8b5cf6" href="${url}" target="_blank">${url}</a></div><hr/>`;
+      html += '<div>' + Object.entries(obj).map(([k,v])=>`<div style="margin-bottom:10px"><strong>${k}</strong><div style="margin-left:8px;color:#cbd5e1">${escape(JSON.stringify(v))}</div></div>`).join('') + '</div>';
+      return html;
+    }
+    function escape(s){return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+    load.addEventListener('click', ()=> fetchBlock(id.value.trim()));
+    document.getElementById('hint').addEventListener('click', ()=> alert('Mögliche Eingaben: Block-Hash (hex) oder blueScore (Zahl).'));
+    const p = new URL(location.href).searchParams.get('q'); if(p) { id.value=p; fetchBlock(p); }
+  </script>
+</body>
+</html>

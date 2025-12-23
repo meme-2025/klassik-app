@@ -3,21 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaspa Scan | - Kaspa Blockchain Explorer</title>
-    
+    <title>Kaspa Explorer | BlockDAG Explorer & Analytics</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓</text></svg>">
-    <link rel="stylesheet" href="assets/css/kaspa.css">
     <link rel="stylesheet" href="assets/css/kaspa-explorer-v3.css">
-    <link rel="stylesheet" href="assets/css/explorer-compact-v3.css">
+        <link rel="stylesheet" href="assets/css/explorer-compact-v3.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   
-   
-   
-   
-   
-   
-   
-   <style>
+    <style>
         /* Force 2-column layout with inline styles - highest priority */
         .stats-grid {
             display: grid !important;
@@ -29,48 +20,74 @@
             gap: 1.5em;
             align-items: center;
         }
+        /* Position header SVG absolutely so it doesn't expand nav width */
+        .hero-title {
+            position: relative;
+        }
+        .hero-title svg {
+            position: flex !important;
+            top: 50% !important;
+            transform: translateY(0%) !important;
+            right: -5rem !important;
+            width: 5em !important;
+            height: 5rem !important;
+            margin: 0 !important;
+            pointer-events: none;
+        }
+
     </style>
+<body>
 </head>
 
-    <nav class="navbar-etherscan">
+    
         <div class="container nav-container-etherscan">
             <div class="nav-logo">
-                <i class="fas fa-cube"></i>
-                <span>KlassikScan</span>
+                <span>klassik.scan</span>
                 <span class="beta">BETA</span>
             </div>
             
             <div class="nav-links-compact">
-                <a href="index.html">Home</a>
-              <!--  <a href="exchange.html">Exchange</a>
-                <a href="merch.html">Merch</a> -->
+                <div class="refresh-timer" id="refresh-timer">
+                    <svg class="timer-circle" viewBox="0 0 36 36">
+                        <path class="timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="timer-progress" id="timer-progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                    <span class="timer-text" id="timer-text">60</span>
+                </div>
+
             </div>
         </div>
-    </nav>
+    
 
 </head>
 
-<body>
 
 
 
+
+  
     <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <i class="fas fa-cube"></i>
-                    <span class="logo-text">Klassik<span class="logo-accent">Scan</span></span>
+                    
+                    home
+                    <h1 class="hero-title fade-in-up" style="font-size: 0.8rem; margin-bottom: 0rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0; font-family: 'Space Grotesk', sans-serif;">
+                    <span></span>
+                    <svg style="width: 3rem; height: 3rem; margin-left: 1rem;" viewBox="0 0 197.1 196.9" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="98.6" cy="97.8" r="40.8"/>
+                    <path fill="#FFFFFF" d="M149.4,76.3c-2.8-6.8-7.2-13-12.3-18.1s-11.6-8.9-18.4-11.7c-6.5-2.7-13.8-4.1-21.3-4.1s-15.2,0.3-21.7,3c-6.8,2.8-12.4,8.1-17.5,13.2s-11,10.5-13.8,17.3c-2.7,6.5-1.8,14.5-1.8,22s0.5,14.8,3.3,21.4c2.8,6.8,8.5,11.5,13.6,16.6c5.1,5.1,9.7,11.2,16.5,14c6.5,2.7,14,4.6,21.5,4.6s14.9-2.2,21.4-4.9c6.8-2.8,12.9-7.2,18-12.3c5.1-5.1,9.2-11.3,12-18.1c2.7-6.5,5.8-13.8,5.8-21.3S152.1,82.9,149.4,76.3L149.4,76.3z M113.2,129.8l-11.9-1.8l3.4-23l-24.9,19.2l-7.3-9.6l21.8-16.8L72.5,81.1l7.3-9.6l24.9,19.2l-3.4-23l11.9-1.8l4.7,32L113.2,129.8L113.2,129.8z"/>
+                    </svg>
+            </h1>
+                    
                 </div>
                 <nav class="nav">
                     <button class="nav-item active" data-view="home">
                         <i class="fas fa-home"></i>
                         <span>Home</span>
                     </button>
-                    <button class="nav-item" data-view="blockdag">
-                        <i class="fas fa-project-diagram"></i>
-                        <span>BlockDAG</span>
-                    </button>
+
                     <button class="nav-item" data-view="analytics">
                         <i class="fas fa-chart-bar"></i>
                         <span>Analytics</span>
@@ -87,17 +104,11 @@
                     </div>
                     <span class="price-change" id="header-price-change">0.00%</span>
                 </div>
-                <div class="refresh-timer" id="refresh-timer">
-                    <svg class="timer-circle" viewBox="0 0 36 36">
-                        <path class="timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                        <path class="timer-progress" id="timer-progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                    </svg>
-                    <span class="timer-text" id="timer-text">60</span>
-                </div>
+
             </div>
         </div>
     </header>
-
+</nav>
     <!-- Main Content -->
     <main class="main">
         <!-- Home View -->

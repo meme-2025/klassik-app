@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Landing - Transaction</title>
+  <style>
+    :root{--bg:#0b1020;--card:#0f1724;--muted:#94a3b8;--accent:#0ea5e9;--white:#fff}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#030414 0%,#081022 100%);color:var(--white);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+    .wrap{max-width:980px;margin:36px auto;padding:20px}
+    .card{background:var(--card);border-radius:10px;padding:18px;box-shadow:0 6px 30px rgba(2,6,23,0.6)}
+    h1{margin:0 0 8px;font-size:20px}
+    p.lead{color:var(--muted);margin:0 0 14px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    input[type=text]{flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--white)}
+    button{background:var(--accent);border:none;padding:8px 12px;border-radius:6px;color:#022;text-weight:700;cursor:pointer}
+    .meta{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    .raw{white-space:pre-wrap;background:#071021;padding:12px;border-radius:6px;font-family:monospace;font-size:13px;color:#dbeafe}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:12px}
+    .panel{background:#071326;padding:12px;border-radius:6px}
+    .small{font-size:13px;color:var(--muted)}
+    a.link{color:var(--accent);text-decoration:none}
+    .actions{display:flex;gap:8px}
+    .empty{color:var(--muted);padding:14px;text-align:center}
+    details{background:transparent;padding:6px;border-radius:4px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Transaction Lookup</h1>
+      <p class="lead">Gebe eine TX-Hash ein und lade die gesamte Such-Antwort (roh & formatiert).</p>
+
+      <div class="controls">
+        <input id="q" type="text" placeholder="Tx hash oder kopieren: 64 hex" />
+        <button id="fetch">Fetch</button>
+        <button id="sample">Load sample</button>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="panel">
+            <div class="meta small">Antwort (formatiert)</div>
+            <div id="formatted"> <div class="empty">Noch keine Antwort</div> </div>
+          </div>
+          <div style="height:12px"></div>
+          <div class="panel">
+            <div class="meta small">Rohes JSON</div>
+            <div id="raw" class="raw">{ }</div>
+          </div>
+        </div>
+
+        <aside>
+          <div class="panel">
+            <div class="meta small">Details</div>
+            <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+              <div class="small">Endpoint attempts will be shown here.</div>
+              <div class="actions">
+                <button id="copyRaw">Copy JSON</button>
+                <button id="download">Download</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const qInput = document.getElementById('q');
+    const fetchBtn = document.getElementById('fetch');
+    const sampleBtn = document.getElementById('sample');
+    const rawEl = document.getElementById('raw');
+    const formattedEl = document.getElementById('formatted');
+    const copyBtn = document.getElementById('copyRaw');
+    const dlBtn = document.getElementById('download');
+
+    const possibleEndpoints = [
+      hash => `https://api.kaspa.org/tx/${hash}`,
+      hash => `https://api.kaspa.org/transactions/${hash}`,
+      hash => `https://api.kaspa.org/transaction/${hash}`
+    ];
+
+    function getParam() {
+      const u = new URL(location.href);
+      return u.searchParams.get('q') || u.searchParams.get('tx') || '';
+    }
+
+    async function tryFetch(hash){
+      if(!hash) return showError('Bitte Hash eingeben');
+      formattedEl.innerHTML = '<div class="small">Loading…</div>';
+      rawEl.textContent = '{ }';
+
+      for(const makeUrl of possibleEndpoints){
+        const url = makeUrl(hash);
+        try{
+          const res = await fetch(url);
+          if(res.ok){
+            const json = await res.json();
+            display(json, url);
+            return;
+          }
+        }catch(e){/* continue */}
+      }
+      showError('Keine Antwort von Standardschnittstellen. Du kannst ein eigenes JSON einfügen.');
+    }
+
+    function display(json, url){
+      rawEl.textContent = JSON.stringify(json, null, 2);
+      formattedEl.innerHTML = renderKeyValue(json);
+      formattedEl.insertAdjacentHTML('afterbegin', `<div class="small">Loaded from: <a class=link href="${url}" target=_blank>${url}</a></div><hr/>`);
+    }
+
+    function renderKeyValue(obj){
+      if(obj === null) return '<div class="small">null</div>';
+      if(typeof obj !== 'object') return `<div>${String(obj)}</div>`;
+      const entries = Array.isArray(obj) ? obj.map((v,i)=>[i,v]) : Object.entries(obj);
+      return `<div>${entries.map(([k,v])=>`<details open><summary><strong>${k}</strong></summary><div style="padding:6px">${renderKeyValue(v)}</div></details>`).join('')}</div>`;
+    }
+
+    function showError(msg){
+      formattedEl.innerHTML = `<div class="empty">${msg}</div>`;
+    }
+
+    fetchBtn.addEventListener('click', ()=> tryFetch(qInput.value.trim()));
+    sampleBtn.addEventListener('click', ()=>{
+      qInput.value = 'sample-tx-hex-or-hash';
+      formattedEl.innerHTML = `<div class=small>Sample loaded — press Fetch to try endpoints.</div>`;
+    });
+
+    copyBtn.addEventListener('click', ()=> navigator.clipboard.writeText(rawEl.textContent));
+    dlBtn.addEventListener('click', ()=>{
+      const blob = new Blob([rawEl.textContent], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='tx.json'; a.click();
+    });
+
+    const param = getParam(); if(param) { qInput.value = param; tryFetch(param); }
+  </script>
+</body>
+</html>
