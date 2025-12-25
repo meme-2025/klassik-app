@@ -1,0 +1,44 @@
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-family: 'Arial', sans-serif;
+}
+
+.landing-page h1 {
+  font-size: 3rem;
+  margin-bottom: 2rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.landing-page button {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.landing-page button:hover {
+  background: #ff5252;
+}
+
+.landing-page button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #ffdddd;
+  background: #ff6b6b;
+  padding: 0.5rem;
+  border-radius: 5px;
+  margin-top: 1rem;
+}

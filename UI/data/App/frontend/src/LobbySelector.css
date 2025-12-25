@@ -1,0 +1,40 @@
+.lobby-selector {
+  padding: 2rem;
+  background: #f0f0f0;
+  min-height: 100vh;
+}
+
+.lobby-selector h2 {
+  color: #333;
+}
+
+.lobby-selector button {
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.lobby-selector button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.lobby-selector ul {
+  list-style: none;
+  padding: 0;
+}
+
+.lobby-selector li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}

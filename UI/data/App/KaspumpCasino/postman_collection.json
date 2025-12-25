@@ -1,0 +1,268 @@
+{
+  "info": {
+    "name": "Klassik Pump API",
+    "description": "Postman collection for Klassik Pump API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wallet\": \"kaspa:yourwalletaddress\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('jwtToken', response.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Check Registered",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/registered",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "registered"]
+            }
+          }
+        },
+        {
+          "name": "Get Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blockchain/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blockchain", "balance"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lobbies",
+      "item": [
+        {
+          "name": "Get Lobbies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/lobbies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "lobbies"]
+            }
+          }
+        },
+        {
+          "name": "Create Lobby",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Lobby\",\n  \"maxPlayers\": 6,\n  \"stake\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/lobby/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "lobby", "create"]
+            }
+          }
+        },
+        {
+          "name": "Join Lobby",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lobbyId\": \"lobby123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/lobby/join",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "lobby", "join"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Game",
+      "item": [
+        {
+          "name": "Start Round",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lobbyId\": \"lobby123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/round/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "round", "start"]
+            }
+          }
+        },
+        {
+          "name": "Submit Claim",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lobbyId\": \"lobby123\",\n  \"signature\": \"sig123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/claim",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "claim"]
+            }
+          }
+        },
+        {
+          "name": "Finalize Round",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lobbyId\": \"lobby123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/round/finalize",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "round", "finalize"]
+            }
+          }
+        },
+        {
+          "name": "Get Replay",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/replay/round123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "replay", "round123"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

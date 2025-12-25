@@ -418,6 +418,34 @@ body {
     color: var(--gray);
 }
 
+/* Search results (SPA) */
+.search-results {
+    margin-top: 1rem;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-md);
+    color: var(--white);
+    font-size: 0.9rem;
+    max-height: 60vh;
+    overflow: auto;
+    backdrop-filter: blur(6px);
+}
+
+.search-results-header {
+    margin-bottom: 0.5rem;
+    color: var(--primary-light);
+    font-weight: 700;
+}
+
+.search-results-pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--gray-light);
+}
+
 .search-btn {
     display: flex;
     align-items: center;
@@ -495,6 +523,18 @@ body {
 
 .explore-stats-btn i {
     font-size: 1.2rem;
+}
+
+/* ============================================
+   Stats Section - Make it visible by default
+   ============================================ */
+
+.stats-section {
+    display: block !important;
+}
+
+.stats-content {
+    display: block !important;
 }
 
 /* ============================================

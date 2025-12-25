@@ -61,6 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Landing page: only load prices and search
         initializeSearch();
         fetchLandingPagePrices();
+        // handle possible query params even on landing
+        handleQueryFromURL();
     } else {
         // Full explorer: load everything
         initializeNavigation();
@@ -68,6 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeWebSocket();
         initializeRefreshTimer();
         fetchInitialData();
+        // handle query params (e.g. ?tx=..., ?block=...)
+        handleQueryFromURL();
         initializeCharts();
         initializeBlockDAG();
         updateBlockReward();
@@ -173,7 +177,7 @@ function initializeSearch() {
         if (query.length > 3) {
             showSearchSuggestions(query);
         } else {
-            suggestions.classList.remove('active');
+            if (suggestions) suggestions.classList.remove('active');
         }
     });
 }
@@ -181,28 +185,34 @@ function initializeSearch() {
 async function performSearch() {
     const searchInput = document.getElementById('main-search');
     const query = searchInput.value.trim();
-    
     if (!query) return;
-    
-    // Determine search type and redirect
+
+    // Basic query classification and SPA handling
     if (query.startsWith('kaspa:')) {
         // Address search
-        window.location.href = `kaspa-address-details.html?address=${encodeURIComponent(query)}`;
+        history.pushState({}, '', `?address=${encodeURIComponent(query)}`);
     } else if (query.length === 64 && /^[a-fA-F0-9]+$/.test(query)) {
         // Transaction hash (64 hex characters)
-        window.location.href = `kaspa-transactions.html?tx=${encodeURIComponent(query)}`;
+        history.pushState({}, '', `?tx=${encodeURIComponent(query)}`);
     } else if (/^[a-fA-F0-9]+$/.test(query)) {
         // Block hash
-        window.location.href = `kaspa-blocks.html?block=${encodeURIComponent(query)}`;
+        history.pushState({}, '', `?block=${encodeURIComponent(query)}`);
+    } else if (/^\d+$/.test(query)) {
+        // Block height
+        history.pushState({}, '', `?height=${query}`);
     } else {
-        // Try as block number
-        if (/^\d+$/.test(query)) {
-            window.location.href = `kaspa-blocks.html?height=${query}`;
-        } else {
-            showError('Invalid search query. Use: Address (kaspa:...), TX Hash (64 hex), or Block Hash/Height');
-        }
+        showError('Invalid search query. Use: Address (kaspa:...), TX Hash (64 hex), or Block Hash/Height');
+        return;
     }
+
+    // run the handler which will fetch & render the result without navigating away
+    handleQueryFromURL();
 }
+
+// Handle back/forward navigation
+window.addEventListener('popstate', () => {
+    handleQueryFromURL();
+});
 
 async function searchAddress(address) {
     window.location.href = `kaspa-address-details.html?address=${encodeURIComponent(address)}`;
@@ -220,9 +230,105 @@ function showError(message) {
     alert(message);
 }
 
+// ============================================
+// SPA Search / URL handlers
+// ============================================
+async function handleQueryFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const resultsEl = document.getElementById('search-results');
+    if (!resultsEl) return;
+
+    // clear previous
+    resultsEl.innerHTML = '';
+
+    if (params.has('tx')) {
+        const tx = params.get('tx');
+        showSearchResults(`Searching for transaction ${tx}...`);
+        await fetchTransaction(tx);
+    } else if (params.has('address')) {
+        const addr = params.get('address');
+        showSearchResults(`Searching for address ${addr}...`);
+        await fetchAddress(addr);
+    } else if (params.has('block')) {
+        const block = params.get('block');
+        showSearchResults(`Searching for block ${block}...`);
+        await fetchBlock(block);
+    } else if (params.has('height')) {
+        const h = params.get('height');
+        showSearchResults(`Searching for block height ${h}...`);
+        await fetchBlock(h);
+    } else {
+        // nothing to do - keep results hidden
+        resultsEl.innerHTML = '';
+    }
+}
+
+async function fetchTransaction(txHash) {
+    try {
+        const res = await fetch(`https://api.kaspa.org/transaction/${encodeURIComponent(txHash)}`);
+        if (!res.ok) throw new Error('Transaction not found');
+        const data = await res.json();
+        showSearchResults(`Transaction: ${txHash}`, data);
+    } catch (err) {
+        showSearchResults('Transaction not found', { error: err.message });
+    }
+}
+
+async function fetchAddress(address) {
+    try {
+        const res = await fetch(`https://api.kaspa.org/address/${encodeURIComponent(address)}`);
+        if (!res.ok) throw new Error('Address not found');
+        const data = await res.json();
+        showSearchResults(`Address: ${address}`, data);
+    } catch (err) {
+        showSearchResults('Address not found', { error: err.message });
+    }
+}
+
+async function fetchBlock(blockOrHeight) {
+    try {
+        // Try by hash first
+        let res = await fetch(`https://api.kaspa.org/block/${encodeURIComponent(blockOrHeight)}`);
+        if (res.status === 404) {
+            // fallback: try height endpoint if numeric
+            if (/^\d+$/.test(blockOrHeight)) {
+                res = await fetch(`https://api.kaspa.org/block/by-height/${blockOrHeight}`);
+            }
+        }
+
+        if (!res.ok) throw new Error('Block not found');
+        const data = await res.json();
+        showSearchResults(`Block: ${blockOrHeight}`, data);
+    } catch (err) {
+        showSearchResults('Block not found', { error: err.message });
+    }
+}
+
+function showSearchResults(title, data) {
+    const resultsEl = document.getElementById('search-results');
+    if (!resultsEl) return;
+    let html = `<div class="search-results-header"><strong>${title}</strong></div>`;
+    if (data) {
+        // pretty-print JSON for now
+        html += `<pre class="search-results-pre">${escapeHtml(typeof data === 'string' ? data : JSON.stringify(data, null, 2))}</pre>`;
+    }
+    resultsEl.innerHTML = html;
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// On initial load, check URL for any query params
+document.addEventListener('DOMContentLoaded', () => {
+    handleQueryFromURL();
+});
+
 function showSearchSuggestions(query) {
     // Mock suggestions - integrate with real API
     const suggestions = document.getElementById('search-suggestions');
+    if (!suggestions) return;
     suggestions.innerHTML = `
         <div class="suggestion-item">
             <i class="fas fa-search"></i>

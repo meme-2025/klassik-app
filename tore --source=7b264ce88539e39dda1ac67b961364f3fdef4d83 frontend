@@ -1,0 +1,415 @@
+[33mcommit 66164ede3a70fb75eb1f78e26255e93a348e57ff[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mklassik.litehost0.1[m[33m, [m[1;31morigin/klassik.litehost0.1[m[33m)[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 23 04:12:25 2025 +0100
+
+    0.0test
+
+[33mcommit 7b264ce88539e39dda1ac67b961364f3fdef4d83[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Sat Dec 20 00:11:50 2025 +0100
+
+    0.0test
+
+[33mcommit 6694ba9c2e5079831b6a837d49ee661a9b937196[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Fri Dec 19 23:06:07 2025 +0100
+
+    0.0test
+
+[33mcommit 013669031e1a699063a913b01426ba38cfdceabb[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Fri Dec 19 22:52:12 2025 +0100
+
+    Berechtigungen-Test
+
+[33mcommit 4c324960725cc94efa71a60b6ccf77a20b88b87a[m[33m ([m[1;31morigin/klassik1[m[33m, [m[1;32mklassik1[m[33m)[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Fri Dec 19 01:27:15 2025 +0100
+
+    0.0test
+
+[33mcommit 8c752b6ec03a8f353cc177fcf9700858a8657b43[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Fri Dec 19 01:20:36 2025 +0100
+
+    0.0test
+
+[33mcommit c78868717fce16f90a98eabaf216d6e0b64f5ecc[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Thu Dec 18 04:50:48 2025 +0100
+
+    Initial clean commit
+
+[33mcommit bb0b46bbf591ba90fc96af5e2085e39d255a9f96[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Thu Dec 18 04:46:34 2025 +0100
+
+    index0.2
+
+[33mcommit e10d7c4e25bc18ba52817dc789a43462d49c2e2c[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Thu Dec 18 02:13:33 2025 +0100
+
+    index0.2
+
+[33mcommit d1942d024ce2a08226bc038e00e2a444a623aebe[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Wed Dec 17 22:23:04 2025 +0100
+
+    index0.2
+
+[33mcommit 4a24dffbcdd3ae5fdb270bcd9e1c58550ad21636[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Wed Dec 17 21:41:55 2025 +0100
+
+    index0.2
+
+[33mcommit aa17fd3bde1bf674f96d19bcb48bf09e7fff528b[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Wed Dec 17 21:33:47 2025 +0100
+
+    index0.2
+
+[33mcommit 7f8e71c4b151989730b9986ad3de3290cc17e072[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Wed Dec 17 21:25:05 2025 +0100
+
+    index0.2
+
+[33mcommit bd3f451f5a60869c66c440811271e49253d2d311[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Wed Dec 17 20:16:27 2025 +0100
+
+    index0.2
+
+[33mcommit bb5de6063ede7b9ce5dc8b86a9c1610c2a2f5f26[m
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Tue Dec 16 03:14:37 2025 +0100
+
+    Beginn SAc
+
+[33mcommit a431173593e831f37500f8b15a1c18d2df146305[m
+Merge: fc4118f 1f1d4c2
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Tue Dec 16 03:12:30 2025 +0100
+
+    Merge branch 'klassik1' of https://github.com/meme-2025/klassik-app into klassik1
+
+[33mcommit 1f1d4c2a9e272138e5b8409b24216be4a019d81d[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 16 03:12:07 2025 +0100
+
+    Beginn SAc
+
+[33mcommit d80cec95033b5a05513c02404b15268c2ebf9e9b[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 16 01:54:31 2025 +0100
+
+    Beginn SAc
+
+[33mcommit fc4118f45b2e71bf482a0be0423162181662cc17[m
+Merge: 084c05f 4bd327f
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Tue Dec 16 00:30:14 2025 +0100
+
+    Merge branch 'klassik1' of https://github.com/meme-2025/klassik-app into klassik1
+
+[33mcommit 4bd327fe90ffa2a7717d124b98cdfe884b81ee42[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 16 00:29:50 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 084c05f726ccd97db5da1acc4608b5933429293d[m
+Merge: 021a259 ec38591
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Tue Dec 16 00:23:10 2025 +0100
+
+    Merge branch 'klassik1' of https://github.com/meme-2025/klassik-app into klassik1
+
+[33mcommit ec385919d4520a7706470ea3ba1034181d04dca4[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 16 00:22:37 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 021a25994c02ec8eaabe08dab9128d427a861476[m
+Merge: 43dedb4 c070f2d
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Tue Dec 16 00:09:37 2025 +0100
+
+    Merge branch 'klassik1' of https://github.com/meme-2025/klassik-app into klassik1
+
+[33mcommit c070f2d0f2645e2d5f38ea17bff42fb7651a8d1f[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 16 00:09:12 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 43dedb49671e27b8269420b0596eb4a5645dfaff[m
+Merge: fb55528 176ce94
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Mon Dec 15 23:56:23 2025 +0100
+
+    Merge branch 'klassik1' of https://github.com/meme-2025/klassik-app into klassik1
+
+[33mcommit 176ce94d0b73ed38e4092ce56dde6177c1c7438a[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 15 23:55:02 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit fb555284f91cd9f0f8a0614d771670265b2d4482[m
+Merge: 737d848 7f0ca10
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Mon Dec 15 23:43:30 2025 +0100
+
+    Merge branch 'klassik1' of https://github.com/meme-2025/klassik-app into klassik1
+
+[33mcommit 7f0ca10322ac242c7b8e4ca40375211994847ce3[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 15 23:43:04 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 737d8486a4a3b2a0e0a0bc9d8b99245c504003e6[m
+Merge: bcc841c 393b5fb
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Mon Dec 15 23:20:31 2025 +0100
+
+    Merge branch 'klassik1' of https://github.com/meme-2025/klassik-app into klassik1
+
+[33mcommit 393b5fb7699098f3d3d1c16176d5da2af4104207[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 15 23:18:52 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit bcc841c0879d3123e2250fce4c4f02813cf572a3[m
+Merge: 7f62772 5f61f39
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Mon Dec 15 23:17:12 2025 +0100
+
+    Merge branch 'klassik1' of https://github.com/meme-2025/klassik-app into klassik1
+
+[33mcommit 7f6277279b8629d584a492df40d590c7299d40c1[m
+Author: admin2001 <asusamd2001@gmail.com>
+Date:   Mon Dec 15 23:17:08 2025 +0100
+
+    s
+
+[33mcommit 5f61f39abbd51e859e42487e2879616ba4ed1e63[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 15 23:06:21 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit a80f99c2bf7ca5f55dc66afcdae253e6565c57c1[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 15 22:45:01 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 8d2010911b65967956c45d35eb3754b090cf54f5[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 15 22:36:06 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit c726eeeb4ee61390ecf48ef6c3cc5094bf5f60c1[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Wed Dec 10 02:18:33 2025 +0100
+
+    Dashboard: Modern UI mit API Tester, Event/Booking Creation
+
+[33mcommit 603458ef531e9f5628b039a56810a0cc526aa955[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 9 23:57:01 2025 +0100
+
+    Fix: ethers.js CDN + korrigierte wallet-auth.js ohne Template-String-Fehler
+
+[33mcommit adb97f37b80fdc172b776131cb7e48c9795d05f8[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 9 22:42:25 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 6726abaee0fb2b2c0d540da7da1860985f27cff1[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 9 14:28:19 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 482d5e24faaae2fe19c65ec63a31730c86bd37a4[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 9 13:30:52 2025 +0100
+
+     Production ready: Port 8130, Wallet Auth, Ubuntu deployment scripts
+    
+    - Backend configured for Ubuntu deployment (Port 8130)
+    - Wallet-only authentication (MetaMask integration)
+    - User registration: wallet address  email column, username  password column
+    - Gateway UI with wallet connect flow
+    - Test suite for API endpoints
+    - PM2 deployment script for Ubuntu
+    - All API endpoints accessible from external clients:
+      * POST /api/auth/register (email/password)
+      * POST /api/auth/login
+      * POST /api/auth/user (wallet registration)
+      * GET /api/auth/nonce
+      * POST /api/auth/signin-with-wallet
+      * GET /api/kaspa/stats
+      * GET /api/products
+      * POST /api/products
+      * POST /api/payments/invoice
+      * POST /api/orders
+      * GET /api/orders
+    - PostgreSQL local on Ubuntu (localhost:5432)
+    - CORS enabled for external access
+    - Documentation: QUICK_DEPLOY.md, UBUNTU_DEPLOYMENT.md
+
+[33mcommit 27bf23dc5aed3b8a9eb1ed33a2d3e3ed35b7856a[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 9 02:51:55 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 82009285a8c104e62a2332484894e7dafe58de87[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 9 02:38:13 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 1acc4e79b69c65e2a22fd317a9fd5235d705f1d3[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 9 01:38:21 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 37ac46aaf071c8feec6549f7bef37435a74a2ba4[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 9 01:24:10 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 8a6846e01865efbf48fc1983db9eebd9cd9e7ae3[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 9 00:42:54 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 3601112439332a4176968b27a2adefe91b5b3038[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 8 16:17:28 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit d573dfdf670521227bf4f5d11bcbd6554e1b9f55[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 8 15:38:35 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 186074f243ba616f7aa8f259dd7cad022f0cbad8[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 8 14:50:11 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit de7f66753da0a53f2f3a2707afafe65c317ad5d8[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 8 13:57:47 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 2721a71b62e8806aea3552519467e6b8cee0e0b5[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Mon Dec 8 13:02:38 2025 +0100
+
+    Use optional KASPA_REST_SERVER for kaspa routes (adapter + fallbacks)
+
+[33mcommit 81ea11eb794fa2de74e746c982818be40c579d54[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Tue Dec 2 09:58:05 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 2fe19813fc4152855c04df43d0c618774488497b[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Sat Nov 29 11:14:56 2025 +0100
+
+    Update explorer-compact.css: Suchleiste ohne Abstand oben links
+
+[33mcommit 358524edf2242bef653552ba732491db97067469[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Sat Nov 29 10:32:42 2025 +0100
+
+    Deine Commit-Nachricht
+
+[33mcommit f193d995160af05f4e09f0d01298405333d5f6d0[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Sat Nov 29 09:03:02 2025 +0100
+
+    Add Etherscan-style compact Explorer view - Ultra-compact layout inspired by Etherscan.io - Everything visible on one screen (no scrolling) - Horizontal stats bar with KAS price, market cap, transactions, hashrate - Side-by-side Latest Blocks and Transactions columns - Live Kaspa price from CoinGecko API (30s updates) - Auto-updating blocks (5s) and transactions (3s) - Minimal padding and optimized spacing - Clean block/tx cards with all essential info
+
+[33mcommit 499194dc52be2e0ef0fd0fef0c6908ca5830eaa1[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Sat Nov 29 08:37:13 2025 +0100
+
+    Optimize Exchange: Compact layout + Live Kaspa blockchain data
+    
+    - Reduced padding/spacing for single-screen view (no scrolling needed)
+    - Grid height: calc(100vh - 240px) - everything visible at once
+    - Live price integration via CoinGecko API (updates every 10s)
+    - Real market data: Volume, High/Low, Market Cap from Kaspa blockchain
+    - Dynamic order book generation based on live price (updates every 5s)
+    - Live trades stream with real-time updates (every 3s)
+    - Auto-updating chart with actual price points
+    - Removed all mock/simulated data - 100% live blockchain data
+
+[33mcommit 20a80b0aed09680a59279ec48dc163a12b7339b3[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Sat Nov 29 08:23:09 2025 +0100
+
+    Add new menu structure with Exchange and Merch apps
+    
+    - Platform dropdown with Vision/Tokenomics/Roadmap subpages
+    - Exchange app: Trading interface with charts, orderbook, swap/limit/liquidity tabs
+    - Merch app: Product store with cart system and category filters
+    - Updated navigation across all pages
+
+[33mcommit 3b3eea350afb8bd930e0a8618b1d4842f93f61f0[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Sat Nov 29 08:06:56 2025 +0100
+
+    Add KaspaScan Blockchain Explorer + Enhanced KaspaHub Platform
+    
+    Features:
+    - Complete Kaspa-themed landing page (index.html) with Vision, Tokenomics, Roadmap
+    - Full Blockchain Explorer (api.html) - Etherscan-style for Kaspa
+    - Live network stats, blocks, transactions tables with auto-update
+    - Interactive charts (Transaction history, Hashrate, Block rewards)
+    - Top 20 addresses ranking
+    - Complete API documentation (20+ endpoints)
+    - Enhanced particle background with repulse interaction
+    - Glassmorphism design with Kaspa cyan/turquoise colors
+    - Responsive design for mobile/tablet
+    - Scroll-snap fullpage sections
+
+[33mcommit 1f28890a8f76b00bd9be894c07b690a5b653538c[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Sat Nov 29 07:18:05 2025 +0100
+
+    Add futuristic frontend with glassmorphism design, particles.js, and modern animations
+
+[33mcommit 66f5314e307623fb87a924749146f406325fc14b[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Fri Nov 28 16:29:46 2025 +0100
+
+    Initial commit - Klassik backend and frontend
+
+[33mcommit 2db8dcffb339660b6302e31766004c7a89a7e066[m
+Author: meme-2025 <asusamd2000@gmail.com>
+Date:   Fri Nov 28 16:22:47 2025 +0100
+
+    Initial commit - Klassik backend and frontend

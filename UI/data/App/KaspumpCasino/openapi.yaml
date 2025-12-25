@@ -1,0 +1,324 @@
+openapi: 3.1.0
+info:
+  title: Klassik Pump API
+  description: API for the Klassik Pump multiplayer blockchain game
+  version: '0.2'
+  contact:
+    name: Support
+    email: support@klassikpump.com
+
+servers:
+  - url: http://localhost:3001
+    description: Development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/auth/login:
+    post:
+      summary: User login with wallet
+      description: Authenticates user via wallet address and returns JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                wallet:
+                  type: string
+                  description: User's wallet address
+              required:
+                - wallet
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      wallet:
+                        type: string
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/user/registered:
+    get:
+      summary: Check if user is registered
+      description: Verifies if the authenticated user is registered in the system
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Registration status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registered:
+                    type: boolean
+        '401':
+          description: Unauthorized
+
+  /api/blockchain/balance:
+    get:
+      summary: Get user's blockchain balance
+      description: Retrieves the balance of the authenticated user's wallet
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Balance information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    description: Balance in KAS
+        '401':
+          description: Unauthorized
+
+  /api/lobbies:
+    get:
+      summary: Get list of available lobbies
+      description: Returns a list of open lobbies
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of lobbies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lobbies:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        players:
+                          type: integer
+                        maxPlayers:
+                          type: integer
+                        stake:
+                          type: number
+
+  /api/lobby/create:
+    post:
+      summary: Create a new lobby
+      description: Creates a new game lobby
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                maxPlayers:
+                  type: integer
+                  minimum: 4
+                  maximum: 10
+                stake:
+                  type: number
+                  minimum: 1
+              required:
+                - maxPlayers
+                - stake
+      responses:
+        '201':
+          description: Lobby created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lobbyId:
+                    type: string
+                  status:
+                    type: string
+        '400':
+          description: Validation error
+
+  /api/lobby/join:
+    post:
+      summary: Join a lobby
+      description: Allows user to join an existing lobby
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lobbyId:
+                  type: string
+              required:
+                - lobbyId
+      responses:
+        '200':
+          description: Joined successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  players:
+                    type: array
+                    items:
+                      type: object
+        '400':
+          description: Cannot join
+
+  /api/round/start:
+    post:
+      summary: Start a round
+      description: Starts a new round in the lobby
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lobbyId:
+                  type: string
+              required:
+                - lobbyId
+      responses:
+        '200':
+          description: Round started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roundId:
+                    type: string
+                  commitHash:
+                    type: string
+
+  /api/claim:
+    post:
+      summary: Submit a claim
+      description: Player submits a claim for the current multiplier
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lobbyId:
+                  type: string
+                signature:
+                  type: string
+              required:
+                - lobbyId
+                - signature
+      responses:
+        '200':
+          description: Claim submitted
+        '400':
+          description: Invalid claim
+
+  /api/round/finalize:
+    post:
+      summary: Finalize round
+      description: Finalizes the round and computes payouts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lobbyId:
+                  type: string
+              required:
+                - lobbyId
+      responses:
+        '200':
+          description: Round finalized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payouts:
+                    type: array
+                    items:
+                      type: object
+
+  /api/replay/{roundId}:
+    get:
+      summary: Get replay data
+      description: Retrieves replay data for a specific round
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Replay data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commit:
+                    type: string
+                  reveal:
+                    type: string
+                  claims:
+                    type: array
+                  payouts:
+                    type: array
+        '404':
+          description: Round not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

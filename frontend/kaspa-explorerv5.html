@@ -5,36 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kaspa Explorer | BlockDAG Explorer & Analytics</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓</text></svg>">
-    <link rel="stylesheet" href="assets/css/kaspa-explorer-v3.css">
-        <link rel="stylesheet" href="assets/css/explorer-compact-v3.css">
+    <link rel="stylesheet" href="assets/css/kaspa-explorer-v4.css">
+    <link rel="stylesheet" href="assets/css/explorer-compact-v3.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* Force 2-column layout with inline styles - highest priority */
-        .stats-grid {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 1rem !important;
-        }
-        .stat-info-2 {
-            display: flex;
-            gap: 1.5em;
-            align-items: center;
-        }
-        /* Position header SVG absolutely so it doesn't expand nav width */
-        .hero-title {
-            position: relative;
-        }
-        .hero-title svg {
-            position: flex !important;
-            top: 50% !important;
-            transform: translateY(0%) !important;
-            right: -5rem !important;
-            width: 5em !important;
-            height: 5rem !important;
-            margin: 0 !important;
-            pointer-events: none;
+        /* Layout helpers */
+        .stats-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 1rem !important; }
+        .stat-info-2 { display: flex; gap: 1.5em; align-items: center; }
+
+        /* Hero/header SVG positioning */
+        .hero-title { position: relative; }
+        .hero-title svg { position: relative; top: 0; right: 0; width: 5em; height: 5rem; margin: 0; pointer-events: none; }
+
+        /* Landing Page Styles */
+        .landing-container { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; }
+        .landing-hero { text-align: center; max-width: 800px; width: 100%; }
+        .landing-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+        /* Enhanced subtitle design */
+        .landing-subtitle {
+            font-size: 1.125rem;
+            color: rgba(255,255,255,0.92);
+            margin-bottom: 2rem;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+            letter-spacing: 0.01em;
+            opacity: 0.95;
+            text-shadow: 0 6px 18px rgba(2,6,23,0.45);
+            background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
+        .landing-search { margin-bottom: 2rem; }
+        .explore-link { display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 2.5rem; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; text-decoration: none; border-radius: 0.75rem; font-size: 1.1rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3); }
+        .explore-link:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5); }
+
+        /* Header hero button and icons - visible by default */
+        .hero-title, .header-actions { color: #ffffff !important; }
+        .hero-title .search-btn, .header-actions .search-btn, #header-search-btn {
+            background: transparent !important;
+            border: none !important;
+            color: #ffffff !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding: 0.25rem 0.5rem !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            opacity: 1 !important;
+        }
+        .hero-title .search-btn span, .header-actions .search-btn span, #header-search-btn span { color: #ffffff !important; display: inline-block !important; line-height: 1 !important; }
+        .hero-title .search-icon, .hero-title .fa-arrow-right, .header-actions .search-icon, .header-actions .fa-arrow-right { color: #ffffff !important; }
     </style>
 </head>
 <body>
@@ -42,7 +68,7 @@
     
         <div class="container nav-container-etherscan">
             <div class="nav-logo">
-                <span>klassik.scan</span>
+                <span>klassik.explore</span>
                 <span class="beta">BETA</span>
             </div>
             
@@ -59,44 +85,29 @@
         </div>
     
 
-</head>
-
-
-
-
-
-  
     <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    
-                    home
                     <h1 class="hero-title fade-in-up" style="font-size: 0.8rem; margin-bottom: 0rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0; font-family: 'Space Grotesk', sans-serif;">
-                    <span></span>
-                    <svg style="width: 3rem; height: 3rem; margin-left: 1rem;" viewBox="0 0 197.1 196.9" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="98.6" cy="97.8" r="40.8"/>
-                    <path fill="#FFFFFF" d="M149.4,76.3c-2.8-6.8-7.2-13-12.3-18.1s-11.6-8.9-18.4-11.7c-6.5-2.7-13.8-4.1-21.3-4.1s-15.2,0.3-21.7,3c-6.8,2.8-12.4,8.1-17.5,13.2s-11,10.5-13.8,17.3c-2.7,6.5-1.8,14.5-1.8,22s0.5,14.8,3.3,21.4c2.8,6.8,8.5,11.5,13.6,16.6c5.1,5.1,9.7,11.2,16.5,14c6.5,2.7,14,4.6,21.5,4.6s14.9-2.2,21.4-4.9c6.8-2.8,12.9-7.2,18-12.3c5.1-5.1,9.2-11.3,12-18.1c2.7-6.5,5.8-13.8,5.8-21.3S152.1,82.9,149.4,76.3L149.4,76.3z M113.2,129.8l-11.9-1.8l3.4-23l-24.9,19.2l-7.3-9.6l21.8-16.8L72.5,81.1l7.3-9.6l24.9,19.2l-3.4-23l11.9-1.8l4.7,32L113.2,129.8L113.2,129.8z"/>
-                    </svg>
-            </h1>
-                    
+                        <a href="index.html">
+                            <svg style="width: 3rem; height: 3rem; margin-left: 1rem;" viewBox="0 0 197.1 196.9" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="98.6" cy="97.8" r="40.8"/>
+                                <path fill="#FFFFFF" d="M149.4,76.3c-2.8-6.8-7.2-13-12.3-18.1s-11.6-8.9-18.4-11.7c-6.5-2.7-13.8-4.1-21.3-4.1s-15.2,0.3-21.7,3c-6.8,2.8-12.4,8.1-17.5,13.2s-11,10.5-13.8,17.3c-2.7,6.5-1.8,14.5-1.8,22s0.5,14.8,3.3,21.4c2.8,6.8,8.5,11.5,13.6,16.6c5.1,5.1,9.7,11.2,16.5,14c6.5,2.7,14,4.6,21.5,4.6s14.9-2.2,21.4-4.9c6.8-2.8,12.9-7.2,18-12.3c5.1-5.1,9.2-11.3,12-18.1c2.7-6.5,5.8-13.8,5.8-21.3S152.1,82.9,149.4,76.3L149.4,76.3z M113.2,129.8l-11.9-1.8l3.4-23l-24.9,19.2l-7.3-9.6l21.8-16.8L72.5,81.1l7.3-9.6l24.9,19.2l-3.4-23l11.9-1.8l4.7,32L113.2,129.8L113.2,129.8z"/>
+                            </svg>
+                        </a>
+                    </h1>
                 </div>
-                <nav class="nav">
-                    <button class="nav-item active" data-view="home">
-                        <i class="fas fa-home"></i>
-                        <span>Home</span>
-                    </button>
 
-                    <button class="nav-item" data-view="analytics">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Analytics</span>
+                <div class="header-actions">
+                    <button class="search-btn" id="header-search-btn">
+                        <i class="fas fa-chart-line search-icon"></i>
+                        <span>Get Highspeed</span>
+                        <i class="fas fa-arrow-right"></i>
                     </button>
-                    <button class="nav-item" data-view="live">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Live Stats</span>
-                    </button>
-                </nav>
+                </div>
+
                 <div class="price-status" id="header-price">
                     <div class="price-main">
                         <i class="fas fa-coins"></i>
@@ -104,54 +115,31 @@
                     </div>
                     <span class="price-change" id="header-price-change">0.00%</span>
                 </div>
-
             </div>
         </div>
     </header>
-</nav>
-    <!-- Main Content -->
+
+    
+    <!-- Main Content (aus v4 übernommen) -->
     <main class="main">
-        <!-- Home View -->
-        <div class="view active" id="home-view">
-            <!-- Hero Section with Search -->
-            <section class="hero">
-                <div class="container">
-                    <div class="hero-content">
-                        <h1 class="hero-title">Kaspa BlockDAG Explorer</h1>
-                        <p class="hero-subtitle">Real-time network data & transaction explorer</p>
-                        
-                        <!-- Search Bar -->
-                        <div class="search-container">
-                            <div class="search-wrapper">
-                                <i class="fas fa-search search-icon"></i>
-                                <input 
-                                    type="text" 
-                                    class="search-input" 
-                                    placeholder="Search by Address / Tx Hash / Block Hash"
-                                    id="main-search"
-                                    autocomplete="off"
-                                >
-                                <button class="search-btn" id="search-btn">
-                                    <span>Search</span>
-                                    <i class="fas fa-arrow-right"></i>
-                                </button>
-                            </div>
-                            <div class="search-suggestions" id="search-suggestions"></div>
-                        </div>
-
-                        <!-- Explore Stats Button -->
-                        <div style="text-align: center; margin-top: 2rem;">
-                            <button class="explore-stats-btn" id="explore-stats-btn">
-                                <i class="fas fa-chart-line"></i>
-                                <span>Explore Stats</span>
-                                <i class="fas fa-arrow-down"></i>
-                            </button>
-                        </div>
-                    </div>
+            <!-- Search Bar -->
+        <div class="search-container landing-search">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search by Address / Tx Hash / Block Hash" id="main-search" autocomplete="off">
+                    <button class="search-btn" id="search-btn">
+                        <span>Search</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
-            </section>
 
-            <!-- Stats Section (Hidden by default) -->
+                <!-- Search results (SPA) -->
+                <div id="search-results" class="search-results" aria-live="polite"></div>
+        </div>
+
+
+
+            <!-- Stats Section (always visible) -->
             <section class="stats-section" id="stats-section">
                 <div class="container">
                     <div class="hero-content">
@@ -401,7 +389,6 @@
                     </div>
                 </div>
             </section>
-        </div>
 
         <!-- BlockDAG View -->
         <div class="view" id="blockdag-view">
@@ -643,32 +630,19 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h4>KaspaScan</h4>
+                    <h4>klassik.kaspa</h4>
                     <p>Professional BlockDAG Explorer</p>
-                </div>
-                <div class="footer-section">
-                    <h4>API</h4>
-                    <a href="#">Documentation</a>
-                    <a href="#">Status</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Resources</h4>
-                    <a href="#">GitHub</a>
-                    <a href="#">Discord</a>
                 </div>
                 <div class="footer-section">
                     <h4>Network</h4>
                     <p id="footer-status">Active</p>
-                    <p id="footer-version">v1.0.0</p>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Scripts übernommen aus v4 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
     <script src="assets/js/kaspa-explorer.js"></script>
 </body>
 </html>
-
