@@ -1,0 +1,356 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Klassik Backend Visualizer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .box { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; }
+    button { padding: 6px 10px; }
+    table { width:100%; border-collapse: collapse; }
+    td, th { border:1px solid #eee; padding:6px; }
+  </style>
+</head>
+<body>
+  <h2>Klassik Backend Visualizer</h2>
+  <div class="box">
+    <label>Klassik Box URL: <input id="backend" value="http://localhost:4100" style="width:320px"/></label><br/>
+    <label>Main API URL: <input id="apiUrl" value="http://localhost:3000" style="width:320px"/></label>
+    <button id="refresh">Refresh</button>
+  </div>
+
+  <div class="box">
+    <h3>Online Users</h3>
+    <pre id="online">-</pre>
+  </div>
+
+  <div class="box">
+    <h3>Preregistrations (admin)</h3>
+    <pre id="prereg">-</pre>
+  </div>
+
+  <div class="box">
+    <h3>Complete Registration</h3>
+    <p>Send 1 KAS to the target address from your Kaspa wallet, then pick the prereg tx and sign to complete.</p>
+    <label>Prereg TX: <input id="preregTx" style="width:420px"/></label><br/><br/>
+    <label>Username: <input id="username"/></label><br/><br/>
+    <button id="complete">Complete (MetaMask sign)</button>
+    <div>Reference: <span id="qrRef">-</span></div>
+    <img id="qrCode" style="margin-top:8px; display:block" />
+    <p id="result"></p>
+  </div>
+
+  <div class="box">
+    <h3>Wallet Auth (MetaMask)</h3>
+    <p>Login or register using wallet signature via the main API.</p>
+    <button id="connect">Connect Wallet</button>
+    <div id="walletInfo">Not connected</div>
+    <button id="checkReg">Check Registered</button>
+    <button id="getNonce">Get Nonce</button>
+    <input id="regUsername" placeholder="username" />
+    <button id="registerBtn">Register (sign & send)</button>
+    <button id="loginBtn">Login (sign & send)</button>
+    <pre id="authResult">-</pre>
+  </div>
+
+  <div class="box">
+    <h3>Kaspa Live Metrics</h3>
+    <div id="metrics" style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px;border:1px solid #eee;padding:8px"><strong>Price (USD)</strong><div id="m_price">-</div></div>
+      <div style="flex:1;min-width:180px;border:1px solid #eee;padding:8px"><strong>24h Δ</strong><div id="m_change">-</div></div>
+      <div style="flex:1;min-width:180px;border:1px solid #eee;padding:8px"><strong>Market Cap</strong><div id="m_mcap">-</div></div>
+      <div style="flex:1;min-width:180px;border:1px solid #eee;padding:8px"><strong>24h TX</strong><div id="m_txs24">-</div></div>
+      <div style="flex:1;min-width:180px;border:1px solid #eee;padding:8px"><strong>TPS</strong><div id="m_tps">-</div></div>
+      <div style="flex:1;min-width:180px;border:1px solid #eee;padding:8px"><strong>Block Info</strong><div id="m_block">-</div></div>
+    </div>
+    <pre id="kaspaStats" style="display:none">loading...</pre>
+  </div>
+
+  <div class="box">
+    <h3>Lobby & Commands</h3>
+    <label>Lobby ID: <input id="lobbyId" /></label>
+    <button id="joinLobby">Join Lobby</button>
+    <button id="leaveLobby">Leave Lobby</button>
+    <div style="margin-top:8px">Members:
+      <pre id="lobbyMembers">-</pre>
+    </div>
+    <div style="margin-top:8px">Send Command:
+      <input id="cmdInput" style="width:60%" placeholder='{"action":"ping"}' />
+      <button id="sendCmd">Send</button>
+      <pre id="cmdResult">-</pre>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>API Reference (Kompakt)</h3>
+    <div style="font-size:13px;line-height:1.4">
+      <strong>Klassik Box endpoints (default port 4100)</strong>
+      <ul>
+        <li><code>/health</code> — GET health check</li>
+        <li><code>/state</code> — GET aggregated state + online list</li>
+        <li><code>/kaspa/stats</code> — GET price + chain stats</li>
+        <li><code>/prereg</code> — GET prereg list (admin token header <code>x-admin-token</code>)</li>
+        <li><code>/register-complete</code> — POST complete registration (body: <code>{ethereumAddress,signature,username,preregTx}</code>)</li>
+      </ul>
+      <strong>Main API (existing backend)</strong>
+      <ul>
+        <li><code>/api/auth/nonce?address=...</code> — GET nonce to sign</li>
+        <li><code>/api/auth/register</code> — POST register (body: address, signature, username, optionally kaspaAddress)</li>
+        <li><code>/api/auth/login</code> — POST login (body: address, signature)</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    async function fetchJSON(url, opts) {
+      const r = await fetch(url, opts);
+      return r.json();
+    }
+
+    document.getElementById('refresh').addEventListener('click', async () => {
+      const base = document.getElementById('backend').value.replace(/\/$/, '');
+      try {
+        const s = await fetchJSON(base + '/state');
+        document.getElementById('online').textContent = JSON.stringify(s.online || [], null, 2);
+      } catch (e) { document.getElementById('online').textContent = 'error'; }
+
+      try {
+        const adminToken = prompt('Enter admin token for prereg view (or cancel)');
+        if (adminToken) {
+          const p = await fetchJSON(base + '/prereg', { headers: { 'x-admin-token': adminToken } });
+          document.getElementById('prereg').textContent = JSON.stringify(p.rows || [], null, 2);
+        }
+      } catch (e) { document.getElementById('prereg').textContent = 'error'; }
+    });
+
+    // wallet/auth handlers
+    let currentAccount = null;
+    document.getElementById('connect').addEventListener('click', async () => {
+      if (!window.ethereum) return alert('MetaMask required');
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      currentAccount = accounts[0];
+      document.getElementById('walletInfo').textContent = currentAccount;
+    });
+
+    document.getElementById('checkReg').addEventListener('click', async () => {
+      const api = document.getElementById('apiUrl').value.replace(/\/$/, '');
+      if (!currentAccount) return alert('Connect wallet first');
+      const r = await fetchJSON(api + '/api/auth/check?address=' + encodeURIComponent(currentAccount));
+      document.getElementById('authResult').textContent = JSON.stringify(r, null, 2);
+    });
+
+    document.getElementById('getNonce').addEventListener('click', async () => {
+      const api = document.getElementById('apiUrl').value.replace(/\/$/, '');
+      if (!currentAccount) return alert('Connect wallet first');
+      const r = await fetchJSON(api + '/api/auth/nonce?address=' + encodeURIComponent(currentAccount));
+      document.getElementById('authResult').textContent = JSON.stringify(r, null, 2);
+      window.latestNonceMessage = r.message; // save to sign
+    });
+
+    // Gatekeeper: check-registration on Klassik box
+    document.getElementById('checkReg').addEventListener('click', async () => {
+      const base = document.getElementById('backend').value.replace(/\/$/, '');
+      if (!currentAccount) return alert('Connect wallet first');
+      try {
+        const r = await fetchJSON(base + '/check-registration?ethAddress=' + encodeURIComponent(currentAccount));
+        document.getElementById('authResult').textContent = JSON.stringify(r, null, 2);
+        if (!r.registered) {
+          // show QR + reference
+          const uri = `kaspa:${r.kaspaTarget}?amount=${r.amount}&message=${encodeURIComponent(r.reference)}`;
+          let qr = document.getElementById('qrCode');
+          if (!qr) {
+            const img = document.createElement('img'); img.id = 'qrCode'; img.style.marginTop = '8px';
+            document.querySelector('.box').appendChild(img);
+            qr = img;
+          }
+          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(uri)}`;
+          document.getElementById('qrRef').textContent = r.reference;
+          window.klassik_ref = r.reference;
+        } else {
+          alert('Already registered');
+        }
+      } catch (e) { alert('check failed'); }
+    });
+
+    // Connect to stats namespace for real-time stats & payments
+    let statsSocket = null;
+    function connectStatsSocket() {
+      const base = document.getElementById('backend').value.replace(/\/$/, '');
+      try {
+        if (statsSocket) statsSocket.disconnect();
+        statsSocket = io(base + '/stats');
+        statsSocket.on('connect', () => console.log('stats socket connected'));
+        statsSocket.on('stats', (s) => {
+          // update compact metrics
+          if (s && s.price) {
+            document.getElementById('m_price').textContent = s.price.usd || '-';
+            document.getElementById('m_change').textContent = (s.price.change24h || 0).toFixed(2) + '%';
+            document.getElementById('m_mcap').textContent = s.price.marketCap || '-';
+          }
+          document.getElementById('m_txs24').textContent = s.txs24h || '-';
+          document.getElementById('m_tps').textContent = s.tps ? s.tps.toFixed(3) : '-';
+          document.getElementById('m_block').textContent = s.blockchain && (s.blockchain.blockCount || s.blockchain.blockCount) || '-';
+        });
+        statsSocket.on('payment:received', async (p) => {
+          console.log('payment received', p);
+          // if matches current reference, auto prompt login
+          if (window.klassik_ref && p.reference === window.klassik_ref) {
+            alert('Payment received for your reference — please sign to complete login');
+            // EIP-712 sign and call /login on klassik box
+            try {
+              const domain = { name: 'Klassik', version: '1' };
+              const types = { Login: [ { name: 'ethAddress', type: 'address' }, { name: 'reference', type: 'string' } ] };
+              const data = { ethAddress: currentAccount, reference: window.klassik_ref };
+              const msgParams = JSON.stringify({ domain, types, primaryType: 'Login', message: data });
+              const signature = await window.ethereum.request({ method: 'eth_signTypedData_v4', params: [currentAccount, msgParams] });
+              const base = document.getElementById('backend').value.replace(/\/$/, '');
+              const resp = await fetchJSON(base + '/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ethAddress: currentAccount, reference: window.klassik_ref, signature }) });
+              if (resp.token) { localStorage.setItem('klassik_jwt', resp.token); alert('Login successful'); }
+              document.getElementById('authResult').textContent = JSON.stringify(resp, null, 2);
+            } catch (e) { console.error(e); alert('Auto-login failed'); }
+          }
+        });
+      } catch (e) { console.error('stats socket error', e); }
+    }
+    connectStatsSocket();
+
+    document.getElementById('registerBtn').addEventListener('click', async () => {
+      const api = document.getElementById('apiUrl').value.replace(/\/$/, '');
+      const username = document.getElementById('regUsername').value.trim();
+      if (!currentAccount) return alert('Connect wallet first');
+      if (!username) return alert('Choose username');
+      if (!window.latestNonceMessage) return alert('Get nonce first');
+      const signature = await window.ethereum.request({ method: 'personal_sign', params: [window.latestNonceMessage, currentAccount] });
+      const body = { address: currentAccount, signature, username };
+      const res = await fetchJSON(api + '/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      document.getElementById('authResult').textContent = JSON.stringify(res, null, 2);
+    });
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const api = document.getElementById('apiUrl').value.replace(/\/$/, '');
+      if (!currentAccount) return alert('Connect wallet first');
+      if (!window.latestNonceMessage) return alert('Get nonce first');
+      const signature = await window.ethereum.request({ method: 'personal_sign', params: [window.latestNonceMessage, currentAccount] });
+      const body = { address: currentAccount, signature };
+      const res = await fetchJSON(api + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      document.getElementById('authResult').textContent = JSON.stringify(res, null, 2);
+    });
+
+    // Socket.IO realtime connection to Klassik Box
+    let socket = null;
+    function connectSocket() {
+      const base = document.getElementById('backend').value.replace(/\/$/, '');
+      try {
+        if (socket) socket.disconnect();
+        socket = io(base);
+        socket.on('connect', () => console.log('socket connected'));
+        socket.on('prereg:new', (d) => {
+          const cur = document.getElementById('prereg').textContent || '';
+          document.getElementById('prereg').textContent = JSON.stringify([d].concat(JSON.parse(cur||'[]')).slice(0,50), null, 2);
+        });
+        socket.on('prereg:confirmed', (d) => {
+          const msg = 'Confirmed: ' + (d.tx || JSON.stringify(d));
+          const cur = document.getElementById('prereg').textContent || '';
+          document.getElementById('prereg').textContent = msg + '\n' + cur;
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    document.getElementById('backend').addEventListener('change', connectSocket);
+    connectSocket();
+
+    // Kaspa stats polling + UI update
+    async function refreshKaspa() {
+      try {
+        const base = document.getElementById('backend').value.replace(/\/$/, '');
+        const s = await fetchJSON(base + '/kaspa/stats');
+        if (s && s.price) {
+          document.getElementById('m_price').textContent = s.price.usd || '-';
+          document.getElementById('m_change').textContent = (s.price.change24h || 0).toFixed(2) + '%';
+          document.getElementById('m_mcap').textContent = s.price.marketCap || '-';
+        }
+        document.getElementById('m_txs24').textContent = s.txs24h || '-';
+        document.getElementById('m_tps').textContent = s.tps ? s.tps.toFixed(3) : '-';
+        document.getElementById('m_block').textContent = s.blockchain && (s.blockchain.blockCount || s.blockchain.blockCount) || '-';
+      } catch (e) { console.error(e); }
+    }
+
+    setInterval(refreshKaspa, 15000);
+    refreshKaspa();
+
+    // Lobby and command UI
+    document.getElementById('joinLobby').addEventListener('click', async () => {
+      if (!socket) return alert('No socket');
+      const id = document.getElementById('lobbyId').value.trim();
+      if (!id) return alert('lobby id required');
+      socket.emit('joinLobby', id);
+      setTimeout(async () => {
+        // try to fetch members via Klassik box API
+        const base = document.getElementById('backend').value.replace(/\/$/, '');
+        try {
+          const p = await fetchJSON(base + '/lobbies/' + encodeURIComponent(id));
+          document.getElementById('lobbyMembers').textContent = JSON.stringify(p.members || [], null, 2);
+        } catch (e) { document.getElementById('lobbyMembers').textContent = 'error'; }
+      }, 500);
+    });
+
+    document.getElementById('leaveLobby').addEventListener('click', async () => {
+      if (!socket) return alert('No socket');
+      const id = document.getElementById('lobbyId').value.trim();
+      socket.emit('leaveLobby', id);
+      document.getElementById('lobbyMembers').textContent = '-';
+    });
+
+    document.getElementById('sendCmd').addEventListener('click', async () => {
+      const cmd = document.getElementById('cmdInput').value.trim();
+      if (!cmd) return alert('cmd required');
+      let payload;
+      try { payload = JSON.parse(cmd); } catch (e) { return alert('invalid json'); }
+      // send via websocket
+      if (socket) socket.emit('klassik:command', payload);
+      // also POST to REST (requires auth)
+      const api = document.getElementById('apiUrl').value.replace(/\/$/, '');
+      const token = localStorage.getItem('klassik_jwt');
+      try {
+        const r = await fetchJSON(api + '/api/klassik/command', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token ? 'Bearer '+token : '' }, body: JSON.stringify(payload) });
+        document.getElementById('cmdResult').textContent = JSON.stringify(r);
+      } catch (e) { document.getElementById('cmdResult').textContent = 'error'; }
+    });
+
+    // store token on login/register success
+    const authResultEl = document.getElementById('authResult');
+    const origAuthSet = authResultEl.textContent;
+    const originalSet = (obj) => { authResultEl.textContent = JSON.stringify(obj, null, 2); if (obj && obj.token) localStorage.setItem('klassik_jwt', obj.token); };
+    // wrap fetchJSON to capture auth responses
+    const oldFetchJSON = fetchJSON;
+    fetchJSON = async (url, opts) => {
+      const res = await oldFetchJSON(url, opts);
+      // try to detect auth response objects with token
+      if (res && res.token) localStorage.setItem('klassik_jwt', res.token);
+      return res;
+    };
+
+    document.getElementById('complete').addEventListener('click', async () => {
+      const base = document.getElementById('backend').value.replace(/\/$/, '');
+      const preregTx = document.getElementById('preregTx').value.trim();
+      const username = document.getElementById('username').value.trim();
+      if (!window.ethereum) return alert('MetaMask required to sign');
+      if (!preregTx || !username) return alert('preregTx and username required');
+
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const addr = accounts[0];
+      const message = `Complete registration for prereg: ${preregTx}`;
+      const signature = await window.ethereum.request({ method: 'personal_sign', params: [message, addr] });
+
+      const res = await fetchJSON(base + '/register-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ethereumAddress: addr, signature, username, preregTx })
+      });
+
+      document.getElementById('result').textContent = JSON.stringify(res);
+    });
+  </script>
+</body>
+</html>

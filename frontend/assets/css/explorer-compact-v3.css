@@ -582,6 +582,10 @@ section {
 }
 
 @media (max-width: 640px) {
+    .nav-container-etherscan {
+        padding: 8px 10px;
+    }
+    
     .nav-links-compact {
         gap: 15px;
     }

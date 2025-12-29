@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         // Full explorer: load everything
         initializeNavigation();
+        switchView('home'); // Show home view by default
         initializeSearch();
         initializeWebSocket();
         initializeRefreshTimer();
@@ -94,6 +95,15 @@ function initializeNavigation() {
             item.classList.add('active');
         });
     });
+
+    // Handle view selector for v5.01
+    const viewSelector = document.getElementById('view-selector');
+    if (viewSelector) {
+        viewSelector.addEventListener('change', () => {
+            const view = viewSelector.value;
+            switchView(view);
+        });
+    }
 }
 
 function switchView(viewName) {
