@@ -546,6 +546,11 @@ async function fetchLatestTransactions() {
 
 async function fetchTransactionStats() {
     try {
+        // Initialize transaction counters for 24h period
+        let coinbaseTotal = 0;
+        let regularTotal = 0;
+        const currentHour = new Date().getHours();
+        
         // For now, set some reasonable defaults
         // These can be enhanced later with real backend endpoints
         state.network.coinbase24h = 8640; // ~1 block per 10 seconds
@@ -557,50 +562,11 @@ async function fetchTransactionStats() {
             regularTxs24h: state.network.regularTxs24h,
             dailyTransactions: state.network.dailyTransactions
         });
-    } catch (error) {
-        console.error('Failed to fetch transaction stats:', error);
-        // Keep fallback values
-        
-        // Process yesterday's data (from current hour to end of day)
-        if (yesterdayRes.ok) {
-            const yesterdayData = await yesterdayRes.json();
-            console.log('Yesterday data:', yesterdayData);
-            if (Array.isArray(yesterdayData)) {
-                for (let i = currentHour; i < 24; i++) {
-                    if (yesterdayData[i]) {
-                        coinbaseTotal += yesterdayData[i].coinbase || 0;
-                        regularTotal += yesterdayData[i].regular || 0;
-                    }
-                }
-            }
-        }
-        
-        // Process today's data (from midnight to current hour)
-        if (todayRes.ok) {
-            const todayData = await todayRes.json();
-            console.log('Today data:', todayData);
-            if (Array.isArray(todayData)) {
-                for (let i = 0; i <= currentHour; i++) {
-                    if (todayData[i]) {
-                        coinbaseTotal += todayData[i].coinbase || 0;
-                        regularTotal += todayData[i].regular || 0;
-                    }
-                }
-            }
-        }
-        
-        console.log('Transaction totals - coinbase:', coinbaseTotal, 'regular:', regularTotal);
-        
-        state.network.coinbase24h = coinbaseTotal;
-        state.network.regularTxs24h = regularTotal;
-        state.network.dailyTransactions = coinbaseTotal + regularTotal;
-        
-        console.log('Final dailyTransactions:', state.network.dailyTransactions);
         
         state.transactions = [];
         state.network.mempoolSize = 0;
     } catch (error) {
-        console.error('Failed to fetch transactions:', error);
+        console.error('Failed to fetch transaction stats:', error);
         state.transactions = [];
         state.network.mempoolSize = 0;
         state.network.dailyTransactions = 0;
