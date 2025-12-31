@@ -10,6 +10,7 @@ const eventsRoutes = require('./routes/events');
 const bookingsRoutes = require('./routes/bookings');
 const usersRoutes = require('./routes/users');
 const kaspaRoutes = require('./routes/kaspa');
+const kaspaEnhancedRoutes = require('./routes/kaspa-enhanced');
 const searchRoutes = require('./routes/search');
 const { router: communityRoutes, communityManager } = require('./controllers/community');
 const ordersController = require('./controllers/orders');
@@ -68,8 +69,11 @@ app.get('/health', (req, res) => res.json({
 // Auth routes (public with rate limiting)
 app.use('/api/auth', rateLimit(60000, 20), authRoutes);
 
-// Kaspa blockchain routes (public)
+// Kaspa blockchain routes (public) - Original routes
 app.use('/api/kaspa', kaspaRoutes);
+
+// Enhanced Kaspa API proxy routes (public) - New enhanced routes with CORS fixes
+app.use('/api/kaspa-enhanced', kaspaEnhancedRoutes);
 
 // Search routes (public)
 app.use('/api/search', searchRoutes);
