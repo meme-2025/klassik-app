@@ -476,11 +476,238 @@
 
     <script src="assets/js/admin-dashboard.js"></script>
     <script>
-        // Initialize dashboard
+        // Admin Wallet für Authentifizierung
+        const ADMIN_WALLET = '0x2a04B64d4641CdA7271289D2da6BbF27de02D823';
+        
+        // Initialize dashboard with wallet authentication
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🎮 Klassik Admin Dashboard Loading...');
-            initializeDashboard();
+            console.log('🔐 Admin Wallet:', ADMIN_WALLET);
+            initializeDashboardWithAuth();
         });
+
+        // Dashboard Initialisierung mit Auth
+        async function initializeDashboardWithAuth() {
+            try {
+                // Admin Health Check
+                const response = await fetch('/api/admin/health', {
+                    headers: {
+                        'X-Admin-Wallet': ADMIN_WALLET
+                    }
+                });
+
+                if (response.ok) {
+                    const healthData = await response.json();
+                    console.log('✅ Admin Authentication successful:', healthData);
+                    
+                    // Lade alle Dashboard-Daten
+                    await loadAllDashboardData();
+                    
+                    // Starte Live-Updates
+                    startLiveUpdates();
+                    
+                    // Zeige Success-Nachricht
+                    showAlert('Admin Dashboard authenticated successfully!', 'success');
+                } else {
+                    throw new Error('Admin authentication failed');
+                }
+            } catch (error) {
+                console.error('❌ Dashboard initialization failed:', error);
+                showAlert('Admin authentication failed. Check wallet address.', 'error');
+            }
+        }
+
+        // Lade alle Dashboard-Daten
+        async function loadAllDashboardData() {
+            try {
+                // System Stats laden
+                const statsResponse = await fetch('/api/admin/stats', {
+                    headers: { 'X-Admin-Wallet': ADMIN_WALLET }
+                });
+                
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    updateDashboardStats(stats);
+                }
+
+                // Live Metrics laden
+                const metricsResponse = await fetch('/api/admin/metrics/live', {
+                    headers: { 'X-Admin-Wallet': ADMIN_WALLET }
+                });
+                
+                if (metricsResponse.ok) {
+                    const metrics = await metricsResponse.json();
+                    updateLiveMetrics(metrics);
+                }
+
+                // System Logs laden
+                const logsResponse = await fetch('/api/admin/logs', {
+                    headers: { 'X-Admin-Wallet': ADMIN_WALLET }
+                });
+                
+                if (logsResponse.ok) {
+                    const logs = await logsResponse.json();
+                    updateSystemLogs(logs);
+                }
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Update Dashboard mit Server-Daten
+        function updateDashboardStats(stats) {
+            // Server Status Updates
+            document.getElementById('server-uptime').textContent = formatUptime(stats.system.backend_status);
+            document.getElementById('server-memory').textContent = stats.system.memory_usage;
+            document.getElementById('server-cpu').textContent = stats.system.cpu_usage;
+            
+            // Database Updates
+            document.getElementById('db-users').textContent = stats.users.total.toLocaleString();
+            
+            // Blockchain Updates
+            const blockchainElement = document.getElementById('blockchain-status');
+            if (blockchainElement) {
+                blockchainElement.className = 'status-indicator ' + 
+                    (stats.blockchain.kaspa_node_status === 'online' ? 'status-online' : 'status-offline');
+            }
+
+            // Security Updates
+            document.getElementById('security-threats').textContent = stats.security.threats_blocked_24h;
+            document.getElementById('security-logins').textContent = stats.security.failed_logins;
+            
+            // Update Timestamp
+            document.getElementById('update-time').textContent = new Date().toLocaleTimeString('de-DE');
+        }
+
+        // Live Metrics Updates
+        function updateLiveMetrics(metrics) {
+            document.getElementById('server-connections').textContent = metrics.metrics.active_connections;
+            
+            // CPU/Memory Updates falls vorhanden
+            if (metrics.metrics.cpu_usage_percent) {
+                document.getElementById('server-cpu').textContent = metrics.metrics.cpu_usage_percent + '%';
+            }
+            if (metrics.metrics.memory_usage_percent) {
+                document.getElementById('server-memory').textContent = metrics.metrics.memory_usage_percent + '%';
+            }
+        }
+
+        // System Logs Update
+        function updateSystemLogs(logs) {
+            const logContainer = document.getElementById('system-logs');
+            if (logContainer && logs.logs) {
+                logContainer.innerHTML = '';
+                logs.logs.forEach(log => {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'log-entry';
+                    logEntry.innerHTML = `
+                        <span class="log-time">${new Date(log.time).toLocaleTimeString('de-DE')}</span>
+                        <span class="log-level log-${log.level.toLowerCase()}">${log.level}</span>
+                        <span class="log-service">[${log.service}]</span>
+                        <span class="log-message">${log.message}</span>
+                    `;
+                    logContainer.appendChild(logEntry);
+                });
+            }
+        }
+
+        // Live Updates starten
+        function startLiveUpdates() {
+            // Update alle 10 Sekunden
+            setInterval(async () => {
+                try {
+                    const response = await fetch('/api/admin/metrics/live', {
+                        headers: { 'X-Admin-Wallet': ADMIN_WALLET }
+                    });
+                    if (response.ok) {
+                        const metrics = await response.json();
+                        updateLiveMetrics(metrics);
+                        document.getElementById('update-time').textContent = new Date().toLocaleTimeString('de-DE');
+                    }
+                } catch (error) {
+                    console.error('Live update failed:', error);
+                }
+            }, 10000);
+        }
+
+        // Admin Actions
+        async function refreshAllData() {
+            showAlert('Refreshing all data...', 'warning');
+            await loadAllDashboardData();
+            showAlert('Data refreshed successfully!', 'success');
+        }
+
+        async function clearSystemCache() {
+            try {
+                const response = await fetch('/api/admin/cache/clear', {
+                    method: 'POST',
+                    headers: { 'X-Admin-Wallet': ADMIN_WALLET }
+                });
+                
+                if (response.ok) {
+                    showAlert('System cache cleared successfully!', 'success');
+                } else {
+                    throw new Error('Cache clear failed');
+                }
+            } catch (error) {
+                showAlert('Failed to clear cache', 'error');
+            }
+        }
+
+        async function restartServer() {
+            if (confirm('Are you sure you want to restart the server?')) {
+                try {
+                    const response = await fetch('/api/admin/restart', {
+                        method: 'POST',
+                        headers: { 'X-Admin-Wallet': ADMIN_WALLET }
+                    });
+                    
+                    if (response.ok) {
+                        showAlert('Server restart initiated. Page will reload in 30 seconds.', 'warning');
+                        setTimeout(() => window.location.reload(), 30000);
+                    }
+                } catch (error) {
+                    showAlert('Restart failed', 'error');
+                }
+            }
+        }
+
+        // Utility Functions
+        function formatUptime(status) {
+            return status === 'healthy' ? 'Online' : 'Issues';
+        }
+
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alerts-container');
+            if (alertsContainer) {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type}`;
+                alert.textContent = message;
+                alertsContainer.appendChild(alert);
+                
+                // Auto-remove nach 5 Sekunden
+                setTimeout(() => alert.remove(), 5000);
+            }
+        }
+
+        // Emergency functions
+        function emergencyStop() {
+            if (confirm('EMERGENCY STOP: This will stop all services. Confirm?')) {
+                showAlert('Emergency stop initiated!', 'error');
+            }
+        }
+
+        function viewServerLogs() {
+            loadAllDashboardData(); // Refresh logs
+        }
+        
+        // Initial Dashboard Call
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboardWithAuth);
+        } else {
+            initializeDashboardWithAuth();
+        }
     </script>
 </body>
 </html>

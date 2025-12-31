@@ -11,6 +11,7 @@ const bookingsRoutes = require('./routes/bookings');
 const usersRoutes = require('./routes/users');
 const kaspaRoutes = require('./routes/kaspa');
 const kaspaEnhancedRoutes = require('./routes/kaspa-enhanced');
+const adminRoutes = require('./routes/admin');
 const searchRoutes = require('./routes/search');
 const { router: communityRoutes, communityManager } = require('./controllers/community');
 const ordersController = require('./controllers/orders');
@@ -74,6 +75,9 @@ app.use('/api/kaspa', kaspaRoutes);
 
 // Enhanced Kaspa API proxy routes (public) - New enhanced routes with CORS fixes
 app.use('/api/kaspa-enhanced', kaspaEnhancedRoutes);
+
+// Admin dashboard routes (protected by wallet address)
+app.use('/api/admin', adminRoutes);
 
 // Search routes (public)
 app.use('/api/search', searchRoutes);
