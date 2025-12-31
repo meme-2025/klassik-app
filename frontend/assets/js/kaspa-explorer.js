@@ -42,7 +42,8 @@ const state = {
 // API Configuration - Updated for Backend Proxy
 // ============================================
 const API = {
-    // Use backend proxy for CORS-free access
+    // Use backend proxy for CORS-free access (localhost for file:// protocol compatibility)
+    BASE_URL: window.location.protocol === 'file:' ? 'http://localhost:3000' : '',
     KASPA_API: '/api/kaspa-enhanced',
     PRICE_API: '/api/kaspa-enhanced/price',
     WS_ENDPOINT: 'wss://api.kaspa.org/ws'
@@ -374,8 +375,8 @@ async function fetchNetworkInfo() {
     try {
         // Use the new backend proxy API for all data
         const [statsRes, priceRes] = await Promise.all([
-            fetch(`${API.KASPA_API}/stats`),
-            fetch(`${API.PRICE_API}`)
+            fetch(`${API.BASE_URL}${API.KASPA_API}/stats`),
+            fetch(`${API.BASE_URL}${API.PRICE_API}`)
         ]);
         
         const stats = await statsRes.json();
@@ -509,7 +510,7 @@ async function findBlueScoreForTimestamp(targetTimestamp) {
 
 async function fetchLatestBlocks() {
     try {
-        const response = await fetch(`${API.KASPA_API}/blocks/latest?limit=10`);
+        const response = await fetch(`${API.BASE_URL}${API.KASPA_API}/blocks/latest?limit=10`);
         if (response.ok) {
             const data = await response.json();
             state.blocks = data.blocks || [];
@@ -526,7 +527,7 @@ async function fetchLatestBlocks() {
 
 async function fetchLatestTransactions() {
     try {
-        const response = await fetch(`${API.KASPA_API}/transactions/latest?limit=10`);
+        const response = await fetch(`${API.BASE_URL}${API.KASPA_API}/transactions/latest?limit=10`);
         if (response.ok) {
             const data = await response.json();
             state.transactions = data.transactions || [];
@@ -1579,7 +1580,7 @@ function displayBlockInfo(data) {
 async function fetchLandingPagePrices() {
     try {
         // Use the new backend proxy API
-        const response = await fetch(`${API.PRICE_API}`);
+        const response = await fetch(`${API.BASE_URL}${API.PRICE_API}`);
         
         if (response.ok) {
             const priceData = await response.json();

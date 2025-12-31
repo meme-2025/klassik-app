@@ -61,9 +61,9 @@
         }
         .hero-title .search-btn span, .header-actions .search-btn span, #header-search-btn span { color: #ffffff !important; display: inline-block !important; line-height: 1 !important; }
         .hero-title .search-icon, .hero-title .fa-arrow-right, .header-actions .search-icon, .header-actions .fa-arrow-right { color: #ffffff !important; }
-        /* Minimal layout to place two stat bars left and right without design changes */
-        .compact-stats-wrapper { display: flex; gap: 1rem; align-items: flex-start; justify-content: space-between; }
-        .compact-stats-wrapper > .compact-stats-bar { flex: 0 0 49%; }
+        /* Single stats bar - full width */
+        .compact-stats-wrapper { display: flex; gap: 1rem; align-items: flex-start; justify-content: center; }
+        .compact-stats-wrapper > .compact-stats-bar { flex: 1; max-width: 1200px; }
         /* Arrange change left of value inside the meta wrapper */
         .stats-bar-label { display: block; margin-bottom: 0.25rem; }
         .stats-bar-meta { display: flex; align-items: center; gap: 0.5rem; }
@@ -161,92 +161,42 @@
 
         <!-- Compact Stats Bar -->
         <div class="compact-stats-wrapper">
-        <!-- LEFT STATS BAR -->
         <div class="compact-stats-bar">
             <div class="stats-bar-item">
                 <div class="stats-bar-label">KAS Price</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-change" id="price-change-24h">+0.00%</div>
-                    <div class="stats-bar-value" id="price-stat">$0.0000</div>
+                    <div class="stats-bar-change" id="price-change-24h">Loading...</div>
+                    <div class="stats-bar-value" id="price-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Market Cap</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="mcap-stat">$0M</div>
+                    <div class="stats-bar-value" id="mcap-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Transactions (24h)</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="total-txs-stat">0</div>
+                    <div class="stats-bar-value" id="total-txs-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Hashrate</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="hashrate-stat">0 PH/s</div>
+                    <div class="stats-bar-value" id="hashrate-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Difficulty</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="difficulty-stat">0</div>
+                    <div class="stats-bar-value" id="difficulty-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Block Reward</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="block-reward-stat">0 KAS</div>
-                </div>
-            </div>
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Latest Block</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="block-height-stat">0</div>
-                </div>
-<!-- RIGHT STATS BAR -->
-                <div class="compact-stats-bar">
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Total Supply</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="total-supply-stat">0 KAS</div>
-                </div>
-            </div>
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Mineable Remaining</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="mineable-remaining-stat">0 KAS</div>
-                </div>
-            </div>
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Avg Block Time</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="avg-blocktime-stat">1.00s</div>
-                </div>
-            </div>
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Miner Rewards (24h)</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="miner-rewards-stat">0 KAS</div>
-                </div>
-            </div>
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Regular TXs (24h)</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="daily-tx-stat">0</div>
-                </div>
-            </div>
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Total Blocks</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="total-blocks-stat">0</div>
-                </div>
-            </div>
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Daily Transactions</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="daily-transactions-stat">0</div>
+                    <div class="stats-bar-value" id="block-reward-stat">Loading...</div>
                 </div>
             </div>
         </div>
@@ -632,8 +582,8 @@
         </div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="assets/js/kaspa-explorer-v5.03.js"></script>
+    <!-- Scripts übernommen aus v4 -->
+    <script src="assets/js/kaspa-explorer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </body>
 </html>
