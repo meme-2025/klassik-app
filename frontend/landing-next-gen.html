@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klassik - Next-Generation Kaspa Mining & Payment Solution</title>
+    <meta name="description" content="Revolutionary Kaspa mining platform with 1-KAS registration, AI-powered UX, and ultra-fast payments. Join the future of blockchain technology.">
+    
+    <!-- Performance & SEO -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Chart.js for live stats -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        :root {
+            /* Futuristic Color Palette */
+            --primary-neon: #00ff88;
+            --secondary-neon: #ff0080;
+            --accent-blue: #0088ff;
+            --accent-purple: #8800ff;
+            --bg-dark: #0a0a0a;
+            --bg-darker: #050505;
+            --bg-card: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            
+            /* Gradients */
+            --gradient-main: linear-gradient(135deg, var(--primary-neon) 0%, var(--accent-blue) 50%, var(--secondary-neon) 100%);
+            --gradient-dark: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            --gradient-card: linear-gradient(135deg, rgba(17, 17, 17, 0.8) 0%, rgba(34, 34, 34, 0.6) 100%);
+            
+            /* Shadows & Effects */
+            --glow-primary: 0 0 30px rgba(0, 255, 136, 0.3);
+            --glow-secondary: 0 0 30px rgba(255, 0, 128, 0.3);
+            --glow-blue: 0 0 30px rgba(0, 136, 255, 0.3);
+            --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.5);
+            
+            /* Fonts */
+            --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background: var(--bg-darker);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--bg-darker);
+            overflow: hidden;
+        }
+
+        .bg-particle {
+            position: absolute;
+            background: var(--primary-neon);
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-100px) rotate(180deg); }
+        }
+
+        .bg-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid-move 20s linear infinite;
+        }
+
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 900;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            margin-left: auto;
+            margin-right: 2rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-neon);
+            text-shadow: var(--glow-primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-main);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .lang-switch {
+            background: transparent;
+            border: 1px solid var(--primary-neon);
+            color: var(--primary-neon);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-primary);
+        }
+
+        .lang-switch:hover {
+            background: var(--primary-neon);
+            color: var(--bg-dark);
+            box-shadow: var(--glow-primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            padding: 0 2rem;
+        }
+
+        .hero-content {
+            max-width: 1000px;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+            text-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--gradient-main);
+            color: var(--bg-dark);
+            box-shadow: var(--glow-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--glow-primary), 0 10px 25px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--accent-blue);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-blue);
+            box-shadow: var(--glow-blue);
+            transform: translateY(-3px);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 5rem 2rem;
+            background: var(--gradient-dark);
+        }
+
+        .stats-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: var(--gradient-card);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            box-shadow: var(--shadow-card);
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-card), var(--glow-primary);
+            border-color: var(--primary-neon);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 900;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Mining Center Section */
+        .mining-section {
+            padding: 5rem 2rem;
+            background: var(--bg-dark);
+        }
+
+        .section-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mining-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .mining-content h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-neon);
+        }
+
+        .mining-content p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .mining-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .mining-features li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .mining-features i {
+            color: var(--primary-neon);
+            font-size: 1.2rem;
+        }
+
+        .mining-visual {
+            background: var(--gradient-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        /* Payment Methods Section */
+        .payment-section {
+            padding: 5rem 2rem;
+            background: var(--gradient-dark);
+        }
+
+        .payment-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .payment-card {
+            background: var(--gradient-card);
+            border-radius: 20px;
+            padding: 2.5rem;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .payment-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-card), var(--glow-primary);
+            border-color: var(--primary-neon);
+        }
+
+        .payment-icon {
+            font-size: 3rem;
+            color: var(--primary-neon);
+            margin-bottom: 1rem;
+        }
+
+        .payment-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .payment-description {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        /* Community Section */
+        .community-section {
+            padding: 5rem 2rem;
+            background: var(--bg-dark);
+        }
+
+        .community-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .community-card {
+            background: var(--gradient-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .community-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-card), var(--glow-primary);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-darker);
+            padding: 3rem 2rem 1rem;
+            border-top: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-neon);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-neon);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            
+            .mining-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-up {
+            animation: slideUp 0.6s ease-out forwards;
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-neon);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="bg-grid"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">KLASSIK</div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link" data-i18n="nav.home">Home</a></li>
+                <li><a href="#mining" class="nav-link" data-i18n="nav.mining">Mining</a></li>
+                <li><a href="#payments" class="nav-link" data-i18n="nav.payments">Payments</a></li>
+                <li><a href="#community" class="nav-link" data-i18n="nav.community">Community</a></li>
+                <li><a href="#explorer" class="nav-link" data-i18n="nav.explorer">Explorer</a></li>
+            </ul>
+            <button class="lang-switch" onclick="toggleLanguage()">
+                <span id="lang-text">DE</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title" data-i18n="hero.title">KLASSIK</h1>
+            <h2 class="hero-subtitle" data-i18n="hero.subtitle">Next-Generation Kaspa Mining & Payment Solution</h2>
+            <p class="hero-description" data-i18n="hero.description">
+                Revolutionary blockchain platform with AI-powered UX, 1-KAS registration, and ultra-fast payments. 
+                Join the future of decentralized finance and mining technology.
+            </p>
+            <div class="cta-buttons">
+                <a href="/sacrifice.html" class="btn btn-primary">
+                    <i class="fas fa-rocket"></i>
+                    <span data-i18n="hero.cta.register">Register for 1 KAS</span>
+                </a>
+                <a href="#mining" class="btn btn-secondary">
+                    <i class="fas fa-chart-line"></i>
+                    <span data-i18n="hero.cta.explore">Explore Mining</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Stats Section -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="hashrate">0</div>
+                <div class="stat-label" data-i18n="stats.hashrate">Total Hashrate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="miners">0</div>
+                <div class="stat-label" data-i18n="stats.miners">Active Miners</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="blocks">0</div>
+                <div class="stat-label" data-i18n="stats.blocks">Blocks Found</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="efficiency">0%</div>
+                <div class="stat-label" data-i18n="stats.efficiency">Mining Efficiency</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mining Center Section -->
+    <section id="mining" class="mining-section">
+        <h2 class="section-title" data-i18n="mining.title">Advanced Mining Center</h2>
+        <div class="mining-container">
+            <div class="mining-content">
+                <h3 data-i18n="mining.subtitle">State-of-the-Art Infrastructure</h3>
+                <p data-i18n="mining.description">
+                    Our cutting-edge mining facility features the latest ASIC technology, renewable energy sources, 
+                    and AI-optimized operations for maximum efficiency and environmental sustainability.
+                </p>
+                <ul class="mining-features">
+                    <li>
+                        <i class="fas fa-leaf"></i>
+                        <span data-i18n="mining.feature.green">100% Renewable Energy</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-shield-alt"></i>
+                        <span data-i18n="mining.feature.security">Bank-Level Security</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-robot"></i>
+                        <span data-i18n="mining.feature.ai">AI-Powered Optimization</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-chart-line"></i>
+                        <span data-i18n="mining.feature.performance">99.9% Uptime Guarantee</span>
+                    </li>
+                </ul>
+                <a href="/kaspa-explorer.html" class="btn btn-primary">
+                    <i class="fas fa-eye"></i>
+                    <span data-i18n="mining.cta">Live Mining Stats</span>
+                </a>
+            </div>
+            <div class="mining-visual">
+                <div class="chart-container">
+                    <canvas id="miningChart"></canvas>
+                </div>
+                <div class="mining-metrics">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span data-i18n="mining.current">Current Output:</span>
+                        <span id="current-output">0 KAS/day</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <span data-i18n="mining.temperature">Temperature:</span>
+                        <span id="temperature">0°C</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span data-i18n="mining.power">Power Usage:</span>
+                        <span id="power-usage">0 kW</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Payment Methods Section -->
+    <section id="payments" class="payment-section">
+        <h2 class="section-title" data-i18n="payments.title">Revolutionary Payment Solutions</h2>
+        <div class="payment-grid">
+            <div class="payment-card">
+                <div class="payment-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="payment-title" data-i18n="payments.fast.title">Lightning-Fast Transactions</h3>
+                <p class="payment-description" data-i18n="payments.fast.description">
+                    Experience sub-second transaction confirmations with our optimized Kaspa integration. 
+                    No more waiting - payments are instant and fee-free.
+                </p>
+                <a href="/wallet-auth.html" class="btn btn-secondary">
+                    <span data-i18n="payments.fast.cta">Try Now</span>
+                </a>
+            </div>
+            <div class="payment-card">
+                <div class="payment-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <h3 class="payment-title" data-i18n="payments.sacrifice.title">1-KAS Registration</h3>
+                <p class="payment-description" data-i18n="payments.sacrifice.description">
+                    Join our exclusive community with just 1 KAS sacrifice. Unlock premium features, 
+                    early access to new products, and community rewards.
+                </p>
+                <a href="/sacrifice.html" class="btn btn-primary">
+                    <span data-i18n="payments.sacrifice.cta">Register Now</span>
+                </a>
+            </div>
+            <div class="payment-card">
+                <div class="payment-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <h3 class="payment-title" data-i18n="payments.stake.title">Staking & Rewards</h3>
+                <p class="payment-description" data-i18n="payments.stake.description">
+                    Stake your KAS and earn passive income through our innovative reward system. 
+                    Higher stakes unlock exclusive features and governance rights.
+                </p>
+                <a href="/dashboard.html" class="btn btn-secondary">
+                    <span data-i18n="payments.stake.cta">Learn More</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community Section -->
+    <section id="community" class="community-section">
+        <h2 class="section-title" data-i18n="community.title">Join Our Growing Community</h2>
+        <div class="community-grid">
+            <div class="community-card">
+                <h3 data-i18n="community.telegram.title">Telegram Community</h3>
+                <p data-i18n="community.telegram.description">
+                    Join our active Telegram community for real-time updates, mining tips, and direct support from our team.
+                </p>
+                <a href="https://t.me/klassik_official" class="btn btn-primary" target="_blank">
+                    <i class="fab fa-telegram"></i>
+                    <span data-i18n="community.telegram.cta">Join Telegram</span>
+                </a>
+            </div>
+            <div class="community-card">
+                <h3 data-i18n="community.twitter.title">Twitter Updates</h3>
+                <p data-i18n="community.twitter.description">
+                    Follow us on Twitter for the latest announcements, technology insights, and industry news.
+                </p>
+                <a href="https://twitter.com/klassik_kaspa" class="btn btn-primary" target="_blank">
+                    <i class="fab fa-twitter"></i>
+                    <span data-i18n="community.twitter.cta">Follow Us</span>
+                </a>
+            </div>
+            <div class="community-card">
+                <h3 data-i18n="community.support.title">AI-Powered Support</h3>
+                <p data-i18n="community.support.description">
+                    Get instant help from our AI-powered support system. Available 24/7 for all your questions.
+                </p>
+                <button class="btn btn-secondary" onclick="openSupportChat()">
+                    <i class="fas fa-robot"></i>
+                    <span data-i18n="community.support.cta">Get Support</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4 data-i18n="footer.platform">Platform</h4>
+                <ul class="footer-links">
+                    <li><a href="/kaspa-explorer.html" data-i18n="footer.explorer">Kaspa Explorer</a></li>
+                    <li><a href="/dashboard.html" data-i18n="footer.dashboard">Dashboard</a></li>
+                    <li><a href="/wallet-auth.html" data-i18n="footer.wallet">Wallet Connect</a></li>
+                    <li><a href="/merch.html" data-i18n="footer.merch">Merchandise</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4 data-i18n="footer.mining">Mining</h4>
+                <ul class="footer-links">
+                    <li><a href="#mining" data-i18n="footer.stats">Live Stats</a></li>
+                    <li><a href="#" data-i18n="footer.calculator">Profitability Calculator</a></li>
+                    <li><a href="#" data-i18n="footer.pool">Pool Information</a></li>
+                    <li><a href="#" data-i18n="footer.hardware">Hardware Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4 data-i18n="footer.community">Community</h4>
+                <ul class="footer-links">
+                    <li><a href="https://t.me/klassik_official" target="_blank" data-i18n="footer.telegram">Telegram</a></li>
+                    <li><a href="https://twitter.com/klassik_kaspa" target="_blank" data-i18n="footer.twitter">Twitter</a></li>
+                    <li><a href="#" data-i18n="footer.discord">Discord</a></li>
+                    <li><a href="#" data-i18n="footer.reddit">Reddit</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4 data-i18n="footer.support">Support</h4>
+                <ul class="footer-links">
+                    <li><a href="#" data-i18n="footer.docs">Documentation</a></li>
+                    <li><a href="#" data-i18n="footer.api">API Reference</a></li>
+                    <li><a href="#" data-i18n="footer.faq">FAQ</a></li>
+                    <li><a href="#" data-i18n="footer.contact">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Klassik. <span data-i18n="footer.rights">All rights reserved.</span> | <span data-i18n="footer.future">Building the future of blockchain technology.</span></p>
+        </div>
+    </footer>
+
+    <script>
+        // Language Management
+        const translations = {
+            en: {
+                'nav.home': 'Home',
+                'nav.mining': 'Mining',
+                'nav.payments': 'Payments', 
+                'nav.community': 'Community',
+                'nav.explorer': 'Explorer',
+                'hero.title': 'KLASSIK',
+                'hero.subtitle': 'Next-Generation Kaspa Mining & Payment Solution',
+                'hero.description': 'Revolutionary blockchain platform with AI-powered UX, 1-KAS registration, and ultra-fast payments. Join the future of decentralized finance and mining technology.',
+                'hero.cta.register': 'Register for 1 KAS',
+                'hero.cta.explore': 'Explore Mining',
+                'stats.hashrate': 'Total Hashrate',
+                'stats.miners': 'Active Miners',
+                'stats.blocks': 'Blocks Found',
+                'stats.efficiency': 'Mining Efficiency',
+                'mining.title': 'Advanced Mining Center',
+                'mining.subtitle': 'State-of-the-Art Infrastructure',
+                'mining.description': 'Our cutting-edge mining facility features the latest ASIC technology, renewable energy sources, and AI-optimized operations for maximum efficiency and environmental sustainability.',
+                'mining.feature.green': '100% Renewable Energy',
+                'mining.feature.security': 'Bank-Level Security',
+                'mining.feature.ai': 'AI-Powered Optimization',
+                'mining.feature.performance': '99.9% Uptime Guarantee',
+                'mining.cta': 'Live Mining Stats',
+                'mining.current': 'Current Output:',
+                'mining.temperature': 'Temperature:',
+                'mining.power': 'Power Usage:',
+                'payments.title': 'Revolutionary Payment Solutions',
+                'payments.fast.title': 'Lightning-Fast Transactions',
+                'payments.fast.description': 'Experience sub-second transaction confirmations with our optimized Kaspa integration. No more waiting - payments are instant and fee-free.',
+                'payments.fast.cta': 'Try Now',
+                'payments.sacrifice.title': '1-KAS Registration',
+                'payments.sacrifice.description': 'Join our exclusive community with just 1 KAS sacrifice. Unlock premium features, early access to new products, and community rewards.',
+                'payments.sacrifice.cta': 'Register Now',
+                'payments.stake.title': 'Staking & Rewards',
+                'payments.stake.description': 'Stake your KAS and earn passive income through our innovative reward system. Higher stakes unlock exclusive features and governance rights.',
+                'payments.stake.cta': 'Learn More',
+                'community.title': 'Join Our Growing Community',
+                'community.telegram.title': 'Telegram Community',
+                'community.telegram.description': 'Join our active Telegram community for real-time updates, mining tips, and direct support from our team.',
+                'community.telegram.cta': 'Join Telegram',
+                'community.twitter.title': 'Twitter Updates',
+                'community.twitter.description': 'Follow us on Twitter for the latest announcements, technology insights, and industry news.',
+                'community.twitter.cta': 'Follow Us',
+                'community.support.title': 'AI-Powered Support',
+                'community.support.description': 'Get instant help from our AI-powered support system. Available 24/7 for all your questions.',
+                'community.support.cta': 'Get Support',
+                'footer.platform': 'Platform',
+                'footer.explorer': 'Kaspa Explorer',
+                'footer.dashboard': 'Dashboard',
+                'footer.wallet': 'Wallet Connect',
+                'footer.merch': 'Merchandise',
+                'footer.mining': 'Mining',
+                'footer.stats': 'Live Stats',
+                'footer.calculator': 'Profitability Calculator',
+                'footer.pool': 'Pool Information',
+                'footer.hardware': 'Hardware Guide',
+                'footer.community': 'Community',
+                'footer.telegram': 'Telegram',
+                'footer.twitter': 'Twitter',
+                'footer.discord': 'Discord',
+                'footer.reddit': 'Reddit',
+                'footer.support': 'Support',
+                'footer.docs': 'Documentation',
+                'footer.api': 'API Reference',
+                'footer.faq': 'FAQ',
+                'footer.contact': 'Contact Us',
+                'footer.rights': 'All rights reserved.',
+                'footer.future': 'Building the future of blockchain technology.'
+            },
+            de: {
+                'nav.home': 'Start',
+                'nav.mining': 'Mining',
+                'nav.payments': 'Zahlungen',
+                'nav.community': 'Community',
+                'nav.explorer': 'Explorer',
+                'hero.title': 'KLASSIK',
+                'hero.subtitle': 'Next-Generation Kaspa Mining & Payment Lösung',
+                'hero.description': 'Revolutionäre Blockchain-Plattform mit KI-gestützter UX, 1-KAS-Registrierung und ultraschnellen Zahlungen. Erleben Sie die Zukunft der dezentralen Finanztechnologie.',
+                'hero.cta.register': 'Für 1 KAS registrieren',
+                'hero.cta.explore': 'Mining erkunden',
+                'stats.hashrate': 'Gesamt-Hashrate',
+                'stats.miners': 'Aktive Miner',
+                'stats.blocks': 'Blöcke gefunden',
+                'stats.efficiency': 'Mining-Effizienz',
+                'mining.title': 'Hochmodernes Mining-Center',
+                'mining.subtitle': 'Modernste Infrastruktur',
+                'mining.description': 'Unser hochmodernes Mining-Zentrum verfügt über neueste ASIC-Technologie, erneuerbare Energiequellen und KI-optimierte Abläufe für maximale Effizienz und Umweltverträglichkeit.',
+                'mining.feature.green': '100% Erneuerbare Energie',
+                'mining.feature.security': 'Bank-Level Sicherheit',
+                'mining.feature.ai': 'KI-gestützte Optimierung',
+                'mining.feature.performance': '99.9% Verfügbarkeit',
+                'mining.cta': 'Live Mining-Statistiken',
+                'mining.current': 'Aktuelle Ausgabe:',
+                'mining.temperature': 'Temperatur:',
+                'mining.power': 'Stromverbrauch:',
+                'payments.title': 'Revolutionäre Zahlungslösungen',
+                'payments.fast.title': 'Blitzschnelle Transaktionen',
+                'payments.fast.description': 'Erleben Sie Transaktionsbestätigungen unter einer Sekunde mit unserer optimierten Kaspa-Integration. Keine Wartezeiten - Zahlungen sind sofort und gebührenfrei.',
+                'payments.fast.cta': 'Jetzt testen',
+                'payments.sacrifice.title': '1-KAS-Registrierung',
+                'payments.sacrifice.description': 'Treten Sie unserer exklusiven Community mit nur 1 KAS-Opfer bei. Schalten Sie Premium-Features, frühen Zugang zu neuen Produkten und Community-Belohnungen frei.',
+                'payments.sacrifice.cta': 'Jetzt registrieren',
+                'payments.stake.title': 'Staking & Belohnungen',
+                'payments.stake.description': 'Setzen Sie Ihre KAS ein und verdienen Sie passives Einkommen durch unser innovatives Belohnungssystem. Höhere Einsätze schalten exklusive Features und Governance-Rechte frei.',
+                'payments.stake.cta': 'Mehr erfahren',
+                'community.title': 'Treten Sie unserer wachsenden Community bei',
+                'community.telegram.title': 'Telegram Community',
+                'community.telegram.description': 'Treten Sie unserer aktiven Telegram-Community bei für Echtzeit-Updates, Mining-Tipps und direkten Support von unserem Team.',
+                'community.telegram.cta': 'Telegram beitreten',
+                'community.twitter.title': 'Twitter Updates',
+                'community.twitter.description': 'Folgen Sie uns auf Twitter für die neuesten Ankündigungen, Technologie-Einblicke und Branchennews.',
+                'community.twitter.cta': 'Folgen Sie uns',
+                'community.support.title': 'KI-gestützter Support',
+                'community.support.description': 'Erhalten Sie sofortige Hilfe von unserem KI-gestützten Support-System. 24/7 verfügbar für alle Ihre Fragen.',
+                'community.support.cta': 'Support erhalten',
+                'footer.platform': 'Plattform',
+                'footer.explorer': 'Kaspa Explorer',
+                'footer.dashboard': 'Dashboard',
+                'footer.wallet': 'Wallet verbinden',
+                'footer.merch': 'Merchandise',
+                'footer.mining': 'Mining',
+                'footer.stats': 'Live-Statistiken',
+                'footer.calculator': 'Profitabilitätsrechner',
+                'footer.pool': 'Pool-Informationen',
+                'footer.hardware': 'Hardware-Guide',
+                'footer.community': 'Community',
+                'footer.telegram': 'Telegram',
+                'footer.twitter': 'Twitter',
+                'footer.discord': 'Discord',
+                'footer.reddit': 'Reddit',
+                'footer.support': 'Support',
+                'footer.docs': 'Dokumentation',
+                'footer.api': 'API-Referenz',
+                'footer.faq': 'FAQ',
+                'footer.contact': 'Kontakt',
+                'footer.rights': 'Alle Rechte vorbehalten.',
+                'footer.future': 'Die Zukunft der Blockchain-Technologie gestalten.'
+            }
+        };
+
+        let currentLang = 'en';
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'de' : 'en';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    element.textContent = translations[currentLang][key];
+                }
+            });
+            document.getElementById('lang-text').textContent = currentLang === 'en' ? 'DE' : 'EN';
+        }
+
+        // Initialize GSAP animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Animate background particles
+        function createBackgroundParticles() {
+            const bgAnimation = document.querySelector('.bg-animation');
+            
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'bg-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.width = Math.random() * 4 + 1 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                bgAnimation.appendChild(particle);
+            }
+        }
+
+        // Initialize mining chart
+        let miningChart;
+        function initMiningChart() {
+            const ctx = document.getElementById('miningChart').getContext('2d');
+            
+            // Generate sample data
+            const data = [];
+            const labels = [];
+            const now = new Date();
+            
+            for (let i = 23; i >= 0; i--) {
+                const time = new Date(now.getTime() - i * 60 * 60 * 1000);
+                labels.push(time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                data.push(Math.random() * 100 + 50);
+            }
+
+            miningChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Hashrate (TH/s)',
+                        data: data,
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#b0b0b0' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#b0b0b0' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update live stats
+        async function updateStats() {
+            try {
+                // Simulate API calls - replace with actual API endpoints
+                const stats = {
+                    hashrate: Math.random() * 1000 + 500,
+                    miners: Math.floor(Math.random() * 5000 + 1000),
+                    blocks: Math.floor(Math.random() * 10000 + 50000),
+                    efficiency: Math.floor(Math.random() * 20 + 80)
+                };
+
+                // Animate number changes
+                animateValue('hashrate', 0, stats.hashrate, 2000, value => Math.floor(value) + ' TH/s');
+                animateValue('miners', 0, stats.miners, 2000, value => Math.floor(value).toLocaleString());
+                animateValue('blocks', 0, stats.blocks, 2000, value => Math.floor(value).toLocaleString());
+                animateValue('efficiency', 0, stats.efficiency, 2000, value => Math.floor(value) + '%');
+
+                // Update mining metrics
+                document.getElementById('current-output').textContent = Math.floor(Math.random() * 1000 + 500) + ' KAS/day';
+                document.getElementById('temperature').textContent = Math.floor(Math.random() * 10 + 65) + '°C';
+                document.getElementById('power-usage').textContent = Math.floor(Math.random() * 500 + 1500) + ' kW';
+
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        function animateValue(elementId, start, end, duration, formatter) {
+            const element = document.getElementById(elementId);
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+                const current = start + (end - start) * easeOutQuart(progress);
+                
+                element.textContent = formatter ? formatter(current) : Math.floor(current);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+
+        function easeOutQuart(t) {
+            return 1 - Math.pow(1 - t, 4);
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 100) {
+                navbar.style.background = 'rgba(5, 5, 5, 0.98)';
+                navbar.style.backdropFilter = 'blur(20px)';
+            } else {
+                navbar.style.background = 'rgba(10, 10, 10, 0.95)';
+                navbar.style.backdropFilter = 'blur(20px)';
+            }
+        });
+
+        // Support chat functionality
+        function openSupportChat() {
+            // Implement AI chat widget or redirect to support
+            alert('AI Support Chat will open here. Integration with your chat system needed.');
+        }
+
+        // Scroll animations
+        function initScrollAnimations() {
+            // Hero animations
+            gsap.from('.hero-title', { duration: 1, y: 50, opacity: 0, ease: "power2.out" });
+            gsap.from('.hero-subtitle', { duration: 1, y: 30, opacity: 0, ease: "power2.out", delay: 0.3 });
+            gsap.from('.hero-description', { duration: 1, y: 30, opacity: 0, ease: "power2.out", delay: 0.6 });
+            gsap.from('.cta-buttons', { duration: 1, y: 30, opacity: 0, ease: "power2.out", delay: 0.9 });
+
+            // Stats cards animation
+            gsap.from('.stat-card', {
+                scrollTrigger: '.stats-section',
+                duration: 0.8,
+                y: 50,
+                opacity: 0,
+                stagger: 0.2,
+                ease: "power2.out"
+            });
+
+            // Payment cards animation
+            gsap.from('.payment-card', {
+                scrollTrigger: '.payment-section',
+                duration: 0.8,
+                y: 50,
+                opacity: 0,
+                stagger: 0.2,
+                ease: "power2.out"
+            });
+
+            // Community cards animation
+            gsap.from('.community-card', {
+                scrollTrigger: '.community-section',
+                duration: 0.8,
+                y: 50,
+                opacity: 0,
+                stagger: 0.2,
+                ease: "power2.out"
+            });
+
+            // Mining section animation
+            gsap.from('.mining-content', {
+                scrollTrigger: '.mining-section',
+                duration: 1,
+                x: -100,
+                opacity: 0,
+                ease: "power2.out"
+            });
+
+            gsap.from('.mining-visual', {
+                scrollTrigger: '.mining-section',
+                duration: 1,
+                x: 100,
+                opacity: 0,
+                ease: "power2.out"
+            });
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            createBackgroundParticles();
+            initMiningChart();
+            updateStats();
+            initScrollAnimations();
+            
+            // Update stats every 30 seconds
+            setInterval(updateStats, 30000);
+            
+            // Update chart data every minute
+            setInterval(() => {
+                if (miningChart) {
+                    const newData = Math.random() * 100 + 50;
+                    const newLabel = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    miningChart.data.labels.push(newLabel);
+                    miningChart.data.datasets[0].data.push(newData);
+                    
+                    // Keep only last 24 data points
+                    if (miningChart.data.labels.length > 24) {
+                        miningChart.data.labels.shift();
+                        miningChart.data.datasets[0].data.shift();
+                    }
+                    
+                    miningChart.update('none');
+                }
+            }, 60000);
+        });
+    </script>
+</body>
+</html>
