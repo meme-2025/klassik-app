@@ -1,22 +1,168 @@
 const express = require('express');
 const router = express.Router();
+const authMiddleware = require('../middleware/auth');
 
-// Admin Wallet Adresse (deine bestehende registrierte Adresse)
-const ADMIN_WALLET = '0x2a04B64d4641CdA7271289D2da6BbF27de02D823';
+// ✅ SECURITY: Admin Configuration
+const ADMIN_WALLETS = (process.env.ADMIN_WALLETS || '0x2a04B64d4641CdA7271289D2da6BbF27de02D823')
+  .split(',')
+  .map(w => w.toLowerCase().trim())
+  .filter(Boolean);
 
-// Middleware für Wallet-basierte Admin-Authentifizierung
+const ADMIN_IPS = (process.env.ADMIN_IPS || '')
+  .split(',')
+  .map(ip => ip.trim())
+  .filter(Boolean);
+
+console.log('🔐 Admin Security Config:');
+console.log('  Admin Wallets:', ADMIN_WALLETS);
+console.log('  IP Whitelist:', ADMIN_IPS.length > 0 ? ADMIN_IPS : 'Disabled (all IPs allowed)');
+
+/**
+ * ✅ Enhanced Admin Authentication Middleware
+ * - JWT Token verification
+ * - Wallet address check
+ * - IP whitelist (optional)
+ */
 function authenticateAdmin(req, res, next) {
-    const adminWallet = req.headers['x-admin-wallet'] || req.query.adminWallet;
+  // Support both JWT and legacy header-based auth
+  const headerWallet = req.headers['x-admin-wallet'] || req.query.adminWallet;
+  
+  // Try JWT first
+  if (req.headers.authorization) {
+    return authMiddleware(req, res, (err) => {
+      if (err) {
+        console.warn('❌ Admin JWT auth failed:', err.message);
+        return res.status(401).json({ error: 'Invalid authentication token' });
+      }
+      
+      validateAdminAccess(req, res, next);
+    });
+  }
+  
+  // Fallback to legacy header-based auth
+  if (headerWallet) {
+    const normalizedWallet = headerWallet.toLowerCase();
     
-    if (!adminWallet || adminWallet.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
-        return res.status(401).json({ 
-            error: 'Unauthorized', 
-            message: 'Admin wallet address required',
-            required_wallet: ADMIN_WALLET
-        });
+    if (!ADMIN_WALLETS.includes(normalizedWallet)) {
+      console.warn(`❌ Admin access denied: ${headerWallet} not in admin list`);
+      return res.status(403).json({ 
+        error: 'Unauthorized',
+        message: 'Not an admin wallet'
+      });
     }
     
-    next();
+    // Set user object for consistency
+    req.user = { address: normalizedWallet };
+    return validateAdminAccess(req, res, next);
+  }
+  
+  // No auth provided
+  return res.status(401).json({ 
+    error: 'Authentication required',
+    message: 'Provide JWT token or x-admin-wallet header'
+  });
+}
+
+/**
+ * Validate admin access (wallet + IP check)
+ */
+function validateAdminAccess(req, res, next) {
+  const { address } = req.user;
+  const clientIP = getClientIP(req);
+  
+  console.log(`🔍 Admin access attempt: ${address} from ${clientIP}`);
+  
+  // Check wallet
+  if (!ADMIN_WALLETS.includes(address.toLowerCase())) {
+    console.warn(`❌ Admin access denied: ${address} not authorized`);
+    return res.status(403).json({ 
+      error: 'Admin access denied',
+      wallet: address
+    });
+  }
+  
+  // Check IP if whitelist configured
+  if (ADMIN_IPS.length > 0) {
+    if (!isIPAllowed(clientIP, ADMIN_IPS)) {
+      console.warn(`❌ Admin IP blocked: ${clientIP}`);
+      return res.status(403).json({ 
+        error: 'Access denied from this IP',
+        ip: clientIP,
+        message: 'Contact administrator to whitelist your IP'
+      });
+    }
+    console.log(`✅ Admin IP verified: ${clientIP}`);
+  }
+  
+  req.isAdmin = true;
+  req.adminWallet = address;
+  console.log(`✅ Admin access granted: ${address}`);
+  next();
+}
+
+/**
+ * Get client IP (handle proxies)
+ */
+function getClientIP(req) {
+  let ip = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
+  
+  // Handle IPv6-wrapped IPv4
+  if (ip.startsWith('::ffff:')) {
+    ip = ip.substring(7);
+  }
+  
+  // Handle comma-separated list from x-forwarded-for
+  if (ip.includes(',')) {
+    ip = ip.split(',')[0].trim();
+  }
+  
+  return ip;
+}
+
+/**
+ * Check if IP is allowed
+ */
+function isIPAllowed(ip, allowedIPs) {
+  return allowedIPs.some(allowedIP => {
+    // Exact match
+    if (ip === allowedIP) return true;
+    
+    // CIDR notation (e.g., 192.168.1.0/24)
+    if (allowedIP.includes('/')) {
+      return isIPInCIDR(ip, allowedIP);
+    }
+    
+    // Wildcard (e.g., 192.168.1.*)
+    if (allowedIP.includes('*')) {
+      const pattern = allowedIP.replace(/\./g, '\\.').replace(/\*/g, '.*');
+      const regex = new RegExp(`^${pattern}$`);
+      return regex.test(ip);
+    }
+    
+    return false;
+  });
+}
+
+/**
+ * Check if IP is in CIDR range
+ */
+function isIPInCIDR(ip, cidr) {
+  try {
+    const [range, bits] = cidr.split('/');
+    const mask = ~(2 ** (32 - parseInt(bits)) - 1);
+    
+    const ipNum = ipToNumber(ip);
+    const rangeNum = ipToNumber(range);
+    
+    return (ipNum & mask) === (rangeNum & mask);
+  } catch (err) {
+    console.error('Invalid CIDR:', cidr, err.message);
+    return false;
+  }
+}
+
+function ipToNumber(ip) {
+  return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet), 0) >>> 0;
 }
 
 // Admin Dashboard Health Check

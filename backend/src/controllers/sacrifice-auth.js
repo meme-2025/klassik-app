@@ -249,16 +249,35 @@ async function registerWithSacrifice(req, res) {
       return res.status(400).json({ error: 'Username can only contain letters, numbers and underscore' });
     }
 
-    // 1. Check sacrifice eligibility
+    // 1. ✅ Check sacrifice eligibility WITH BLOCKCHAIN VALIDATION
     const sacrificeSystem = new SacrificeSystem();
-    const eligibility = await sacrificeSystem.validateRegistrationEligibility(kaspaAddress, ethAddress);
+    console.log('🔍 Checking Kaspa blockchain for sacrifices from:', kaspaAddress);
+    const sacrificeData = await sacrificeSystem.checkSacrificeAmount(kaspaAddress);
     
-    if (!eligibility.eligible) {
+    // ✅ KRITISCH: Mindestens MIN_POINTS_REQUIRED Punkte nötig
+    if (sacrificeData.totalPoints < MIN_POINTS_REQUIRED) {
       return res.status(403).json({
-        error: 'Insufficient sacrifice points for registration',
-        ...eligibility
+        error: 'Insufficient sacrifice',
+        required: MIN_POINTS_REQUIRED,
+        current: sacrificeData.totalPoints,
+        missingKAS: ((MIN_POINTS_REQUIRED - sacrificeData.totalPoints) / POINTS_PER_KAS).toFixed(8),
+        sacrificeAddress: SACRIFICE_ADDRESS,
+        message: `Send at least ${((MIN_POINTS_REQUIRED - sacrificeData.totalPoints) / POINTS_PER_KAS).toFixed(8)} KAS to ${SACRIFICE_ADDRESS}`
       });
     }
+    
+    // ✅ KRITISCH: Mindestens 1 ECHTE Transaktion muss existieren!
+    if (!sacrificeData.transactions || sacrificeData.transactions.length === 0) {
+      return res.status(403).json({
+        error: 'No sacrifice transactions found on blockchain',
+        message: `Send at least ${(MIN_POINTS_REQUIRED / POINTS_PER_KAS).toFixed(2)} KAS to: ${SACRIFICE_ADDRESS}`,
+        kaspaAddress,
+        explorerUrl: `https://explorer.kaspa.org/addresses/${kaspaAddress}`,
+        required: MIN_POINTS_REQUIRED
+      });
+    }
+    
+    console.log(`✅ Sacrifice verified: ${sacrificeData.totalSacrificed} KAS (${sacrificeData.totalPoints} points)`);
 
     // 2. Verify nonce and signature
     const nonceResult = await db.query(
@@ -309,19 +328,23 @@ async function registerWithSacrifice(req, res) {
         (address, kaspa_address, username, sacrifice_points, created_at, last_sacrifice_check)
         VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING id, address, kaspa_address, username, sacrifice_points
-      `, [ethAddress.toLowerCase(), kaspaAddress, username, eligibility.currentPoints]);
+      `, [ethAddress.toLowerCase(), kaspaAddress, username, sacrificeData.totalPoints]);
 
       const user = userResult.rows[0];
 
       // 6. Process sacrifice transactions
-      const sacrificeData = await sacrificeSystem.checkSacrificeAmount(kaspaAddress);
       await sacrificeSystem.processSacrificeTransactions(kaspaAddress, sacrificeData);
 
-      // 7. Initialize user points
-      await client.query(`
-        INSERT INTO user_points (user_id, points_total, points_weekly)
-        VALUES ($1, $2, $2)
-      `, [user.id, eligibility.currentPoints]);
+      // 7. Initialize user points (if user_points table exists)
+      try {
+        await client.query(`
+          INSERT INTO user_points (user_id, points_total, points_weekly)
+          VALUES ($1, $2, $2)
+        `, [user.id, sacrificeData.totalPoints]);
+      } catch (err) {
+        // Table might not exist - ignore
+        console.warn('user_points table not found, skipping...');
+      }
 
       // 8. Delete used nonce
       await client.query('DELETE FROM auth_nonces WHERE address = $1 AND nonce = $2', [ethAddress.toLowerCase(), nonce]);

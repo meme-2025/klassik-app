@@ -27,6 +27,18 @@ const klassikService = require('./klassik/klassik');
 const BlockchainMonitor = require('./services/blockchain-monitor');
 const healthController = require('./controllers/health');
 
+// ✅ NEW: Enhanced middleware imports
+const {
+  authLimiter,
+  registrationLimiter,
+  paymentLimiter,
+  blockchainLimiter,
+  adminLimiter,
+  generalLimiter
+} = require('./middleware/enhanced-rate-limit');
+const { initRedis, cacheMiddleware, getCachedOrFetch } = require('./cache/redis-cache');
+const jwt = require('jsonwebtoken'); // For WebSocket auth
+
 const app = express();
 const server = http.createServer(app);
 
@@ -44,10 +56,28 @@ const blockchainMonitor = new BlockchainMonitor(io);
 // Setup community manager with WebSocket
 communityManager.setWebSocket(io);
 
-// CORS configuration
+// ✅ CORS configuration - SECURED
+const ALLOWED_ORIGINS = [
+  'https://klassik.99pace.space',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  process.env.CORS_ORIGIN
+].filter(Boolean);
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️ CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
@@ -67,17 +97,22 @@ app.get('/health', (req, res) => res.json({
   environment: process.env.NODE_ENV || 'development'
 }));
 
-// Auth routes (public with rate limiting)
-app.use('/api/auth', rateLimit(60000, 20), authRoutes);
+// ✅ Apply general rate limiting to ALL routes (base protection)
+app.use(generalLimiter);
 
-// Kaspa blockchain routes (public) - Original routes
-app.use('/api/kaspa', kaspaRoutes);
+// ✅ Auth routes (public with ENHANCED rate limiting)
+app.use('/api/auth/register', registrationLimiter); // 3 registrations per hour
+app.use('/api/auth/login', authLimiter); // 10 login attempts per 15 min
+app.use('/api/auth', authRoutes);
 
-// Enhanced Kaspa API proxy routes (public) - New enhanced routes with CORS fixes
-app.use('/api/kaspa-enhanced', kaspaEnhancedRoutes);
+// ✅ Kaspa blockchain routes (public with blockchain limiter)
+app.use('/api/kaspa', blockchainLimiter, kaspaRoutes);
 
-// Admin dashboard routes (protected by wallet address)
-app.use('/api/admin', adminRoutes);
+// ✅ Enhanced Kaspa API proxy routes (public with caching & rate limiting)
+app.use('/api/kaspa-enhanced', blockchainLimiter, kaspaEnhancedRoutes);
+
+// ✅ Admin dashboard routes (protected by wallet address + IP whitelist + admin limiter)
+app.use('/api/admin', adminLimiter, adminRoutes);
 
 // Search routes (public)
 app.use('/api/search', searchRoutes);
@@ -118,13 +153,13 @@ app.put('/api/products/:id', authMiddleware, validateProductRequest, productsCon
 app.delete('/api/products/:id', authMiddleware, productsController.deleteProduct); // Admin only
 
 // Payments routes
-app.post('/api/payments/invoice', authMiddleware, rateLimit(60000, 5), paymentsController.createInvoice);
+app.post('/api/payments/invoice', authMiddleware, paymentLimiter, paymentsController.createInvoice);
 app.post('/api/payments/webhook', paymentsController.handleWebhook); // Public webhook
 app.get('/api/payments/:orderId', authMiddleware, paymentsController.getPaymentStatus);
 app.get('/api/payments/status/:paymentId', authMiddleware, paymentsController.checkPaymentStatus);
 
 // Kaspa Native Payments
-app.post('/api/payments/kaspa/checkout', authMiddleware, rateLimit(60000, 5), kaspaPaymentsController.createKaspaCheckout);
+app.post('/api/payments/kaspa/checkout', authMiddleware, paymentLimiter, kaspaPaymentsController.createKaspaCheckout);
 app.get('/api/payments/kaspa/:orderId/status', authMiddleware, kaspaPaymentsController.checkKaspaPaymentStatus);
 app.get('/api/payments/kaspa/price', kaspaPaymentsController.getKaspaPrice);
 
@@ -159,18 +194,72 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0'; // Listen on all interfaces
 
-// WebSocket connection handling
+// ✅ Initialize Redis on startup (async)
+(async () => {
+  try {
+    await initRedis();
+    console.log('✅ Redis cache initialized successfully');
+  } catch (err) {
+    console.warn('⚠️ Redis initialization failed, running without cache:', err.message);
+  }
+})();
+
+// ✅ WebSocket-Authentifizierung Middleware
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth.token;
+    
+    if (!token) {
+      console.warn('❌ WebSocket connection without token');
+      return next(new Error('Authentication required'));
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.userId || decoded.id;
+    socket.userAddress = decoded.address;
+    
+    console.log(`✅ Authenticated WebSocket: User ${socket.userId}`);
+    next();
+  } catch (err) {
+    console.error('❌ WebSocket auth failed:', err.message);
+    next(new Error('Invalid token'));
+  }
+});
+
+// WebSocket connection handling (NOW SECURED)
 io.on('connection', (socket) => {
-  console.log(`🔌 Client connected: ${socket.id}`);
+  console.log(`🔌 Authenticated client connected: ${socket.id} (User: ${socket.userId})`);
   
-  socket.on('subscribe:payments', (orderId) => {
-    socket.join(`order:${orderId}`);
-    console.log(`📡 Client ${socket.id} subscribed to order ${orderId}`);
+  socket.on('subscribe:payments', async (orderId) => {
+    try {
+      // ✅ Prüfe ob Order dem User gehört!
+      const orderCheck = await db.query(
+        'SELECT user_id FROM orders WHERE id = $1',
+        [orderId]
+      );
+      
+      if (orderCheck.rows.length === 0 || orderCheck.rows[0].user_id !== socket.userId) {
+        socket.emit('error', { message: 'Unauthorized: Not your order' });
+        return;
+      }
+      
+      socket.join(`order:${orderId}`);
+      console.log(`📡 User ${socket.userId} subscribed to order ${orderId}`);
+    } catch (err) {
+      console.error('Subscribe error:', err);
+      socket.emit('error', { message: 'Subscription failed' });
+    }
   });
   
   socket.on('subscribe:sacrifice', (address) => {
+    // ✅ Nur eigene Adresse subscriben erlauben
+    if (address.toLowerCase() !== socket.userAddress.toLowerCase()) {
+      socket.emit('error', { message: 'Can only subscribe to your own address' });
+      return;
+    }
+    
     socket.join(`sacrifice:${address}`);
-    console.log(`📡 Client ${socket.id} subscribed to sacrifice updates for ${address}`);
+    console.log(`📡 User ${socket.userId} subscribed to sacrifice updates`);
   });
   
   socket.on('disconnect', () => {

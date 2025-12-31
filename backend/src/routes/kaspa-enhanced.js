@@ -5,11 +5,24 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-// Ubuntu Server Configuration - Direkte Kaspa Node Verbindung
-const KASPA_NODE_CONFIG = {
-  rpcEndpoint: 'http://localhost:16110',  // Ubuntu Kaspa Node
-  wsEndpoint: 'ws://localhost:16110',     // WebSocket für Live-Updates
-  timeout: 2000                           // Schnelle Response
+// ✅ Redis Cache Integration
+const { getCachedOrFetch, cacheMiddleware } = require('../cache/redis-cache');
+
+// ✅ Kaspa REST-API Server Configuration (localhost-first, dann Fallback)
+const KASPA_REST_CONFIG = {
+  // Lokaler kaspa-rest-server (wenn verfügbar)
+  local: process.env.KASPA_REST_SERVER || 'http://localhost:8080',
+  
+  // Public Fallback APIs
+  public: [
+    'https://api.kaspa.org',
+    'https://api.kas.pa',
+    'https://kaspa-rest.example.com'  // Weitere Fallbacks
+  ],
+  
+  // API Timeouts
+  timeout: 5000,
+  retries: 2
 };
 
 // Kaspa API Endpoints Configuration
@@ -19,7 +32,8 @@ const KASPA_APIS = {
   coingecko: 'https://api.coingecko.com/api/v3'
 };
 
-// Cache configuration
+// ⚠️ Deprecated: In-memory cache (now using Redis)
+// Keeping for backwards compatibility if Redis fails
 const cache = new Map();
 const CACHE_DURATION = {
   stats: 30000,      // 30 seconds
@@ -27,166 +41,159 @@ const CACHE_DURATION = {
   transactions: 5000 // 5 seconds
 };
 
-// Live-Cache für sekündliche Updates
+// Live-Cache für sekündliche Updates (kept for real-time WebSocket)
 const liveCache = new Map();
 const LIVE_UPDATE_INTERVAL = 1000; // 1 Sekunde für Live-Daten
 
-// Cache helper function
+// ✅ Cache helper function - NOW USES REDIS
 async function getCachedData(key, fetchFunction, duration = 30000) {
-  const cached = cache.get(key);
-  const now = Date.now();
-  
-  if (cached && (now - cached.timestamp) < duration) {
-    return cached.data;
-  }
-  
   try {
-    const data = await fetchFunction();
-    cache.set(key, { data, timestamp: now });
-    return data;
-  } catch (error) {
-    // Return cached data if available, even if stale
-    if (cached) {
-      console.warn(`Using stale cache for ${key}:`, error.message);
+    // Try Redis cache first
+    return await getCachedOrFetch(key, fetchFunction, Math.floor(duration / 1000));
+  } catch (redisError) {
+    console.warn('Redis cache failed, using in-memory fallback:', redisError.message);
+    
+    // Fallback to in-memory cache
+    const cached = cache.get(key);
+    const now = Date.now();
+    
+    if (cached && (now - cached.timestamp) < duration) {
       return cached.data;
     }
-    throw error;
-  }
-}
-
-// RPC Helper für direkte Node-Kommunikation
-async function kaspaRPC(method, params = []) {
-  try {
-    const response = await axios.post(KASPA_NODE_CONFIG.rpcEndpoint, {
-      jsonrpc: '2.0',
-      method: method,
-      params: params,
-      id: Date.now()
-    }, {
-      timeout: KASPA_NODE_CONFIG.timeout,
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
-    if (response.data.error) {
-      throw new Error(`RPC Error: ${response.data.error.message}`);
-    }
-    
-    return response.data.result;
-  } catch (error) {
-    console.error(`Kaspa RPC ${method} failed:`, error.message);
-    throw error;
-  }
-}
-
-// Live Network Stats - direkt von der Ubuntu Node
-router.get('/stats', async (req, res) => {
-  try {
-    // Try local node first, then fallback to public APIs
-    let liveStats;
     
     try {
-      // Parallele RPC-Calls für alle Live-Daten
+      const data = await fetchFunction();
+      cache.set(key, { data, timestamp: now });
+      return data;
+    } catch (error) {
+      // Return cached data if available, even if stale
+      if (cached) {
+        console.warn(`Using stale cache for ${key}:`, error.message);
+        return cached.data;
+      }
+      throw error;
+    }
+  }
+}
+
+// ✅ Smart API-Call mit localhost-first, dann Fallback
+async function callKaspaAPI(endpoint, options = {}) {
+  const errors = [];
+  
+  // 1. Try local kaspa-rest-server first
+  try {
+    const response = await axios.get(`${KASPA_REST_CONFIG.local}${endpoint}`, {
+      timeout: KASPA_REST_CONFIG.timeout,
+      ...options
+    });
+    
+    if (response.data) {
+      console.log(`✅ Kaspa API (local): ${endpoint}`);
+      return response.data;
+    }
+  } catch (localError) {
+    errors.push(`Local: ${localError.message}`);
+    console.warn(`⚠️ Local kaspa-rest-server failed: ${localError.message}`);
+  }
+  
+  // 2. Try public APIs as fallback
+  for (const publicAPI of KASPA_REST_CONFIG.public) {
+    try {
+      const response = await axios.get(`${publicAPI}${endpoint}`, {
+        timeout: KASPA_REST_CONFIG.timeout,
+        ...options
+      });
+      
+      if (response.data) {
+        console.log(`✅ Kaspa API (public): ${endpoint} from ${publicAPI}`);
+        return response.data;
+      }
+    } catch (publicError) {
+      errors.push(`${publicAPI}: ${publicError.message}`);
+    }
+  }
+  
+  // All failed
+  throw new Error(`All Kaspa APIs failed for ${endpoint}: ${errors.join(', ')}`);
+}
+
+// ✅ Live Network Stats - Mit kaspa-rest-server Endpoints
+router.get('/stats', async (req, res) => {
+  try {
+    const statsData = await getCachedData('kaspa-enhanced-stats', async () => {
+      // Parallel API calls für bessere Performance
       const [
-        blockDagInfo,
-        syncInfo,
-        mempoolInfo,
-        networkInfo
-      ] = await Promise.all([
-        kaspaRPC('getBlockDagInfoRequest'),
-        kaspaRPC('getSyncInfoRequest'), 
-        kaspaRPC('getMempoolInfoRequest'),
-        kaspaRPC('getNetworkInfoRequest')
+        blueScore,
+        network,
+        blockdag,
+        coinSupply,
+        blockReward,
+        halving,
+        hashrate,
+        price,
+        marketcap
+      ] = await Promise.allSettled([
+        callKaspaAPI('/info/virtual-chain-blue-score'),
+        callKaspaAPI('/info/network'),
+        callKaspaAPI('/info/blockdag'),
+        callKaspaAPI('/info/coinsupply'),
+        callKaspaAPI('/info/blockreward'),
+        callKaspaAPI('/info/halving'),
+        callKaspaAPI('/info/hashrate'),
+        callKaspaAPI('/info/price'),
+        callKaspaAPI('/info/marketcap')
       ]);
 
-      // Echte Live-Statistiken zusammenstellen
-      liveStats = {
+      const result = {
         timestamp: new Date().toISOString(),
-        blockHeight: blockDagInfo.virtualDaaScore || blockDagInfo.blueScore,
-        difficulty: blockDagInfo.difficulty,
-        networkHashrate: networkInfo.hashrate,
-        blockReward: blockDagInfo.blockReward,
-        totalSupply: blockDagInfo.totalSupply,
-        circulatingSupply: blockDagInfo.circulatingSupply,
-        mempoolSize: mempoolInfo.transactionCount,
-        mempoolSizeBytes: mempoolInfo.transactionPoolSize,
-        syncProgress: syncInfo.isSynced ? 100 : syncInfo.syncProgress,
-        avgBlockTime: 1.0, // Kaspa target
-        nodeVersion: networkInfo.serverVersion,
-        connectedPeers: networkInfo.connectedPeerCount,
         isLive: true,
-        source: 'local-ubuntu-node'
+        source: blueScore.status === 'fulfilled' ? 'kaspa-rest-server' : 'fallback',
+        
+        // Block Data
+        blockHeight: blueScore.status === 'fulfilled' ? blueScore.value.blueScore : null,
+        virtualDaaScore: blueScore.status === 'fulfilled' ? blueScore.value.blueScore : null,
+        
+        // Network Data
+        hashrate: hashrate.status === 'fulfilled' ? hashrate.value.hashrate : null,
+        difficulty: blockdag.status === 'fulfilled' ? blockdag.value.difficulty : null,
+        networkName: network.status === 'fulfilled' ? network.value.network : 'kaspa-mainnet',
+        
+        // Supply Data
+        totalSupply: coinSupply.status === 'fulfilled' ? coinSupply.value.totalSupply : null,
+        circulatingSupply: coinSupply.status === 'fulfilled' ? coinSupply.value.circulatingSupply : null,
+        maxSupply: 28704026601.692,
+        mineableRemaining: coinSupply.status === 'fulfilled' 
+          ? (28704026601.692 - coinSupply.value.totalSupply).toFixed(2)
+          : null,
+        
+        // Reward & Halving
+        blockReward: blockReward.status === 'fulfilled' ? blockReward.value.blockreward : null,
+        nextHalving: halving.status === 'fulfilled' ? halving.value.nextHalvingDate : null,
+        nextHalvingAmount: halving.status === 'fulfilled' ? halving.value.nextHalvingAmount : null,
+        
+        // Market Data
+        price: price.status === 'fulfilled' ? price.value.price : null,
+        marketCap: marketcap.status === 'fulfilled' ? marketcap.value.marketcap : null,
+        
+        // Performance
+        avgBlockTime: 1.0, // Kaspa target: 1 block/second
+        
+        errors: []
       };
-    } catch (nodeError) {
-      console.warn('Local node unavailable, using public APIs:', nodeError.message);
-      
-      // Fallback to public APIs
-      const stats = await getCachedData('kaspa-stats', async () => {
-        const [infoResp, halvingResp, networkResp, priceResp] = await Promise.allSettled([
-          axios.get(`${KASPA_APIS.primary}/info/virtual-chain-blue-score`, { timeout: 5000 }),
-          axios.get(`${KASPA_APIS.primary}/info/halving`, { timeout: 5000 }),
-          axios.get(`${KASPA_APIS.primary}/info/network`, { timeout: 5000 }),
-          axios.get(`${KASPA_APIS.coingecko}/simple/price?ids=kaspa&vs_currencies=usd&include_market_cap=true`, { timeout: 5000 })
-        ]);
 
-        const result = {
-          timestamp: new Date().toISOString(),
-          blockHeight: null,
-          hashrate: null,
-          difficulty: null,
-          totalSupply: null,
-          circulatingSupply: null,
-          maxSupply: 28704026601.692,
-          marketCap: null,
-          price: null,
-          transactions24h: 216000,
-          avgBlockTime: 1.0,
-          blockReward: null,
-          mintedToday: null,
-          errors: [],
-          isLive: false,
-          source: 'public-apis'
-        };
-
-        // Process responses
-        if (infoResp.status === 'fulfilled' && infoResp.value.data) {
-          result.blockHeight = infoResp.value.data.blueScore || infoResp.value.data.virtualChainBlueScore;
-        } else {
-          result.errors.push('Failed to get block height');
+      // Log errors
+      [blueScore, network, blockdag, coinSupply, blockReward, halving, hashrate, price, marketcap].forEach((promise, index) => {
+        if (promise.status === 'rejected') {
+          const endpoints = ['/blueScore', '/network', '/blockdag', '/coinSupply', '/blockReward', '/halving', '/hashrate', '/price', '/marketcap'];
+          result.errors.push(`${endpoints[index]}: ${promise.reason.message}`);
         }
+      });
 
-        if (halvingResp.status === 'fulfilled' && halvingResp.value.data) {
-          result.blockReward = halvingResp.value.data.currentReward || 50;
-        } else {
-          result.errors.push('Failed to get halving info');
-          result.blockReward = 50;
-        }
+      return result;
+    }, CACHE_DURATION.stats);
 
-        if (networkResp.status === 'fulfilled' && networkResp.value.data) {
-          const networkData = networkResp.value.data;
-          result.hashrate = networkData.hashrate;
-          result.difficulty = networkData.difficulty;
-          result.totalSupply = networkData.totalSupply;
-          result.circulatingSupply = networkData.circulatingSupply;
-        } else {
-          result.errors.push('Failed to get network info');
-        }
+    res.json(statsData);
 
-        if (priceResp.status === 'fulfilled' && priceResp.value.data) {
-          const kaspaData = priceResp.value.data.kaspa;
-          result.price = kaspaData.usd;
-          result.marketCap = kaspaData.usd_market_cap;
-        } else {
-          result.errors.push('Failed to get price data');
-        }
-
-        return result;
-      }, CACHE_DURATION.stats);
-      
-      liveStats = stats;
-    }
-
-    res.json(liveStats);
-    
   } catch (error) {
     console.error('Stats error:', error);
     res.status(500).json({
@@ -376,6 +383,51 @@ router.get('/address/:address', async (req, res) => {
       address: req.params.address,
       message: error.message
     });
+  }
+});
+
+// ✅ Transactions Count (24h)
+router.get('/transactions/count', async (req, res) => {
+  try {
+    const data = await callKaspaAPI('/transactions/count/');
+    res.json(data);
+  } catch (error) {
+    console.error('Transactions count error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ✅ Transactions Count by Day/Month
+router.get('/transactions/count/:day_or_month', async (req, res) => {
+  try {
+    const { day_or_month } = req.params;
+    const data = await callKaspaAPI(`/transactions/count/${day_or_month}`);
+    res.json(data);
+  } catch (error) {
+    console.error('Transactions count by date error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ✅ Fee Estimate
+router.get('/fee-estimate', async (req, res) => {
+  try {
+    const data = await callKaspaAPI('/info/fee-estimate');
+    res.json(data);
+  } catch (error) {
+    console.error('Fee estimate error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ✅ Kaspad Info
+router.get('/kaspad-info', async (req, res) => {
+  try {
+    const data = await callKaspaAPI('/info/kaspad');
+    res.json(data);
+  } catch (error) {
+    console.error('Kaspad info error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
