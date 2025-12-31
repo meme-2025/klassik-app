@@ -19,6 +19,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../db');
 const { ethers } = require('ethers');
+const sacrificeAuth = require('../controllers/sacrifice-auth');
 
 const router = express.Router();
 
@@ -168,10 +169,17 @@ router.get('/check', async (req, res) => {
 
 /**
  * POST /api/auth/register
- * Register new wallet user
- * Body: { address, signature, username }
+ * Register new user with wallet signature (SACRIFICE-BASED)
  */
 router.post('/register', async (req, res) => {
+  return sacrificeAuth.registerWithSacrifice(req, res);
+});
+
+/**
+ * POST /api/auth/register-legacy
+ * Legacy registration without sacrifice requirement
+ */
+router.post('/register-legacy', async (req, res) => {
   try {
     const { address, signature, username } = req.body;
 
@@ -279,6 +287,18 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ error: 'Registration failed' });
   }
 });
+
+/**
+ * POST /api/auth/check-sacrifice
+ * Check sacrifice eligibility for registration
+ */
+router.post('/check-sacrifice', sacrificeAuth.checkSacrificeEligibility);
+
+/**
+ * GET /api/auth/sacrifice/:kaspaAddress/stats
+ * Get sacrifice statistics
+ */
+router.get('/sacrifice/:kaspaAddress/stats', sacrificeAuth.getSacrificeStats);
 
 /**
  * POST /api/auth/login

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const KaspaAPIComplete = require('../services/kaspa-api-complete');
 
 // Cache for API responses
 let cachedData = null;
@@ -32,25 +33,13 @@ router.get('/stats', async (req, res) => {
             });
         }
 
-        // Fetch fresh data from multiple sources in parallel
-        const [priceData, blockchainData] = await Promise.allSettled([
-            fetchPriceData(),
-            fetchBlockchainData()
-        ]);
-
-        // Combine results
-        const stats = {
-            price: priceData.status === 'fulfilled' ? priceData.value : null,
-            blockchain: blockchainData.status === 'fulfilled' ? blockchainData.value : null,
-            timestamp: new Date().toISOString(),
-            cached: false
-        };
+        // Fetch fresh data using complete API service
+        const kaspaAPI = new KaspaAPIComplete();
+        const stats = await kaspaAPI.getCompleteStats();
 
         // Cache successful response
-        if (stats.price || stats.blockchain) {
-            cachedData = stats;
-            lastFetch = now;
-        }
+        cachedData = stats;
+        lastFetch = now;
 
         res.json(stats);
 
@@ -71,6 +60,21 @@ router.get('/stats', async (req, res) => {
             error: 'Failed to fetch Kaspa statistics',
             message: error.message
         });
+    }
+});
+
+/**
+ * GET /api/kaspa/stats/complete
+ * Returns ALL explorer fields with real data
+ */
+router.get('/stats/complete', async (req, res) => {
+    try {
+        const kaspaAPI = new KaspaAPIComplete();
+        const stats = await kaspaAPI.getCompleteStats();
+        res.json(stats);
+    } catch (error) {
+        console.error('Error fetching complete stats:', error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 
