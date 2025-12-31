@@ -489,7 +489,9 @@
         // Dashboard Initialisierung mit Auth
         async function initializeDashboardWithAuth() {
             try {
-                // Admin Health Check
+                showAlert('🔐 Connecting to admin panel...', 'warning');
+                
+                // Admin Health Check mit besserer Fehlerbehandlung
                 const response = await fetch('/api/admin/health', {
                     headers: {
                         'X-Admin-Wallet': ADMIN_WALLET
@@ -500,20 +502,25 @@
                     const healthData = await response.json();
                     console.log('✅ Admin Authentication successful:', healthData);
                     
+                    showAlert('✅ Admin authentication successful!', 'success');
+                    
                     // Lade alle Dashboard-Daten
                     await loadAllDashboardData();
                     
                     // Starte Live-Updates
                     startLiveUpdates();
                     
-                    // Zeige Success-Nachricht
-                    showAlert('Admin Dashboard authenticated successfully!', 'success');
                 } else {
-                    throw new Error('Admin authentication failed');
+                    const errorData = await response.text();
+                    console.error('❌ Admin authentication failed:', response.status, errorData);
+                    showAlert(`Authentication failed: ${response.status} - Check if admin routes are deployed`, 'error');
                 }
             } catch (error) {
                 console.error('❌ Dashboard initialization failed:', error);
-                showAlert('Admin authentication failed. Check wallet address.', 'error');
+                showAlert('🚨 Admin API not available. Please deploy admin routes to server first.', 'error');
+                
+                // Fallback: Zeige Demo-Daten wenn API nicht verfügbar
+                loadDemoData();
             }
         }
 
@@ -700,6 +707,42 @@
 
         function viewServerLogs() {
             loadAllDashboardData(); // Refresh logs
+        }
+
+        // Demo Data Fallback wenn API nicht verfügbar
+        function loadDemoData() {
+            console.log('🎮 Loading demo data for offline preview...');
+            
+            // Demo Stats setzen
+            document.getElementById('server-uptime').textContent = 'Demo Mode';
+            document.getElementById('server-memory').textContent = '~2.3GB';
+            document.getElementById('server-cpu').textContent = '~15%';
+            document.getElementById('server-connections').textContent = '~45';
+            document.getElementById('db-users').textContent = '1,247';
+            document.getElementById('security-threats').textContent = '12';
+            document.getElementById('security-logins').textContent = '3';
+            document.getElementById('update-time').textContent = new Date().toLocaleTimeString('de-DE');
+            
+            // Demo Logs
+            const logContainer = document.getElementById('system-logs');
+            if (logContainer) {
+                logContainer.innerHTML = `
+                    <div class="log-entry">
+                        <span class="log-time">${new Date().toLocaleTimeString('de-DE')}</span>
+                        <span class="log-level log-warn">DEMO</span>
+                        <span class="log-service">[admin]</span>
+                        <span class="log-message">Admin API not deployed - showing demo data</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="log-time">${new Date().toLocaleTimeString('de-DE')}</span>
+                        <span class="log-level log-info">INFO</span>
+                        <span class="log-service">[demo]</span>
+                        <span class="log-message">Run git pull on server and restart service to activate</span>
+                    </div>
+                `;
+            }
+            
+            showAlert('📊 Demo mode active - Deploy admin routes to server for live data', 'warning');
         }
         
         // Initial Dashboard Call
