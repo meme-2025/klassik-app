@@ -1,87 +1,225 @@
-// Enhanced Kaspa Routes with proper API proxies
-// Löst CORS-Probleme und stellt alle benötigten Kaspa-Daten zur Verfügung
+// Live Kaspa Node Integration - Direkte Ubuntu-Blockchain Verbindung
+// Keine Fallbacks - nur echte Live-Daten von der lokalen Node
 
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-// API Configuration
-const KASPA_APIS = {
-  primary: 'https://api.kaspa.org',
-  explorer: 'https://explorer.kaspa.org/api',
-  coingecko: 'https://api.coingecko.com/api/v3',
-  kaspascan: 'https://api.kaspascan.io/v1'
+// Ubuntu Server Configuration - Direkte Kaspa Node Verbindung
+const KASPA_NODE_CONFIG = {
+  rpcEndpoint: 'http://localhost:16110',  // Ubuntu Kaspa Node
+  wsEndpoint: 'ws://localhost:16110',     // WebSocket für Live-Updates
+  timeout: 2000                           // Schnelle Response
 };
 
-// Cache configuration
-const cache = new Map();
-const CACHE_DURATION = {
-  price: 30 * 1000,        // 30 seconds
-  stats: 10 * 1000,        // 10 seconds  
-  blocks: 5 * 1000,        // 5 seconds
-  transactions: 5 * 1000,  // 5 seconds
-  info: 60 * 1000          // 60 seconds
-};
+// Live-Cache für sekündliche Updates
+const liveCache = new Map();
+const LIVE_UPDATE_INTERVAL = 1000; // 1 Sekunde für Live-Daten
 
-// Helper function to get cached data or fetch new
-async function getCachedData(key, fetchFunction, duration = 30000) {
-  const cached = cache.get(key);
-  const now = Date.now();
-  
-  if (cached && (now - cached.timestamp) < duration) {
-    return cached.data;
-  }
-  
+// RPC Helper für direkte Node-Kommunikation
+async function kaspaRPC(method, params = []) {
   try {
-    const data = await fetchFunction();
-    cache.set(key, { data, timestamp: now });
-    return data;
-  } catch (error) {
-    // Return cached data if fetch fails and we have it
-    if (cached) {
-      console.warn(`API call failed for ${key}, returning cached data:`, error.message);
-      return cached.data;
+    const response = await axios.post(KASPA_NODE_CONFIG.rpcEndpoint, {
+      jsonrpc: '2.0',
+      method: method,
+      params: params,
+      id: Date.now()
+    }, {
+      timeout: KASPA_NODE_CONFIG.timeout,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (response.data.error) {
+      throw new Error(`RPC Error: ${response.data.error.message}`);
     }
+    
+    return response.data.result;
+  } catch (error) {
+    console.error(`Kaspa RPC ${method} failed:`, error.message);
     throw error;
   }
 }
 
-// Kaspa Price Endpoint
-router.get('/price', async (req, res) => {
+// Live Network Stats - direkt von der Ubuntu Node
+router.get('/stats', async (req, res) => {
   try {
-    const priceData = await getCachedData('kaspa-price', async () => {
-      const response = await axios.get(`${KASPA_APIS.coingecko}/simple/price`, {
-        params: { 
-          ids: 'kaspa', 
-          vs_currencies: 'usd,eur,btc',
-          include_24hr_change: 'true',
-          include_market_cap: 'true',
-          include_24hr_vol: 'true'
-        },
-        timeout: 5000
-      });
-      
-      const kaspa = response.data.kaspa;
-      return {
-        usd: kaspa.usd,
-        eur: kaspa.eur,
-        btc: kaspa.btc,
-        usd_24h_change: kaspa.usd_24h_change,
-        usd_market_cap: kaspa.usd_market_cap,
-        usd_24h_vol: kaspa.usd_24h_vol,
-        last_updated: new Date().toISOString()
-      };
-    }, CACHE_DURATION.price);
+    // Parallele RPC-Calls für alle Live-Daten
+    const [
+      blockDagInfo,
+      syncInfo,
+      mempoolInfo,
+      networkInfo
+    ] = await Promise.all([
+      kaspaRPC('getBlockDagInfoRequest'),
+      kaspaRPC('getSyncInfoRequest'), 
+      kaspaRPC('getMempoolInfoRequest'),
+      kaspaRPC('getNetworkInfoRequest')
+    ]);
 
-    res.json(priceData);
+    // Echte Live-Statistiken zusammenstellen
+    const liveStats = {
+      timestamp: new Date().toISOString(),
+      blockHeight: blockDagInfo.virtualDaaScore || blockDagInfo.blueScore,
+      difficulty: blockDagInfo.difficulty,
+      networkHashrate: networkInfo.hashrate,
+      blockReward: blockDagInfo.blockReward,
+      totalSupply: blockDagInfo.totalSupply,
+      circulatingSupply: blockDagInfo.circulatingSupply,
+      mempoolSize: mempoolInfo.transactionCount,
+      mempoolSizeBytes: mempoolInfo.transactionPoolSize,
+      syncProgress: syncInfo.isSynced ? 100 : syncInfo.syncProgress,
+      avgBlockTime: 1.0, // Kaspa target
+      nodeVersion: networkInfo.serverVersion,
+      connectedPeers: networkInfo.connectedPeerCount,
+      isLive: true,
+      source: 'local-ubuntu-node'
+    };
+
+    // Cache für andere Anfragen
+    liveCache.set('current_stats', {
+      data: liveStats,
+      timestamp: Date.now()
+    });
+
+    res.json(liveStats);
+    
   } catch (error) {
-    console.error('Price API error:', error);
-    res.status(500).json({
-      error: 'Failed to fetch price data',
-      fallback: { usd: 0.15, eur: 0.13, btc: 0.0000015, last_updated: new Date().toISOString() }
+    console.error('Live stats error:', error);
+    res.status(503).json({
+      error: 'Ubuntu Kaspa Node not available',
+      message: error.message,
+      timestamp: new Date().toISOString(),
+      isLive: false
     });
   }
 });
+
+// Live Block Stream - neueste Blöcke von der Node
+router.get('/blocks/latest', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    
+    // Hole die neuesten Blöcke direkt von der Node
+    const blockHashes = await kaspaRPC('getVirtualSelectedParentChainFromBlockRequest', [
+      { includeBlocks: true, startHash: null }
+    ]);
+    
+    const latestBlocks = [];
+    
+    for (let i = 0; i < Math.min(limit, blockHashes.removedChainBlockHashes?.length || 0); i++) {
+      const blockHash = blockHashes.removedChainBlockHashes[i];
+      const blockInfo = await kaspaRPC('getBlockRequest', [{ hash: blockHash, includeTransactions: true }]);
+      
+      latestBlocks.push({
+        hash: blockHash,
+        timestamp: blockInfo.header.timestamp,
+        transactions: blockInfo.transactions?.length || 0,
+        size: blockInfo.header.hashMerkleRoot?.length || 0,
+        blueScore: blockInfo.header.blueScore,
+        difficulty: blockInfo.header.bits,
+        miner: blockInfo.transactions?.[0]?.outputs?.[0]?.scriptPublicKey?.address || 'Unknown',
+        parentHashes: blockInfo.header.parentHashes || [],
+        isLive: true
+      });
+    }
+    
+    res.json(latestBlocks);
+    
+  } catch (error) {
+    console.error('Live blocks error:', error);
+    res.status(503).json({
+      error: 'Cannot fetch live blocks from Ubuntu node',
+      message: error.message,
+      blocks: []
+    });
+  }
+});
+
+// Live Mempool Info
+router.get('/mempool', async (req, res) => {
+  try {
+    const mempoolInfo = await kaspaRPC('getMempoolInfoRequest');
+    const mempoolEntries = await kaspaRPC('getMempoolEntriesRequest');
+    
+    res.json({
+      timestamp: new Date().toISOString(),
+      transactionCount: mempoolInfo.transactionCount,
+      sizeBytes: mempoolInfo.transactionPoolSize,
+      transactions: mempoolEntries.entries?.slice(0, 20) || [],
+      isLive: true,
+      source: 'local-ubuntu-node'
+    });
+    
+  } catch (error) {
+    console.error('Live mempool error:', error);
+    res.status(503).json({
+      error: 'Cannot fetch live mempool from Ubuntu node',
+      message: error.message
+    });
+  }
+});
+
+// Live Node Health Check
+router.get('/health', async (req, res) => {
+  try {
+    const nodeInfo = await kaspaRPC('getInfoRequest');
+    const syncInfo = await kaspaRPC('getSyncInfoRequest');
+    
+    res.json({
+      status: 'live',
+      timestamp: new Date().toISOString(),
+      nodeVersion: nodeInfo.serverVersion,
+      isHealthy: true,
+      isSynced: syncInfo.isSynced,
+      syncProgress: syncInfo.syncProgress,
+      uptime: nodeInfo.mempoolSize >= 0 ? 'online' : 'unknown',
+      source: 'ubuntu-kaspa-node',
+      endpoint: KASPA_NODE_CONFIG.rpcEndpoint
+    });
+    
+  } catch (error) {
+    console.error('Node health check failed:', error);
+    res.status(503).json({
+      status: 'down',
+      timestamp: new Date().toISOString(),
+      error: 'Ubuntu Kaspa Node unreachable',
+      message: error.message,
+      endpoint: KASPA_NODE_CONFIG.rpcEndpoint
+    });
+  }
+});
+
+// Live Address Balance (für Wallet Integration)
+router.get('/address/:address', async (req, res) => {
+  try {
+    const { address } = req.params;
+    const utxos = await kaspaRPC('getUtxosByAddressesRequest', [{ addresses: [address] }]);
+    
+    let totalBalance = 0;
+    for (const utxo of utxos.entries || []) {
+      totalBalance += parseInt(utxo.amount);
+    }
+    
+    res.json({
+      address: address,
+      balance: totalBalance,
+      utxoCount: utxos.entries?.length || 0,
+      timestamp: new Date().toISOString(),
+      isLive: true,
+      source: 'local-ubuntu-node'
+    });
+    
+  } catch (error) {
+    console.error('Live address lookup error:', error);
+    res.status(503).json({
+      error: 'Cannot fetch live address data',
+      address: req.params.address,
+      message: error.message
+    });
+  }
+});
+
+module.exports = router;
 
 // Kaspa Network Stats
 router.get('/stats', async (req, res) => {

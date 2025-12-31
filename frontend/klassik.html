@@ -2,52 +2,319 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Klassik Backend Visualizer</title>
+  <title>Klassik Live - Ubuntu Kaspa Node Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .box { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; }
-    button { padding: 6px 10px; }
-    table { width:100%; border-collapse: collapse; }
-    td, th { border:1px solid #eee; padding:6px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 20px;
+      background: rgba(0,0,0,0.3);
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      background: #00ff00;
+      color: black;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
+    }
+    
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .card h3 {
+      color: #fff;
+      margin-bottom: 15px;
+      font-size: 1.2em;
+      border-bottom: 2px solid rgba(255,255,255,0.3);
+      padding-bottom: 10px;
+    }
+    
+    .stat-value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #00ff88;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      color: rgba(255,255,255,0.8);
+      font-size: 0.9em;
+    }
+    
+    .blocks-container {
+      grid-column: span 2;
+    }
+    
+    .block-item {
+      background: rgba(0,0,0,0.3);
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .error-message {
+      background: rgba(255,0,0,0.2);
+      border: 1px solid #ff0000;
+      padding: 15px;
+      border-radius: 10px;
+      color: white;
+      text-align: center;
+      grid-column: span 2;
+    }
+    
+    .connection-status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      border-radius: 25px;
+      font-weight: bold;
+      z-index: 1000;
+    }
+    
+    .connected {
+      background: #00ff00;
+      color: black;
+    }
+    
+    .disconnected {
+      background: #ff0000;
+      color: white;
+      animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.5; }
+    }
   </style>
 </head>
 <body>
-  <h2>Klassik Backend Visualizer</h2>
-  <div class="box">
-    <label>Klassik Box URL: <input id="backend" value="http://localhost:4100" style="width:320px"/></label><br/>
-    <label>Main API URL: <input id="apiUrl" value="http://localhost:3000" style="width:320px"/></label>
-    <button id="refresh">Refresh</button>
+  <div class="header">
+    <h1>Klassik Live Dashboard</h1>
+    <div class="live-indicator">🔴 LIVE - Ubuntu Kaspa Node</div>
+  </div>
+  
+  <div class="connection-status" id="connectionStatus">
+    Connecting...
   </div>
 
-  <div class="box">
-    <h3>Online Users</h3>
-    <pre id="online">-</pre>
+  <div class="dashboard" id="dashboard">
+    <div class="card">
+      <h3>Block Height</h3>
+      <div class="stat-value" id="blockHeight">Loading...</div>
+      <div class="stat-label">Current DAA Score</div>
+    </div>
+
+    <div class="card">
+      <h3>Network Hashrate</h3>
+      <div class="stat-value" id="hashrate">Loading...</div>
+      <div class="stat-label">Hashes per second</div>
+    </div>
+
+    <div class="card">
+      <h3>Difficulty</h3>
+      <div class="stat-value" id="difficulty">Loading...</div>
+      <div class="stat-label">Current network difficulty</div>
+    </div>
+
+    <div class="card">
+      <h3>Mempool</h3>
+      <div class="stat-value" id="mempoolSize">Loading...</div>
+      <div class="stat-label">Pending transactions</div>
+    </div>
+
+    <div class="card">
+      <h3>Connected Peers</h3>
+      <div class="stat-value" id="peerCount">Loading...</div>
+      <div class="stat-label">Network connections</div>
+    </div>
+
+    <div class="card">
+      <h3>Sync Status</h3>
+      <div class="stat-value" id="syncStatus">Loading...</div>
+      <div class="stat-label">Node synchronization</div>
+    </div>
+
+    <div class="card blocks-container">
+      <h3>Latest Blocks</h3>
+      <div id="latestBlocks">Loading live blocks...</div>
+    </div>
+
+    <div class="card blocks-container">
+      <h3>Node Information</h3>
+      <div id="nodeInfo">
+        <div><strong>Version:</strong> <span id="nodeVersion">-</span></div>
+        <div><strong>Uptime:</strong> <span id="nodeUptime">-</span></div>
+        <div><strong>Last Update:</strong> <span id="lastUpdate">-</span></div>
+      </div>
+    </div>
   </div>
 
-  <div class="box">
-    <h3>Preregistrations (admin)</h3>
-    <pre id="prereg">-</pre>
-  </div>
+  <script>
+    const API_BASE = 'http://localhost:4100/api/kaspa-enhanced';
+    let isConnected = false;
+    let updateInterval;
 
-  <div class="box">
-    <h3>Complete Registration</h3>
-    <p>Send 1 KAS to the target address from your Kaspa wallet, then pick the prereg tx and sign to complete.</p>
-    <label>Prereg TX: <input id="preregTx" style="width:420px"/></label><br/><br/>
-    <label>Username: <input id="username"/></label><br/><br/>
-    <button id="complete">Complete (MetaMask sign)</button>
-    <div>Reference: <span id="qrRef">-</span></div>
-    <img id="qrCode" style="margin-top:8px; display:block" />
-    <p id="result"></p>
-  </div>
+    // Update connection status indicator
+    function updateConnectionStatus(connected) {
+      const status = document.getElementById('connectionStatus');
+      if (connected) {
+        status.textContent = '🟢 Connected to Ubuntu Node';
+        status.className = 'connection-status connected';
+      } else {
+        status.textContent = '🔴 Ubuntu Node Offline';
+        status.className = 'connection-status disconnected';
+      }
+      isConnected = connected;
+    }
 
-  <div class="box">
-    <h3>Wallet Auth (MetaMask)</h3>
-    <p>Login or register using wallet signature via the main API.</p>
-    <button id="connect">Connect Wallet</button>
-    <div id="walletInfo">Not connected</div>
-    <button id="checkReg">Check Registered</button>
-    <button id="getNonce">Get Nonce</button>
-    <input id="regUsername" placeholder="username" />
+    // Format large numbers for display
+    function formatNumber(num) {
+      if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'G';
+      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+      return num.toString();
+    }
+
+    // Fetch live stats from Ubuntu node
+    async function fetchLiveStats() {
+      try {
+        const response = await fetch(`${API_BASE}/stats`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const stats = await response.json();
+        
+        // Update all stat displays
+        document.getElementById('blockHeight').textContent = formatNumber(stats.blockHeight);
+        document.getElementById('hashrate').textContent = formatNumber(stats.networkHashrate) + ' H/s';
+        document.getElementById('difficulty').textContent = formatNumber(stats.difficulty);
+        document.getElementById('mempoolSize').textContent = stats.mempoolSize || '0';
+        document.getElementById('peerCount').textContent = stats.connectedPeers || '0';
+        document.getElementById('syncStatus').textContent = stats.syncProgress + '%';
+        document.getElementById('nodeVersion').textContent = stats.nodeVersion || 'Unknown';
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        
+        updateConnectionStatus(true);
+        
+      } catch (error) {
+        console.error('Failed to fetch live stats:', error);
+        updateConnectionStatus(false);
+        
+        // Show error message
+        const dashboard = document.getElementById('dashboard');
+        const existingError = document.querySelector('.error-message');
+        if (!existingError) {
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'error-message';
+          errorDiv.innerHTML = `
+            <strong>⚠️ Cannot connect to Ubuntu Kaspa Node</strong><br>
+            Error: ${error.message}<br>
+            Ensure your Kaspa node is running on localhost:16110
+          `;
+          dashboard.insertBefore(errorDiv, dashboard.firstChild);
+        }
+      }
+    }
+
+    // Fetch live blocks from Ubuntu node  
+    async function fetchLiveBlocks() {
+      try {
+        const response = await fetch(`${API_BASE}/blocks/latest?limit=5`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const blocks = await response.json();
+        const container = document.getElementById('latestBlocks');
+        
+        if (blocks.length > 0) {
+          container.innerHTML = blocks.map(block => `
+            <div class="block-item">
+              <div>
+                <strong>${block.hash.substring(0, 12)}...</strong><br>
+                <small>${block.transactions} txns, ${formatNumber(block.size)} bytes</small>
+              </div>
+              <div>
+                <strong>#${formatNumber(block.blueScore)}</strong><br>
+                <small>${new Date(block.timestamp).toLocaleTimeString()}</small>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = '<div class="block-item">No live blocks available</div>';
+        }
+        
+      } catch (error) {
+        console.error('Failed to fetch live blocks:', error);
+        document.getElementById('latestBlocks').innerHTML = 
+          '<div class="block-item">Error loading live blocks</div>';
+      }
+    }
+
+    // Start live updates
+    function startLiveUpdates() {
+      // Initial load
+      fetchLiveStats();
+      fetchLiveBlocks();
+      
+      // Update every second for live data
+      updateInterval = setInterval(() => {
+        fetchLiveStats();
+        fetchLiveBlocks();
+      }, 1000);
+    }
+
+    // Initialize dashboard on page load
+    document.addEventListener('DOMContentLoaded', startLiveUpdates);
+  </script>
+</body>
+</html>
     <button id="registerBtn">Register (sign & send)</button>
     <button id="loginBtn">Login (sign & send)</button>
     <pre id="authResult">-</pre>
