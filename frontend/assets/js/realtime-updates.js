@@ -33,16 +33,19 @@ class RealtimeDataManager {
         this.liveTxs = [];
     }
     
-    // WebSocket Connection (wenn Backend WebSocket hat)
+    // WebSocket Connection (optional - nur wenn Backend WebSocket hat)
     initWebSocket() {
-        const wsUrl = 'wss://klassik.99pace.space/ws'; // Backend WebSocket
+        const wsUrl = 'wss://klassik.99pace.space/ws';
+        
+        // Check if WebSocket is available on backend (optional feature)
+        console.log('🔌 Attempting WebSocket connection (optional)...');
         
         try {
             this.ws = new WebSocket(wsUrl);
             
             this.ws.onopen = () => {
                 console.log('✅ WebSocket connected');
-                showUserNotification('Real-time updates connected', 'success');
+                showUserNotification('Real-time WebSocket connected', 'success');
                 
                 // Subscribe to channels
                 this.ws.send(JSON.stringify({
@@ -61,19 +64,19 @@ class RealtimeDataManager {
             };
             
             this.ws.onerror = (error) => {
-                console.error('❌ WebSocket error:', error);
-                showUserNotification('Real-time connection error', 'error');
+                // Don't show error - WebSocket is optional
+                console.log('ℹ️ WebSocket not available, using fast polling instead');
             };
             
             this.ws.onclose = () => {
-                console.warn('⚠️ WebSocket disconnected, reconnecting...');
-                setTimeout(() => this.initWebSocket(), REALTIME_CONFIG.WS_RECONNECT_DELAY);
+                console.log('ℹ️ WebSocket closed - using polling mode');
+                // Don't reconnect - fallback to polling is fine
+                this.ws = null;
             };
             
         } catch (error) {
-            console.error('WebSocket init failed:', error);
-            // Fallback zu schnellem Polling
-            this.startFastPolling();
+            console.log('ℹ️ WebSocket not supported, using fast polling');
+            // Fallback to fast polling (already started)
         }
     }
     

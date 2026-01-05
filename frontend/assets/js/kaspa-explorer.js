@@ -576,17 +576,28 @@ async function fetchNetworkInfo() {
             dailyTransactions: null // Wird aus Block-Daten berechnet
         };
         
-        // Backend enthält bereits CoinGecko-Daten in statsData.price
+        // Backend CoinGecko-Daten - Debug ausgeben
+        console.log('📊 Full statsData:', statsData);
+        console.log('💰 Price field:', statsData?.price);
+        console.log('📈 Marketcap field:', statsData?.marketCap);
+        
+        // Backend structure: { price: {...}, marketCap: {...} }
+        // where price/marketCap could be the final objects or wrapped
+        const priceData = statsData?.price || {};
+        const marketCapData = statsData?.marketCap || statsData?.marketcap || {};
+        
         state.price = {
-            current: statsData?.price?.usd || null,
-            change24h: statsData?.price?.usd_24h_change || null,
-            change7d: statsData?.price?.usd_7d_change || null,
-            marketCap: statsData?.marketcap?.usd || null,
-            volume24h: statsData?.price?.usd_24h_vol || null,
-            ath: statsData?.price?.ath || null,  // NUR echte Daten vom Backend
-            athDate: statsData?.price?.ath_date || null,
-            rank: statsData?.price?.market_cap_rank || 'N/A'
+            current: priceData?.usd || priceData?.price || priceData?.kaspa?.usd || null,
+            change24h: priceData?.usd_24h_change || priceData?.change24h || null,
+            change7d: priceData?.usd_7d_change || priceData?.change7d || null,
+            marketCap: marketCapData?.usd || marketCapData?.marketcap || null,
+            volume24h: priceData?.usd_24h_vol || priceData?.volume24h || null,
+            ath: priceData?.ath || null,
+            athDate: priceData?.ath_date || null,
+            rank: priceData?.market_cap_rank || priceData?.rank || 'N/A'
         };
+        
+        console.log('💵 Parsed price state:', state.price);
         
         console.log('✅ Network State:', state.network);
         console.log('✅ Price State:', state.price);
@@ -715,8 +726,15 @@ async function fetchLatestBlocks() {
             showUserNotification('Failed to load blocks data', 'error');
         }
         
-        if (blocksData && Array.isArray(blocksData)) {
-            state.blocks = blocksData.slice(0, 20).map(block => ({
+        // Handle both array and object responses
+        let blocksArray = Array.isArray(blocksData) ? blocksData : 
+                         (blocksData?.blocks ? blocksData.blocks : 
+                         Object.values(blocksData || {}).filter(v => v && typeof v === 'object' && !v._cachedAt));
+        
+        console.log('📦 Blocks array:', blocksArray.length, 'items');
+        
+        if (blocksArray && blocksArray.length > 0) {
+            state.blocks = blocksArray.slice(0, 20).map(block => ({
                 hash: block.hash || block.blockHash || generateMockHash(),
                 timestamp: block.timestamp || block.time || Date.now(),
                 transactions: block.txCount || block.transactionCount || block.transactions?.length || 0,
@@ -807,8 +825,15 @@ async function fetchLatestTransactions() {
             showUserNotification('Failed to load transactions', 'error');
         }
         
-        if (txData && txData.transactions && Array.isArray(txData.transactions)) {
-            state.transactions = txData.transactions.slice(0, 20).map(tx => ({
+        // Handle different response structures
+        let txArray = Array.isArray(txData) ? txData :
+                     (Array.isArray(txData?.transactions) ? txData.transactions :
+                     Object.values(txData?.transactions || {}).filter(v => v && typeof v === 'object'));
+        
+        console.log('💸 Transactions array:', txArray.length, 'items');
+        
+        if (txArray && txArray.length > 0) {
+            state.transactions = txArray.slice(0, 20).map(tx => ({
                 hash: tx.hash || tx.transaction_id || generateMockHash(),
                 from: tx.inputs?.[0]?.previous_outpoint_address || 'N/A',
                 to: tx.outputs?.[0]?.script_public_key_address || 'N/A',

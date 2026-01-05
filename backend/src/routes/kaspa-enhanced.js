@@ -140,8 +140,30 @@ router.get('/stats', async (req, res) => {
         callKaspaAPI('/info/blockreward'),
         callKaspaAPI('/info/halving'),
         callKaspaAPI('/info/hashrate'),
-        callKaspaAPI('/info/price'),
-        callKaspaAPI('/info/marketcap')
+        callKaspaAPI('/info/price').catch(() => {
+          // Fallback: Fetch directly from CoinGecko if kaspa-rest-server doesn't have it
+          return axios.get(`${KASPA_APIS.coingecko}/simple/price`, {
+            params: {
+              ids: 'kaspa',
+              vs_currencies: 'usd',
+              include_24hr_change: true,
+              include_24hr_vol: true,
+              include_market_cap: true
+            },
+            timeout: 5000
+          }).then(res => ({ price: res.data.kaspa }));
+        }),
+        callKaspaAPI('/info/marketcap').catch(() => {
+          // Fallback: Already included in CoinGecko response above
+          return axios.get(`${KASPA_APIS.coingecko}/simple/price`, {
+            params: {
+              ids: 'kaspa',
+              vs_currencies: 'usd',
+              include_market_cap: true
+            },
+            timeout: 5000
+          }).then(res => ({ marketcap: res.data.kaspa }));
+        })
       ]);
 
       const result = {
