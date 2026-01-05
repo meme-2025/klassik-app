@@ -8,6 +8,7 @@ import DiceGame from './components/games/DiceGame';
 import CrashGame from './components/games/CrashGame';
 import RouletteGame from './components/games/RouletteGame';
 import SlotsGame from './components/games/SlotsGame';
+import RushGame from './components/games/RushGame';
 import WalletConnect from './components/WalletConnect';
 import Leaderboard from './components/Leaderboard';
 import Profile from './components/Profile';
@@ -52,6 +53,7 @@ function App() {
           <Route path="/game/crash/:sessionId?" element={<CrashGame />} />
           <Route path="/game/roulette/:sessionId?" element={<RouletteGame />} />
           <Route path="/game/slots/:sessionId?" element={<SlotsGame />} />
+          <Route path="/game/rush/:lobbyId?" element={<RushGame />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>

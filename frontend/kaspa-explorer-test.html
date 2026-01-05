@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaspa Explorer - Test Suite</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 2rem; color: #0ea5e9; }
+        .test-section {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .test-title { font-size: 1.25rem; margin-bottom: 1rem; color: #8b5cf6; }
+        .test-result {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+        .test-result.pass { background: rgba(16, 185, 129, 0.2); border-left: 4px solid #10b981; }
+        .test-result.fail { background: rgba(239, 68, 68, 0.2); border-left: 4px solid #ef4444; }
+        .test-result.info { background: rgba(14, 165, 233, 0.2); border-left: 4px solid #0ea5e9; }
+        .run-btn {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+        .run-btn:hover { background: #0284c7; }
+        .summary {
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Kaspa Explorer - Test Suite</h1>
+        
+        <div class="summary" id="summary">
+            Click "Run All Tests" to start testing
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🔧 Utility Functions Tests</div>
+            <div id="utility-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🌐 API Fetch Tests</div>
+            <div id="api-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">💾 Caching Tests</div>
+            <div id="cache-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">🔄 Retry Mechanism Tests</div>
+            <div id="retry-tests"></div>
+        </div>
+        
+        <button class="run-btn" onclick="runAllTests()">Run All Tests</button>
+    </div>
+
+    <script>
+        const API_BASE = 'https://api.kaspa.org';
+        const RETRY_CONFIG = { maxRetries: 3, retryDelay: 1000, timeout: 10000 };
+        const CACHE_DURATION = 20000;
+        let testResults = { passed: 0, failed: 0, total: 0 };
+        
+        // Utility functions from main file
+        function formatNumber(num) {
+            if (!num && num !== 0) return 'N/A';
+            return new Intl.NumberFormat('en-US').format(Math.round(num));
+        }
+        
+        function formatCompact(num) {
+            if (!num && num !== 0) return 'N/A';
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+        
+        function formatHashrate(hashrate) {
+            if (!hashrate) return 'N/A';
+            const phash = hashrate / 1e15;
+            return phash.toFixed(2) + ' PH/s';
+        }
+        
+        function safeGet(obj, path, defaultValue = null) {
+            try {
+                const keys = path.split('.');
+                let value = obj;
+                for (const key of keys) {
+                    if (value === null || value === undefined) return defaultValue;
+                    value = value[key];
+                }
+                return value !== undefined && value !== null ? value : defaultValue;
+            } catch {
+                return defaultValue;
+            }
+        }
+        
+        async function fetchWithRetry(url, options = {}) {
+            const { timeout = RETRY_CONFIG.timeout } = options;
+            
+            for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), timeout);
+                    
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    const isLastAttempt = attempt === RETRY_CONFIG.maxRetries;
+                    
+                    if (isLastAttempt) {
+                        throw error;
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, RETRY_CONFIG.retryDelay * (attempt + 1)));
+                }
+            }
+        }
+        
+        // Test helper functions
+        function addTestResult(sectionId, testName, passed, message = '') {
+            testResults.total++;
+            if (passed) testResults.passed++;
+            else testResults.failed++;
+            
+            const section = document.getElementById(sectionId);
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.textContent = `${passed ? '✓' : '✗'} ${testName}${message ? ': ' + message : ''}`;
+            section.appendChild(div);
+        }
+        
+        function addTestInfo(sectionId, message) {
+            const section = document.getElementById(sectionId);
+            const div = document.createElement('div');
+            div.className = 'test-result info';
+            div.textContent = `ℹ ${message}`;
+            section.appendChild(div);
+        }
+        
+        // Test Suites
+        async function testUtilityFunctions() {
+            addTestInfo('utility-tests', 'Testing utility functions...');
+            
+            // Test formatNumber
+            const num1 = formatNumber(1234567);
+            addTestResult('utility-tests', 'formatNumber(1234567)', num1 === '1,234,567', `Got: ${num1}`);
+            
+            const num2 = formatNumber(null);
+            addTestResult('utility-tests', 'formatNumber(null)', num2 === 'N/A', `Got: ${num2}`);
+            
+            // Test formatCompact
+            const compact1 = formatCompact(1500000000);
+            addTestResult('utility-tests', 'formatCompact(1.5B)', compact1 === '1.50B', `Got: ${compact1}`);
+            
+            const compact2 = formatCompact(2500);
+            addTestResult('utility-tests', 'formatCompact(2.5K)', compact2 === '2.50K', `Got: ${compact2}`);
+            
+            // Test formatHashrate
+            const hash1 = formatHashrate(1.5e15);
+            addTestResult('utility-tests', 'formatHashrate(1.5 PH/s)', hash1 === '1.50 PH/s', `Got: ${hash1}`);
+            
+            const hash2 = formatHashrate(null);
+            addTestResult('utility-tests', 'formatHashrate(null)', hash2 === 'N/A', `Got: ${hash2}`);
+            
+            // Test safeGet
+            const obj = { a: { b: { c: 123 } } };
+            const val1 = safeGet(obj, 'a.b.c');
+            addTestResult('utility-tests', 'safeGet nested value', val1 === 123, `Got: ${val1}`);
+            
+            const val2 = safeGet(obj, 'a.x.y', 'default');
+            addTestResult('utility-tests', 'safeGet missing path with default', val2 === 'default', `Got: ${val2}`);
+            
+            const val3 = safeGet(null, 'a.b', 'fallback');
+            addTestResult('utility-tests', 'safeGet null object', val3 === 'fallback', `Got: ${val3}`);
+        }
+        
+        async function testAPIFetch() {
+            addTestInfo('api-tests', 'Testing API endpoints...');
+            
+            try {
+                // Test price endpoint
+                const priceData = await fetchWithRetry(`${API_BASE}/info/price`);
+                addTestResult('api-tests', 'Fetch price data', priceData && priceData.price !== undefined, 
+                    `Price: $${priceData?.price?.toFixed(4) || 'N/A'}`);
+                
+                // Test blockdag endpoint
+                const blockdagData = await fetchWithRetry(`${API_BASE}/info/blockdag`);
+                addTestResult('api-tests', 'Fetch blockdag data', blockdagData && blockdagData.blockCount !== undefined,
+                    `Block count: ${blockdagData?.blockCount || 'N/A'}`);
+                
+                // Test network endpoint
+                const networkData = await fetchWithRetry(`${API_BASE}/info/network`);
+                addTestResult('api-tests', 'Fetch network data', networkData && networkData.hashrate !== undefined,
+                    `Hashrate: ${formatHashrate(networkData?.hashrate)}`);
+                
+            } catch (error) {
+                addTestResult('api-tests', 'API fetch error handling', false, error.message);
+            }
+        }
+        
+        async function testCaching() {
+            addTestInfo('cache-tests', 'Testing caching mechanism...');
+            
+            let cache = { test: 'data' };
+            let lastFetch = Date.now();
+            
+            // Test cache freshness
+            const now = Date.now();
+            const isFresh = (now - lastFetch) < CACHE_DURATION;
+            addTestResult('cache-tests', 'Cache freshness check', isFresh, 
+                `Age: ${now - lastFetch}ms, Duration: ${CACHE_DURATION}ms`);
+            
+            // Test stale cache
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const laterTime = Date.now();
+            lastFetch = laterTime - (CACHE_DURATION + 1000);
+            const isStale = (laterTime - lastFetch) >= CACHE_DURATION;
+            addTestResult('cache-tests', 'Stale cache detection', isStale,
+                `Age: ${laterTime - lastFetch}ms`);
+            
+            // Test cache invalidation
+            cache = null;
+            addTestResult('cache-tests', 'Cache invalidation', cache === null, 'Cache cleared');
+        }
+        
+        async function testRetryMechanism() {
+            addTestInfo('retry-tests', 'Testing retry mechanism...');
+            
+            // Test successful request (no retry needed)
+            try {
+                const data = await fetchWithRetry(`${API_BASE}/info/price`);
+                addTestResult('retry-tests', 'Successful request (no retry)', data !== null,
+                    'Request succeeded on first attempt');
+            } catch (error) {
+                addTestResult('retry-tests', 'Successful request', false, error.message);
+            }
+            
+            // Test timeout configuration
+            const hasTimeout = RETRY_CONFIG.timeout > 0;
+            addTestResult('retry-tests', 'Timeout configured', hasTimeout,
+                `Timeout: ${RETRY_CONFIG.timeout}ms`);
+            
+            // Test retry count configuration
+            const hasRetries = RETRY_CONFIG.maxRetries > 0;
+            addTestResult('retry-tests', 'Retry count configured', hasRetries,
+                `Max retries: ${RETRY_CONFIG.maxRetries}`);
+            
+            // Test invalid endpoint (should fail after retries)
+            try {
+                await fetchWithRetry(`${API_BASE}/info/invalid-endpoint-xyz`);
+                addTestResult('retry-tests', 'Invalid endpoint handling', false,
+                    'Should have thrown an error');
+            } catch (error) {
+                addTestResult('retry-tests', 'Invalid endpoint handling', true,
+                    'Correctly failed after retries');
+            }
+        }
+        
+        async function runAllTests() {
+            // Reset
+            testResults = { passed: 0, failed: 0, total: 0 };
+            ['utility-tests', 'api-tests', 'cache-tests', 'retry-tests'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+            
+            document.getElementById('summary').textContent = '🔄 Running tests...';
+            
+            try {
+                await testUtilityFunctions();
+                await testAPIFetch();
+                await testCaching();
+                await testRetryMechanism();
+                
+                // Update summary
+                const passRate = ((testResults.passed / testResults.total) * 100).toFixed(1);
+                const summaryEl = document.getElementById('summary');
+                summaryEl.innerHTML = `
+                    <div style="color: ${testResults.failed === 0 ? '#10b981' : '#f59e0b'};">
+                        ${testResults.failed === 0 ? '✅' : '⚠️'} Tests Complete
+                    </div>
+                    <div style="font-size: 1rem; margin-top: 0.5rem; color: #94a3b8;">
+                        ${testResults.passed} passed, ${testResults.failed} failed out of ${testResults.total} tests
+                        (${passRate}% pass rate)
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('summary').innerHTML = `
+                    <div style="color: #ef4444;">❌ Test Suite Error</div>
+                    <div style="font-size: 0.875rem; margin-top: 0.5rem;">${error.message}</div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

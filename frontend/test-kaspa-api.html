@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaspa API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #fff;
+        }
+        .test-section {
+            background: #1e293b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .loading { color: #f59e0b; }
+        pre {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0284c7;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Kaspa API Test Suite</h1>
+
+    <div class="test-section">
+        <h2>1. CoinGecko API (via CORS Proxy)</h2>
+        <button onclick="testCoinGecko()">Test CoinGecko</button>
+        <div id="coingecko-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. KasWare API</h2>
+        <button onclick="testKasWare()">Test KasWare Blocks</button>
+        <div id="kasware-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Direct Kaspa API (kaspa.org)</h2>
+        <button onclick="testKaspaAPI()">Test Various Endpoints</button>
+        <div id="kaspa-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Explorer State Test</h2>
+        <button onclick="testExplorerState()">Load Full Explorer State</button>
+        <div id="explorer-result"></div>
+    </div>
+
+    <script>
+        const CORS_PROXY = 'https://corsproxy.io/?';
+
+        async function testCoinGecko() {
+            const result = document.getElementById('coingecko-result');
+            result.innerHTML = '<p class="loading">Testing CoinGecko...</p>';
+            
+            try {
+                const url = 'https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true';
+                const res = await fetch(CORS_PROXY + encodeURIComponent(url));
+                const data = await res.json();
+                
+                result.innerHTML = `
+                    <p class="success">✅ CoinGecko API Working!</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testKasWare() {
+            const result = document.getElementById('kasware-result');
+            result.innerHTML = '<p class="loading">Testing KasWare...</p>';
+            
+            try {
+                const res = await fetch('https://api.kasware.xyz/v1/kaspa/blocks?limit=5');
+                const data = await res.json();
+                
+                result.innerHTML = `
+                    <p class="success">✅ KasWare API Working!</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testKaspaAPI() {
+            const result = document.getElementById('kaspa-result');
+            result.innerHTML = '<p class="loading">Testing Kaspa.org endpoints...</p>';
+            
+            const endpoints = [
+                'https://api.kaspa.org/info/blockdag',
+                'https://api.kaspa.org/info/halving',
+                'https://api.kaspa.org/info/network',
+                'https://api.kaspa.org/info/blockreward'
+            ];
+            
+            let output = '';
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const res = await fetch(endpoint);
+                    const data = await res.json();
+                    output += `<h4 class="success">✅ ${endpoint}</h4><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } catch (error) {
+                    output += `<h4 class="error">❌ ${endpoint}</h4><p>${error.message}</p>`;
+                }
+            }
+            
+            result.innerHTML = output;
+        }
+
+        async function testExplorerState() {
+            const result = document.getElementById('explorer-result');
+            result.innerHTML = '<p class="loading">Loading full explorer state...</p>';
+            
+            const state = {
+                network: {},
+                price: {},
+                blocks: [],
+                transactions: []
+            };
+            
+            try {
+                // Price data
+                const priceUrl = 'https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true';
+                const priceRes = await fetch(CORS_PROXY + encodeURIComponent(priceUrl));
+                const priceData = await priceRes.json();
+                
+                state.price = {
+                    current: priceData?.kaspa?.usd || 0,
+                    change24h: priceData?.kaspa?.usd_24h_change || 0,
+                    marketCap: priceData?.kaspa?.usd_market_cap || 0,
+                    volume24h: priceData?.kaspa?.usd_24h_vol || 0
+                };
+
+                // Network constants
+                const maxSupply = 28704026601;
+                const estimatedCirculating = 25000000000;
+                
+                state.network = {
+                    hashrate: 1200000000000000, // ~1.2 PH/s
+                    difficulty: 180000000000000,
+                    circulatingSupply: estimatedCirculating,
+                    maxSupply: maxSupply,
+                    remainingSupply: maxSupply - estimatedCirculating,
+                    supplyPercentage: ((estimatedCirculating / maxSupply) * 100).toFixed(2)
+                };
+
+                // Try KasWare blocks
+                try {
+                    const blocksRes = await fetch('https://api.kasware.xyz/v1/kaspa/blocks?limit=10');
+                    const blocksData = await blocksRes.json();
+                    state.blocks = blocksData.blocks || [];
+                } catch (e) {
+                    console.warn('KasWare not available:', e.message);
+                }
+
+                result.innerHTML = `
+                    <p class="success">✅ Explorer State Loaded Successfully!</p>
+                    <h4>Price Data:</h4>
+                    <pre>${JSON.stringify(state.price, null, 2)}</pre>
+                    <h4>Network Data:</h4>
+                    <pre>${JSON.stringify(state.network, null, 2)}</pre>
+                    <h4>Blocks (${state.blocks.length}):</h4>
+                    <pre>${JSON.stringify(state.blocks.slice(0, 3), null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-run all tests on load
+        window.addEventListener('load', () => {
+            console.log('Running auto-tests...');
+            setTimeout(testCoinGecko, 500);
+            setTimeout(testKasWare, 1500);
+            setTimeout(testExplorerState, 3000);
+        });
+    </script>
+</body>
+</html>

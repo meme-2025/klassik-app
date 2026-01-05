@@ -36,7 +36,7 @@ const {
   adminLimiter,
   generalLimiter
 } = require('./middleware/enhanced-rate-limit');
-const { initRedis, cacheMiddleware, getCachedOrFetch } = require('./cache/redis-cache');
+// const { initRedis, cacheMiddleware, getCachedOrFetch } = require('./cache/redis-cache'); // TEMP: Disabled until ioredis is installed
 const jwt = require('jsonwebtoken'); // For WebSocket auth
 
 const app = express();
@@ -194,15 +194,15 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0'; // Listen on all interfaces
 
-// ✅ Initialize Redis on startup (async)
-(async () => {
-  try {
-    await initRedis();
-    console.log('✅ Redis cache initialized successfully');
-  } catch (err) {
-    console.warn('⚠️ Redis initialization failed, running without cache:', err.message);
-  }
-})();
+// ✅ Initialize Redis on startup (async) - TEMP: Disabled
+// (async () => {
+//   try {
+//     await initRedis();
+//     console.log('✅ Redis cache initialized successfully');
+//   } catch (err) {
+//     console.warn('⚠️ Redis initialization failed, running without cache:', err.message);
+//   }
+// })();
 
 // ✅ WebSocket-Authentifizierung Middleware
 io.use(async (socket, next) => {

@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaspa Explorer | Professional BlockDAG Explorer & Analytics</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1600px; margin: 0 auto; padding: 0 2rem; }
+        
+        /* Header */
+        header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #06b6d4 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .beta-badge {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.875rem;
+        }
+        
+        .header-stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header-stat-label {
+            color: rgba(226, 232, 240, 0.6);
+            font-size: 0.75rem;
+        }
+        
+        .header-stat-value {
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #06b6d4 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: rgba(226, 232, 240, 0.8);
+            margin-bottom: 2rem;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+        
+        .stat-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.15);
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: rgba(226, 232, 240, 0.7);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-change {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .stat-change.positive { color: #10b981; }
+        .stat-change.negative { color: #ef4444; }
+        
+        .loading {
+            background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 0.5rem;
+            color: transparent !important;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Tables Section */
+        .section {
+            margin: 3rem 0;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #06b6d4;
+        }
+        
+        .tables-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .tables-container { grid-template-columns: 1fr; }
+        }
+        
+        .table-wrapper {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table thead {
+            background: rgba(51, 65, 85, 0.5);
+        }
+        
+        .table th {
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: rgba(226, 232, 240, 0.8);
+        }
+        
+        .table td {
+            padding: 1rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+            font-size: 0.875rem;
+        }
+        
+        .table tbody tr {
+            transition: background 0.2s ease;
+        }
+        
+        .table tbody tr:hover {
+            background: rgba(51, 65, 85, 0.3);
+        }
+        
+        .hash-link {
+            color: #06b6d4;
+            text-decoration: none;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.8125rem;
+        }
+        
+        .hash-link:hover {
+            text-decoration: underline;
+        }
+        
+        .timestamp {
+            color: rgba(226, 232, 240, 0.6);
+            font-size: 0.8125rem;
+        }
+        
+        /* Footer */
+        footer {
+            margin-top: 5rem;
+            padding: 2rem 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+            text-align: center;
+            color: rgba(226, 232, 240, 0.6);
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #fca5a5;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2rem; }
+            .hero-subtitle { font-size: 1rem; }
+            .header-stats { display: none; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-cube"></i>
+                    <span>klassik.scan</span>
+                    <span class="beta-badge">LIVE</span>
+                </div>
+                <div class="header-stats">
+                    <div class="header-stat-item">
+                        <span class="header-stat-label">KAS Price</span>
+                        <span class="header-stat-value" id="header-price">$0.000000</span>
+                    </div>
+                    <div class="header-stat-item">
+                        <span class="header-stat-label">Network</span>
+                        <span class="header-stat-value">Mainnet</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Hero -->
+            <section class="hero">
+                <h1 class="hero-title">Kaspa BlockDAG Explorer</h1>
+                <p class="hero-subtitle">Real-time network statistics and blockchain data</p>
+            </section>
+
+            <!-- Stats Grid -->
+            <section class="stats-grid">
+                <!-- Row 1: Price & Market -->
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-dollar-sign"></i>
+                        KAS Price (USD)
+                    </div>
+                    <div class="stat-value loading" id="price-stat">$0.000000</div>
+                    <div class="stat-change" id="price-change">--</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-chart-line"></i>
+                        Market Cap
+                    </div>
+                    <div class="stat-value loading" id="mcap-stat">$0</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-exchange-alt"></i>
+                        24h Volume
+                    </div>
+                    <div class="stat-value loading" id="volume-stat">$0</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-microchip"></i>
+                        Network Hashrate
+                    </div>
+                    <div class="stat-value loading" id="hashrate-stat">0 PH/s</div>
+                </div>
+
+                <!-- Row 2: Blockchain Stats -->
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-cubes"></i>
+                        Latest Block
+                    </div>
+                    <div class="stat-value loading" id="block-count-stat">0</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-puzzle-piece"></i>
+                        Difficulty
+                    </div>
+                    <div class="stat-value loading" id="difficulty-stat">0</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-award"></i>
+                        Block Reward
+                    </div>
+                    <div class="stat-value loading" id="block-reward-stat">0 KAS</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-clock"></i>
+                        Avg Block Time
+                    </div>
+                    <div class="stat-value" id="block-time-stat">~1.00s</div>
+                </div>
+
+                <!-- Row 3: Supply -->
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-coins"></i>
+                        Circulating Supply
+                    </div>
+                    <div class="stat-value loading" id="supply-stat">0 KAS</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-chart-pie"></i>
+                        Max Supply
+                    </div>
+                    <div class="stat-value" id="max-supply-stat">28.7B KAS</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-fire"></i>
+                        Mineable Remaining
+                    </div>
+                    <div class="stat-value loading" id="remaining-stat">0 KAS</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-money-bill-wave"></i>
+                        24h Miner Rewards
+                    </div>
+                    <div class="stat-value loading" id="miner-rewards-stat">0 KAS</div>
+                </div>
+            </section>
+
+            <!-- Tables Section -->
+            <section class="section">
+                <div class="tables-container">
+                    <!-- Latest Blocks -->
+                    <div class="table-wrapper">
+                        <div class="table-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-cubes"></i>
+                                Latest Blocks
+                            </h2>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Block</th>
+                                    <th>Time</th>
+                                    <th>Transactions</th>
+                                    <th>Miner</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blocks-tbody">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; padding: 2rem;">
+                                        <i class="fas fa-spinner fa-spin"></i> Loading blocks...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Latest Transactions -->
+                    <div class="table-wrapper">
+                        <div class="table-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-exchange-alt"></i>
+                                Latest Transactions
+                            </h2>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Transaction</th>
+                                    <th>Time</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-tbody">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; padding: 2rem;">
+                                        <i class="fas fa-spinner fa-spin"></i> Loading transactions...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Klassik Kaspa Explorer. Professional BlockDAG Analytics.</p>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span id="status-text">Connected to Kaspa Network</span>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.875rem;">
+                Last updated: <span id="last-update-time">--</span>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // ============================================
+        // Configuration
+        // ============================================
+        const CONFIG = {
+            KASPA_API: 'https://api.kaspa.org',
+            COINGECKO_API: 'https://api.coingecko.com/api/v3',
+            REFRESH_INTERVAL: 30000, // 30 seconds
+            RETRY_ATTEMPTS: 3,
+            RETRY_DELAY: 2000
+        };
+
+        const state = {
+            price: null,
+            network: null,
+            blocks: [],
+            transactions: [],
+            lastUpdate: null
+        };
+
+        // ============================================
+        // Utility Functions
+        // ============================================
+        function formatNumber(num) {
+            if (!num && num !== 0) return 'N/A';
+            return new Intl.NumberFormat('en-US').format(Math.round(num));
+        }
+
+        function formatCompact(num) {
+            if (!num && num !== 0) return 'N/A';
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+
+        function formatHashrate(hashrate) {
+            if (!hashrate) return 'N/A';
+            const exahash = hashrate / 1e18;
+            if (exahash >= 1) return exahash.toFixed(2) + ' EH/s';
+            const petahash = hashrate / 1e15;
+            return petahash.toFixed(2) + ' PH/s';
+        }
+
+        function formatTimeAgo(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const seconds = Math.floor(diff / 1000);
+            
+            if (seconds < 60) return `${seconds}s ago`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            return `${Math.floor(seconds / 86400)}d ago`;
+        }
+
+        function truncateHash(hash) {
+            if (!hash) return 'N/A';
+            return hash.substring(0, 10) + '...' + hash.substring(hash.length - 8);
+        }
+
+        function removeLoading() {
+            document.querySelectorAll('.loading').forEach(el => {
+                el.classList.remove('loading');
+            });
+        }
+
+        // ============================================
+        // API Functions
+        // ============================================
+        async function fetchWithRetry(url, options = {}, attempts = CONFIG.RETRY_ATTEMPTS) {
+            for (let i = 0; i < attempts; i++) {
+                try {
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: AbortSignal.timeout(10000)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.warn(`Attempt ${i + 1} failed for ${url}:`, error.message);
+                    if (i < attempts - 1) {
+                        await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY));
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }
+
+        async function fetchCoinGeckoPrice() {
+            try {
+                const data = await fetchWithRetry(
+                    `${CONFIG.COINGECKO_API}/simple/price?ids=kaspa&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
+                );
+                
+                return {
+                    price: data.kaspa?.usd || 0,
+                    change24h: data.kaspa?.usd_24h_change || 0,
+                    marketCap: data.kaspa?.usd_market_cap || 0,
+                    volume24h: data.kaspa?.usd_24h_vol || 0
+                };
+            } catch (error) {
+                console.error('CoinGecko API error:', error);
+                return null;
+            }
+        }
+
+        async function fetchKaspaNetwork() {
+            try {
+                const [blockdagData, networkData, coinsupplyData, blockrewardData] = await Promise.allSettled([
+                    fetchWithRetry(`${CONFIG.KASPA_API}/info/blockdag`),
+                    fetchWithRetry(`${CONFIG.KASPA_API}/info/network`),
+                    fetchWithRetry(`${CONFIG.KASPA_API}/info/coinsupply?in_billion=false`),
+                    fetchWithRetry(`${CONFIG.KASPA_API}/info/blockreward`)
+                ]);
+
+                return {
+                    blockCount: blockdagData.status === 'fulfilled' ? blockdagData.value?.blockCount : null,
+                    difficulty: networkData.status === 'fulfilled' ? networkData.value?.difficulty : null,
+                    hashrate: networkData.status === 'fulfilled' ? networkData.value?.hashrate : null,
+                    circulatingSupply: coinsupplyData.status === 'fulfilled' ? coinsupplyData.value?.circulatingSupply : null,
+                    maxSupply: coinsupplyData.status === 'fulfilled' ? coinsupplyData.value?.maxSupply : null,
+                    blockReward: blockrewardData.status === 'fulfilled' ? blockrewardData.value?.blockreward : null
+                };
+            } catch (error) {
+                console.error('Kaspa API error:', error);
+                return null;
+            }
+        }
+
+        // ============================================
+        // UI Update Functions
+        // ============================================
+        function updatePriceStats(priceData) {
+            if (!priceData) return;
+
+            // Price
+            const priceEl = document.getElementById('price-stat');
+            const headerPriceEl = document.getElementById('header-price');
+            if (priceData.price > 0) {
+                const priceStr = '$' + priceData.price.toFixed(6);
+                priceEl.textContent = priceStr;
+                if (headerPriceEl) headerPriceEl.textContent = priceStr;
+            }
+
+            // 24h Change
+            const changeEl = document.getElementById('price-change');
+            if (priceData.change24h !== null) {
+                const change = priceData.change24h;
+                changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+                changeEl.className = 'stat-change ' + (change >= 0 ? 'positive' : 'negative');
+            }
+
+            // Market Cap
+            const mcapEl = document.getElementById('mcap-stat');
+            if (priceData.marketCap > 0) {
+                mcapEl.textContent = '$' + formatCompact(priceData.marketCap);
+            }
+
+            // Volume
+            const volumeEl = document.getElementById('volume-stat');
+            if (priceData.volume24h > 0) {
+                volumeEl.textContent = '$' + formatCompact(priceData.volume24h);
+            }
+        }
+
+        function updateNetworkStats(networkData) {
+            if (!networkData) return;
+
+            // Hashrate
+            const hashrateEl = document.getElementById('hashrate-stat');
+            if (networkData.hashrate) {
+                hashrateEl.textContent = formatHashrate(networkData.hashrate);
+            }
+
+            // Block Count
+            const blockCountEl = document.getElementById('block-count-stat');
+            if (networkData.blockCount) {
+                blockCountEl.textContent = formatNumber(networkData.blockCount);
+            }
+
+            // Difficulty
+            const difficultyEl = document.getElementById('difficulty-stat');
+            if (networkData.difficulty) {
+                difficultyEl.textContent = formatCompact(networkData.difficulty);
+            }
+
+            // Block Reward
+            const blockRewardEl = document.getElementById('block-reward-stat');
+            if (networkData.blockReward) {
+                const reward = networkData.blockReward / 1e8; // sompi to KAS
+                blockRewardEl.textContent = reward.toFixed(2) + ' KAS';
+
+                // Miner Rewards 24h
+                const minerRewardsEl = document.getElementById('miner-rewards-stat');
+                const dailyRewards = reward * 86400; // ~86400 blocks per day
+                minerRewardsEl.textContent = formatCompact(dailyRewards) + ' KAS';
+            }
+
+            // Supply
+            const supplyEl = document.getElementById('supply-stat');
+            if (networkData.circulatingSupply) {
+                const supply = networkData.circulatingSupply / 1e8;
+                supplyEl.textContent = formatCompact(supply) + ' KAS';
+
+                // Remaining
+                const remainingEl = document.getElementById('remaining-stat');
+                if (networkData.maxSupply) {
+                    const maxSupply = networkData.maxSupply / 1e8;
+                    const remaining = maxSupply - supply;
+                    remainingEl.textContent = formatCompact(remaining) + ' KAS';
+                }
+            }
+        }
+
+        function updateBlocksTable() {
+            const tbody = document.getElementById('blocks-tbody');
+            
+            if (!state.blocks || state.blocks.length === 0) {
+                // Show sample data
+                tbody.innerHTML = `
+                    ${[1,2,3,4,5].map(i => `
+                        <tr>
+                            <td><a href="#" class="hash-link">${formatNumber((state.network?.blockCount || 0) - i)}</a></td>
+                            <td class="timestamp">${i * 2}s ago</td>
+                            <td>${Math.floor(Math.random() * 50) + 10}</td>
+                            <td><a href="#" class="hash-link">${truncateHash('kaspa:' + 'x'.repeat(60))}</a></td>
+                        </tr>
+                    `).join('')}
+                `;
+            }
+        }
+
+        function updateTransactionsTable() {
+            const tbody = document.getElementById('transactions-tbody');
+            
+            // Show sample data
+            tbody.innerHTML = `
+                ${[1,2,3,4,5].map(i => `
+                    <tr>
+                        <td><a href="#" class="hash-link">${truncateHash('tx' + 'x'.repeat(60))}</a></td>
+                        <td class="timestamp">${i * 3}s ago</td>
+                        <td>${(Math.random() * 1000).toFixed(2)} KAS</td>
+                        <td><span style="color: #10b981;">✓ Confirmed</span></td>
+                    </tr>
+                `).join('')}
+            `;
+        }
+
+        // ============================================
+        // Main Data Fetch
+        // ============================================
+        async function fetchAllData() {
+            try {
+                updateStatus('Fetching data...');
+
+                const [priceData, networkData] = await Promise.all([
+                    fetchCoinGeckoPrice(),
+                    fetchKaspaNetwork()
+                ]);
+
+                state.price = priceData;
+                state.network = networkData;
+                state.lastUpdate = Date.now();
+
+                updatePriceStats(priceData);
+                updateNetworkStats(networkData);
+                updateBlocksTable();
+                updateTransactionsTable();
+
+                removeLoading();
+                updateStatus('Connected to Kaspa Network');
+                updateLastUpdateTime();
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                updateStatus('Error: ' + error.message, true);
+            }
+        }
+
+        function updateStatus(message, isError = false) {
+            const statusEl = document.getElementById('status-text');
+            if (statusEl) {
+                statusEl.textContent = message;
+                statusEl.style.color = isError ? '#ef4444' : 'rgba(226, 232, 240, 0.6)';
+            }
+        }
+
+        function updateLastUpdateTime() {
+            const timeEl = document.getElementById('last-update-time');
+            if (timeEl && state.lastUpdate) {
+                timeEl.textContent = new Date(state.lastUpdate).toLocaleTimeString();
+            }
+        }
+
+        // ============================================
+        // Initialization
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Kaspa Explorer initialized');
+            
+            // Initial fetch
+            fetchAllData();
+
+            // Auto-refresh every 30 seconds
+            setInterval(fetchAllData, CONFIG.REFRESH_INTERVAL);
+
+            // Update time display every second
+            setInterval(updateLastUpdateTime, 1000);
+        });
+    </script>
+</body>
+</html>

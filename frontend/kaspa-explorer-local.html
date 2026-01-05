@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaspa Explorer Pro | Live BlockDAG Analytics</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        h1 { 
+            text-align: center; 
+            font-size: 2.5rem; 
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #06b6d4 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 1rem;
+            color: rgba(226, 232, 240, 0.6);
+            margin-bottom: 2rem;
+        }
+        .section {
+            margin-bottom: 2.5rem;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #06b6d4;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .stat-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card.chart-card {
+            grid-column: span 2;
+        }
+        @media (max-width: 1024px) {
+            .stat-card.chart-card { grid-column: span 1; }
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.15);
+            border-color: rgba(14, 165, 233, 0.3);
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: rgba(226, 232, 240, 0.7);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .stat-subtitle {
+            font-size: 0.75rem;
+            color: rgba(226, 232, 240, 0.5);
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: block;
+            min-height: 2rem;
+            transition: opacity 0.3s ease;
+        }
+        .stat-value.loading {
+            background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+            color: transparent;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .stat-change {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: inline-block;
+        }
+        .stat-change.positive { color: #10b981; }
+        .stat-change.negative { color: #ef4444; }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(51, 65, 85, 0.5);
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #06b6d4, #a855f7);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-top: 1rem;
+        }
+        .loading { opacity: 0.5; font-size: 1rem; }
+        .error { color: #ef4444; font-size: 0.875rem; }
+        .last-update {
+            text-align: center;
+            color: rgba(226, 232, 240, 0.6);
+            font-size: 0.875rem;
+            margin-top: 2rem;
+        }
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        .status-indicator.active { background: #10b981; }
+        .status-indicator.error { background: #ef4444; animation: none; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .refresh-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(14, 165, 233, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 3.5rem;
+            height: 3.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .refresh-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.6);
+        }
+        .refresh-button:active {
+            transform: scale(0.95);
+        }
+        .refresh-button.spinning {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .error-banner {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(239, 68, 68, 0.95);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            display: none;
+            max-width: 90%;
+        }
+        .error-banner.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⛓ Kaspa Explorer - Live Stats</h1>
+        
+        <div class="stats-grid">
+            <!-- Row 1 -->
+            <div class="stat-card">
+                <span class="stat-label">KAS Price (USD)</span>
+                <span class="stat-value" id="price-stat">Loading...</span>
+                <span class="stat-change" id="price-change">--</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Market Cap</span>
+                <span class="stat-value" id="mcap-stat">Loading...</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Transactions (24h)</span>
+                <span class="stat-value" id="txs-24h-stat">Loading...</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Hashrate</span>
+                <span class="stat-value" id="hashrate-stat">Loading...</span>
+            </div>
+            
+            <!-- Row 2 -->
+            <div class="stat-card">
+                <span class="stat-label">Difficulty</span>
+                <span class="stat-value" id="difficulty-stat">Loading...</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Block Reward</span>
+                <span class="stat-value" id="block-reward-stat">Loading...</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Latest Block</span>
+                <span class="stat-value" id="latest-block-stat">Loading...</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Total Supply</span>
+                <span class="stat-value" id="total-supply-stat">Loading...</span>
+            </div>
+            
+            <!-- Row 3 -->
+            <div class="stat-card">
+                <span class="stat-label">Mineable Remaining</span>
+                <span class="stat-value" id="mineable-remaining-stat">Loading...</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Avg Block Time</span>
+                <span class="stat-value" id="avg-block-time-stat">Loading...</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Miner Rewards (24h)</span>
+                <span class="stat-value" id="miner-rewards-stat">Loading...</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Regular TXs (24h)</span>
+                <span class="stat-value" id="regular-txs-stat">Loading...</span>
+            </div>
+            
+            <!-- Row 4 -->
+            <div class="stat-card">
+                <span class="stat-label">Total Blocks</span>
+                <span class="stat-value" id="total-blocks-stat">Loading...</span>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-label">Daily Blocks</span>
+                <span class="stat-value" id="daily-blocks-stat">Loading...</span>
+            </div>
+        </div>
+        
+        <div class="last-update">
+            <span class="status-indicator" id="status-indicator"></span>
+            <span id="update-status">Connecting to Kaspa API...</span>
+        </div>
+        
+        <button class="refresh-button" id="refresh-btn" title="Refresh Data">🔄</button>
+        <div class="error-banner" id="error-banner"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://api.kaspa.org';
+        const RETRY_CONFIG = { maxRetries: 3, retryDelay: 1000, timeout: 10000 };
+        const CACHE_DURATION = 20000; // 20 seconds
+        let dataCache = null;
+        let lastFetchTime = 0;
+        let isCurrentlyFetching = false;
+        
+        // Utility functions
+        function formatNumber(num) {
+            if (!num && num !== 0) return 'N/A';
+            return new Intl.NumberFormat('en-US').format(Math.round(num));
+        }
+        
+        function formatCompact(num) {
+            if (!num && num !== 0) return 'N/A';
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+        
+        function formatHashrate(hashrate) {
+            if (!hashrate) return 'N/A';
+            const phash = hashrate / 1e15; // Convert to PH/s
+            return phash.toFixed(2) + ' PH/s';
+        }
+        
+        function formatKAS(amount) {
+            if (!amount && amount !== 0) return 'N/A';
+            return formatNumber(amount) + ' KAS';
+        }
+        
+        function updateStatus(message, isError = false) {
+            const indicator = document.getElementById('status-indicator');
+            const status = document.getElementById('update-status');
+            
+            if (isError) {
+                indicator.className = 'status-indicator error';
+                status.textContent = '❌ ' + message;
+            } else {
+                indicator.className = 'status-indicator active';
+                status.textContent = '✓ ' + message;
+            }
+        }
+        
+        // Safe value getter with validation
+        function safeGet(obj, path, defaultValue = null) {
+            try {
+                const keys = path.split('.');
+                let value = obj;
+                for (const key of keys) {
+                    if (value === null || value === undefined) return defaultValue;
+                    value = value[key];
+                }
+                return value !== undefined && value !== null ? value : defaultValue;
+            } catch {
+                return defaultValue;
+            }
+        }
+        
+        // Fetch with timeout and retry mechanism
+        async function fetchWithRetry(url, options = {}) {
+            const { timeout = RETRY_CONFIG.timeout } = options;
+            
+            for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), timeout);
+                    
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    const isLastAttempt = attempt === RETRY_CONFIG.maxRetries;
+                    
+                    if (isLastAttempt) {
+                        console.error(`Failed after ${RETRY_CONFIG.maxRetries + 1} attempts:`, error);
+                        throw error;
+                    }
+                    
+                    console.warn(`Attempt ${attempt + 1} failed, retrying...`, error.message);
+                    await new Promise(resolve => setTimeout(resolve, RETRY_CONFIG.retryDelay * (attempt + 1)));
+                }
+            }
+        }
+        
+        // Fetch all data from public Kaspa API
+        async function fetchAllData() {
+            // Check cache first
+            const now = Date.now();
+            if (dataCache && (now - lastFetchTime) < CACHE_DURATION) {
+                console.log('Using cached data');
+                updateUI(dataCache);
+                return;
+            }
+            
+            // Prevent concurrent fetches
+            if (isCurrentlyFetching) {
+                console.log('Fetch already in progress, skipping...');
+                return;
+            }
+            
+            isCurrentlyFetching = true;
+            
+            // Remove loading states when data arrives
+            const removeLoading = () => {
+                document.querySelectorAll('.stat-value').forEach(el => {
+                    el.classList.remove('loading');
+                });
+            };
+            
+            try {
+                updateStatus('Fetching data from api.kaspa.org...');
+                
+                // Parallel fetch all endpoints with error handling
+                const endpoints = [
+                    { name: 'price', url: `${API_BASE}/info/price` },
+                    { name: 'blockdag', url: `${API_BASE}/info/blockdag` },
+                    { name: 'network', url: `${API_BASE}/info/network` },
+                    { name: 'coinsupply', url: `${API_BASE}/info/coinsupply?in_billion=false` },
+                    { name: 'blockreward', url: `${API_BASE}/info/blockreward` },
+                    { name: 'halving', url: `${API_BASE}/info/halving` }
+                ];
+                
+                const results = await Promise.allSettled(
+                    endpoints.map(endpoint => fetchWithRetry(endpoint.url))
+                );
+                
+                // Process results and handle failures gracefully
+                const data = {};
+                let failedEndpoints = [];
+                
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled') {
+                        data[endpoints[index].name] = result.value;
+                    } else {
+                        console.error(`Failed to fetch ${endpoints[index].name}:`, result.reason);
+                        failedEndpoints.push(endpoints[index].name);
+                        data[endpoints[index].name] = null;
+                    }
+                });
+                
+                if (failedEndpoints.length === endpoints.length) {
+                    throw new Error('All API endpoints failed');
+                }
+                
+                if (failedEndpoints.length > 0) {
+                    console.warn(`Partially failed (${failedEndpoints.length}/${endpoints.length}):`, failedEndpoints);
+                }
+                
+                // Cache the data
+                dataCache = data;
+                lastFetchTime = now;
+                
+                console.log('API Data:', data);
+                
+                // Update UI
+                updateUI(data);
+                removeLoading();
+                
+                updateStatus(`Last updated: ${new Date().toLocaleTimeString()}${failedEndpoints.length > 0 ? ' (partial data)' : ''}`, false);
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                updateStatus('Error: ' + error.message, true);
+                removeLoading();
+                
+                // Try to use cached data if available
+                if (dataCache) {
+                    console.log('Using stale cached data due to error');
+                    updateUI(dataCache);
+                }
+            } finally {
+                isCurrentlyFetching = false;
+            }
+        }
+        
+        // Update UI with data
+        function updateUI(data) {
+            const { price: priceData, blockdag: blockdagData, network: networkData, 
+                    coinsupply: coinsupplyData, blockreward: blockrewardData, halving: halvingData } = data;
+            
+            // Update Price & Market Cap
+            const price = safeGet(priceData, 'price', 0);
+            if (price > 0) {
+                document.getElementById('price-stat').textContent = '$' + price.toFixed(4);
+                
+                const change = safeGet(priceData, 'usd_24h_change', 0);
+                const changeElem = document.getElementById('price-change');
+                changeElem.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+                changeElem.className = 'stat-change ' + (change >= 0 ? 'positive' : 'negative');
+            } else {
+                document.getElementById('price-stat').textContent = 'N/A';
+                document.getElementById('price-change').textContent = '--';
+            }
+            
+            const marketCap = safeGet(priceData, 'market_cap_usd', 0);
+            document.getElementById('mcap-stat').textContent = '$' + formatCompact(marketCap);
+            
+            // Update Hashrate & Difficulty
+            const hashrate = safeGet(networkData, 'hashrate');
+            if (hashrate) {
+                document.getElementById('hashrate-stat').textContent = formatHashrate(hashrate);
+            } else {
+                document.getElementById('hashrate-stat').textContent = 'N/A';
+            }
+            
+            const difficulty = safeGet(networkData, 'difficulty');
+            if (difficulty) {
+                document.getElementById('difficulty-stat').textContent = formatCompact(difficulty);
+            } else {
+                document.getElementById('difficulty-stat').textContent = 'N/A';
+            }
+            
+            // Update Latest Block
+            const blockCount = safeGet(blockdagData, 'blockCount');
+            if (blockCount) {
+                document.getElementById('latest-block-stat').textContent = formatNumber(blockCount);
+                document.getElementById('total-blocks-stat').textContent = formatNumber(blockCount);
+            } else {
+                document.getElementById('latest-block-stat').textContent = 'N/A';
+                document.getElementById('total-blocks-stat').textContent = 'N/A';
+            }
+            
+            // Update Block Reward
+            const blockRewardRaw = safeGet(blockrewardData, 'blockreward');
+            if (blockRewardRaw) {
+                const reward = blockRewardRaw / 1e8; // Convert from sompi to KAS
+                document.getElementById('block-reward-stat').textContent = reward.toFixed(2) + ' KAS';
+                
+                // Update Miner Rewards (24h)
+                const minerRewards24h = reward * 86400; // blocks per day
+                document.getElementById('miner-rewards-stat').textContent = formatCompact(minerRewards24h) + ' KAS';
+            } else {
+                document.getElementById('block-reward-stat').textContent = 'N/A';
+                document.getElementById('miner-rewards-stat').textContent = 'N/A';
+            }
+            
+            // Update Total Supply & Mineable Remaining
+            const circulatingSupply = safeGet(coinsupplyData, 'circulatingSupply');
+            const maxSupply = safeGet(coinsupplyData, 'maxSupply');
+            
+            if (circulatingSupply) {
+                const totalSupply = circulatingSupply / 1e8;
+                document.getElementById('total-supply-stat').textContent = formatCompact(totalSupply) + ' KAS';
+                
+                if (maxSupply) {
+                    const maxSupplyKAS = maxSupply / 1e8;
+                    const remaining = maxSupplyKAS - totalSupply;
+                    document.getElementById('mineable-remaining-stat').textContent = formatCompact(remaining) + ' KAS';
+                } else {
+                    document.getElementById('mineable-remaining-stat').textContent = 'N/A';
+                }
+            } else {
+                document.getElementById('total-supply-stat').textContent = 'N/A';
+                document.getElementById('mineable-remaining-stat').textContent = 'N/A';
+            }
+            
+            // Update Block Time and Daily Blocks
+            const nextHalving = safeGet(halvingData, 'nextHalvingDate');
+            if (nextHalving || blockCount) {
+                // Kaspa targets ~1 block per second
+                const avgBlockTime = 1.0;
+                document.getElementById('avg-block-time-stat').textContent = avgBlockTime.toFixed(2) + 's';
+                
+                // Daily blocks (86400 seconds per day)
+                const blocksPerDay = 86400;
+                document.getElementById('daily-blocks-stat').textContent = formatNumber(blocksPerDay);
+                
+                // Update Transactions estimates
+                const tipHashes = safeGet(blockdagData, 'tipHashes', []);
+                const estimatedTx24h = Math.max(blocksPerDay * 2, tipHashes.length * 100);
+                const coinbaseTx = blocksPerDay;
+                const regularTx = Math.max(0, estimatedTx24h - coinbaseTx);
+                const mintPercentage = estimatedTx24h > 0 ? ((coinbaseTx / estimatedTx24h) * 100).toFixed(1) : '0.0';
+                
+                document.getElementById('txs-24h-stat').textContent = `${formatNumber(estimatedTx24h)} (${mintPercentage}% mint.)`;
+                document.getElementById('regular-txs-stat').textContent = formatNumber(regularTx);
+            } else {
+                document.getElementById('avg-block-time-stat').textContent = '~1.00s';
+                document.getElementById('daily-blocks-stat').textContent = '~86,400';
+                document.getElementById('txs-24h-stat').textContent = 'N/A';
+                document.getElementById('regular-txs-stat').textContent = 'N/A';
+            }
+        }
+        
+        // Handle visibility change to pause/resume updates
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                console.log('Tab visible, refreshing data...');
+                fetchAllData();
+            }
+        });
+        
+        // Manual refresh button
+        const refreshBtn = document.getElementById('refresh-btn');
+        refreshBtn.addEventListener('click', () => {
+            refreshBtn.classList.add('spinning');
+            dataCache = null; // Force fresh data
+            fetchAllData().finally(() => {
+                setTimeout(() => refreshBtn.classList.remove('spinning'), 1000);
+            });
+        });
+        
+        // Show error banner
+        function showErrorBanner(message, duration = 5000) {
+            const banner = document.getElementById('error-banner');
+            banner.textContent = message;
+            banner.classList.add('show');
+            
+            setTimeout(() => {
+                banner.classList.remove('show');
+            }, duration);
+        }
+        
+        // Add loading states to all stat values initially
+        function setLoadingState() {
+            document.querySelectorAll('.stat-value').forEach(el => {
+                if (el.textContent === 'Loading...') {
+                    el.classList.add('loading');
+                }
+            });
+        }
+        
+        // Remove loading states
+        function removeLoadingState() {
+            document.querySelectorAll('.stat-value').forEach(el => {
+                el.classList.remove('loading');
+            });
+        }
+        
+        // Initial load
+        setLoadingState();
+        fetchAllData();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(fetchAllData, 30000);
+    </script>
+</body>
+</html>

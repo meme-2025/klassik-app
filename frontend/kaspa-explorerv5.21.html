@@ -61,30 +61,11 @@
         }
         .hero-title .search-btn span, .header-actions .search-btn span, #header-search-btn span { color: #ffffff !important; display: inline-block !important; line-height: 1 !important; }
         .hero-title .search-icon, .hero-title .fa-arrow-right, .header-actions .search-icon, .header-actions .fa-arrow-right { color: #ffffff !important; }
-        /* Stats bar - grid layout for multiple rows */
-        .compact-stats-wrapper { display: flex; gap: 1rem; align-items: flex-start; justify-content: center; margin: 2rem 0; }
-        .compact-stats-wrapper > .compact-stats-bar { 
-            flex: 1; 
-            max-width: 1400px; 
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-        }
+        /* Minimal layout to place two stat bars left and right without design changes */
+        .compact-stats-wrapper { display: flex; gap: 1rem; align-items: flex-start; justify-content: space-between; }
+        .compact-stats-wrapper > .compact-stats-bar { flex: 0 0 49%; }
         /* Arrange change left of value inside the meta wrapper */
-        .stats-bar-label { display: block; margin-bottom: 0.25rem; font-size: 0.85rem; opacity: 0.8; }
-        .stats-bar-meta { display: flex; align-items: center; gap: 0.5rem; }
-        .stats-bar-change { order: 1; font-size: 0.85rem; opacity: 0.9; }
-        .stats-bar-value { order: 2; font-weight: 600; font-size: 1rem; }
-        .stats-bar-change.positive { color: #10b981; }
-        .stats-bar-change.negative { color: #ef4444; }
-        
-        /* Responsive: 2 columns on tablets, 1 on mobile */
-        @media (max-width: 1024px) {
-            .compact-stats-wrapper > .compact-stats-bar { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 640px) {
-            .compact-stats-wrapper > .compact-stats-bar { grid-template-columns: 1fr; }
-        }
+        .stats-bar-label { display: block; margin-bottom: 0.25rem; }
         .stats-bar-meta { display: flex; align-items: center; gap: 0.5rem; }
         .stats-bar-change { order: 1; font-size: 0.85rem; opacity: 0.9; }
         .stats-bar-value { order: 2; }
@@ -181,96 +162,79 @@
         <!-- Compact Stats Bar -->
         <div class="compact-stats-wrapper">
         <div class="compact-stats-bar">
-            <!-- Row 1 -->
             <div class="stats-bar-item">
                 <div class="stats-bar-label">KAS Price</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-change" id="price-change-24h">+0.00%</div>
-                    <div class="stats-bar-value" id="price-stat">$0.00</div>
+                    <div class="stats-bar-change" id="price-change-24h">Loading...</div>
+                    <div class="stats-bar-value" id="price-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Market Cap</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="mcap-stat">$0</div>
+                    <div class="stats-bar-value" id="mcap-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Transactions (24h)</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="total-txs-stat">0 (0% mint.)</div>
+                    <div class="stats-bar-value" id="total-txs-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Hashrate</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="hashrate-stat">0 PH/s</div>
+                    <div class="stats-bar-value" id="hashrate-stat">Loading...</div>
                 </div>
             </div>
-            
-            <!-- Row 2 -->
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Difficulty</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="difficulty-stat">0</div>
+                    <div class="stats-bar-value" id="difficulty-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Block Reward</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="block-reward-stat">0 KAS</div>
+                    <div class="stats-bar-value" id="block-reward-stat">Loading...</div>
+                </div>
+            </div>
+        </div>
+                <div class="compact-stats-bar">
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">24h Volume</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="volume-24h-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
-                <div class="stats-bar-label">Latest Block</div>
+                <div class="stats-bar-label">ATH Price</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="latest-block-stat">0</div>
+                    <div class="stats-bar-value" id="ath-price-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Total Supply</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="total-supply-stat">0 KAS</div>
+                    <div class="stats-bar-value" id="total-supply-stat">Loading...</div>
                 </div>
             </div>
-            
-            <!-- Row 3 -->
             <div class="stats-bar-item">
-                <div class="stats-bar-label">Mineable Remaining</div>
+                <div class="stats-bar-label">Circulating Supply</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="mineable-remaining-stat">0 KAS</div>
+                    <div class="stats-bar-value" id="circ-supply-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
                 <div class="stats-bar-label">Avg Block Time</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="avg-block-time-stat">~1s</div>
+                    <div class="stats-bar-value" id="avg-block-time-stat">Loading...</div>
                 </div>
             </div>
             <div class="stats-bar-item">
-                <div class="stats-bar-label">Miner Rewards (24h)</div>
+                <div class="stats-bar-label">Next Halving</div>
                 <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="miner-rewards-stat">0 KAS</div>
-                </div>
-            </div>
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Regular TXs (24h)</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="regular-txs-stat">0</div>
-                </div>
-            </div>
-            
-            <!-- Row 4 -->
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Total Blocks</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="total-blocks-stat">0</div>
-                </div>
-            </div>
-            <div class="stats-bar-item">
-                <div class="stats-bar-label">Daily Blocks</div>
-                <div class="stats-bar-meta">
-                    <div class="stats-bar-value" id="daily-blocks-stat">~86,400</div>
+                    <div class="stats-bar-value" id="next-halving-stat">Loading...</div>
                 </div>
             </div>
         </div>
@@ -294,7 +258,7 @@
                         </select>
                         <input type="text" class="control-input" id="blocks-filter" placeholder="Filter blocks...">
                     </div>
-                    <a href="kaspa-blocks.html" class="view-all-btn">
+                    <a href="kaspa-blocks-realtime.html" class="view-all-btn">
                         View All <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -336,7 +300,7 @@
                         </select>
                         <input type="text" class="control-input" id="txs-filter" placeholder="Filter transactions...">
                     </div>
-                    <a href="kaspa-transactions.html" class="view-all-btn">
+                    <a href="kaspa-transactions-realtime.html" class="view-all-btn">
                         View All <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>

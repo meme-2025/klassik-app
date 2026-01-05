@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Blocks - Kaspa Explorer | Real-time Updates</title>
+    <link rel="stylesheet" href="assets/css/kaspa-explorer-v4.css">
+    <link rel="stylesheet" href="assets/css/explorer-compact-v3.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .realtime-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #10b981;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1000;
+        }
+        .realtime-dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .new-row {
+            animation: slideIn 0.5s ease-out;
+            background: rgba(14, 165, 233, 0.1);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Realtime Indicator -->
+    <div class="realtime-indicator">
+        <div class="realtime-dot"></div>
+        <span>Live Updates Every 10s</span>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>All Blocks - Real-time</h1>
+                </div>
+                <a href="kaspa-explorerv5.21.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Explorer
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Stats Summary -->
+            <div class="stats-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <div class="stat-label">Total Blocks</div>
+                    <div class="stat-value" id="total-blocks">Loading...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Blocks (24h)</div>
+                    <div class="stat-value" id="blocks-24h">Loading...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Block Time</div>
+                    <div class="stat-value" id="avg-block-time">Loading...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Latest Block</div>
+                    <div class="stat-value" id="latest-block-time">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Blocks Table -->
+            <div class="table-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-cubes"></i>
+                        All Blocks (Real-time)
+                    </h2>
+                    <div class="table-controls">
+                        <select class="control-select" id="limit-select">
+                            <option value="10">Show 10</option>
+                            <option value="25" selected>Show 25</option>
+                            <option value="50">Show 50</option>
+                            <option value="100">Show 100</option>
+                        </select>
+                        <button class="control-btn" id="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Manual Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Block Hash</th>
+                                <th>Timestamp</th>
+                                <th>Age</th>
+                                <th>Transactions</th>
+                                <th>Size</th>
+                                <th>Blue Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="blocks-tbody">
+                            <tr>
+                                <td colspan="6" class="loading-cell">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading blocks...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // State
+        const state = {
+            blocks: [],
+            limit: 25,
+            refreshInterval: null,
+            lastBlockHash: null
+        };
+
+        // Kaspa API
+        const API = {
+            KASPA_INFO: 'https://api.kaspa.org/info'
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeControls();
+            fetchBlocks();
+            startAutoRefresh();
+        });
+
+        function initializeControls() {
+            document.getElementById('limit-select').addEventListener('change', (e) => {
+                state.limit = parseInt(e.target.value);
+                fetchBlocks();
+            });
+
+            document.getElementById('refresh-btn').addEventListener('click', () => {
+                fetchBlocks();
+            });
+        }
+
+        async function fetchBlocks() {
+            try {
+                const res = await fetch(`${API.KASPA_INFO}/blocklist?limit=${state.limit}&resolve=full`);
+                if (!res.ok) throw new Error('API Error');
+                
+                const data = await res.json();
+                
+                if (Array.isArray(data)) {
+                    const newBlocks = data.map(block => ({
+                        hash: block.hash || block.blockHash,
+                        timestamp: block.timestamp || Date.now(),
+                        transactions: block.transactionCount || block.txCount || 0,
+                        size: block.size || 0,
+                        blueScore: block.blueScore || 0,
+                        isNew: block.hash !== state.lastBlockHash
+                    }));
+
+                    // Check for new blocks
+                    if (state.lastBlockHash && newBlocks[0].hash !== state.lastBlockHash) {
+                        console.log('New block detected!', newBlocks[0].hash);
+                        playNotificationSound();
+                    }
+
+                    state.lastBlockHash = newBlocks[0].hash;
+                    state.blocks = newBlocks;
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Failed to fetch blocks:', error);
+            }
+        }
+
+        function updateUI() {
+            updateStats();
+            updateBlocksTable();
+        }
+
+        function updateStats() {
+            // Total Blocks
+            if (state.blocks.length > 0) {
+                document.getElementById('total-blocks').textContent = 
+                    state.blocks[0].blueScore.toLocaleString();
+            }
+
+            // Blocks 24h (estimate)
+            if (state.blocks.length >= 2) {
+                const timeDiff = state.blocks[0].timestamp - state.blocks[state.blocks.length - 1].timestamp;
+                const avgBlockTime = timeDiff / (state.blocks.length - 1);
+                if (avgBlockTime > 0) {
+                    const blocks24h = Math.floor((24 * 60 * 60 * 1000) / avgBlockTime);
+                    document.getElementById('blocks-24h').textContent = blocks24h.toLocaleString();
+                }
+
+                // Avg Block Time
+                const avgTimeSeconds = avgBlockTime / 1000;
+                document.getElementById('avg-block-time').textContent = 
+                    avgTimeSeconds.toFixed(2) + 's';
+            }
+
+            // Latest Block Time
+            if (state.blocks.length > 0) {
+                const latest = new Date(state.blocks[0].timestamp);
+                document.getElementById('latest-block-time').textContent = 
+                    latest.toLocaleTimeString();
+            }
+        }
+
+        function updateBlocksTable() {
+            const tbody = document.getElementById('blocks-tbody');
+            if (state.blocks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">No blocks available</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = state.blocks.map((block, index) => `
+                <tr class="${block.isNew && index === 0 ? 'new-row' : ''}">
+                    <td><span class="hash">${truncateHash(block.hash)}</span></td>
+                    <td>${formatTime(block.timestamp)}</td>
+                    <td>${formatAge(block.timestamp)}</td>
+                    <td>${block.transactions}</td>
+                    <td>${formatBytes(block.size)}</td>
+                    <td>${block.blueScore.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function startAutoRefresh() {
+            // Refresh every 10 seconds
+            state.refreshInterval = setInterval(() => {
+                fetchBlocks();
+            }, 10000);
+        }
+
+        function playNotificationSound() {
+            // Optional: Add sound notification for new blocks
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuG0fPTgjMGHm/A7+OZSA0PVqzn77BdGAg+ltryxnMnBSh+zPDajz0JE1yy6OykUhELTKXh8bllHwU2jdXzzosyBx9wxfDem0QNEFT0'); audio.play();
+        }
+
+        // Utility Functions
+        function truncateHash(hash) {
+            if (!hash || hash.length < 16) return hash || 'N/A';
+            return `${hash.substring(0, 8)}...${hash.substring(hash.length - 6)}`;
+        }
+
+        function formatTime(timestamp) {
+            return new Date(timestamp).toLocaleString();
+        }
+
+        function formatAge(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const seconds = Math.floor(diff / 1000);
+            
+            if (seconds < 60) return `${seconds}s ago`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            return `${days}d ago`;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes >= 1e6) return (bytes / 1e6).toFixed(2) + ' MB';
+            if (bytes >= 1e3) return (bytes / 1e3).toFixed(2) + ' KB';
+            return bytes + ' B';
+        }
+    </script>
+</body>
+</html>

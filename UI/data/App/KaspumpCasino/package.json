@@ -5,13 +5,17 @@
   "main": "gameApi.js",
   "scripts": {
     "start": "node gameApi.js",
+    "start:rush": "node rushGameServer.js",
     "dev": "nodemon gameApi.js",
+    "dev:rush": "nodemon rushGameServer.js",
     "test": "jest",
     "test:contract": "hardhat test",
     "compile": "hardhat compile",
-    "deploy": "hardhat run scripts/deploy.js"
+    "deploy": "hardhat run scripts/deploy.js",
+    "deploy:rush": "hardhat run scripts/deployRushGame.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
