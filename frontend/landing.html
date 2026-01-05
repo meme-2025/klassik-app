@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klassik | Kaspa BlockDAG Explorer</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: rgba(30, 41, 59, 0.6);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --accent-blue: #0ea5e9;
+            --accent-purple: #8b5cf6;
+            --border-color: rgba(148, 163, 184, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .explorer-btn {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .explorer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.5);
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        /* ===== SEARCH ===== */
+        .search-section {
+            max-width: 800px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .search-container {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-container:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 1rem;
+            padding: 1rem 1.5rem;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ===== RESULTS ===== */
+        .results-section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-type {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .result-data {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .result-row {
+            display: flex;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+        }
+
+        .result-label {
+            flex: 0 0 140px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .result-value {
+            flex: 1;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        /* ===== LOADING & EMPTY STATES ===== */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .loading i {
+            font-size: 3rem;
+            animation: spin 1s linear infinite;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* ===== TOAST NOTIFICATIONS ===== */
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast-success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast-info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .nav {
+                gap: 1rem;
+            }
+
+            .search-btn {
+                padding: 0.75rem 1.5rem;
+            }
+
+            .result-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .result-label {
+                flex: none;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <i class="fas fa-cubes"></i> Klassik
+                </a>
+                <nav class="nav">
+                    <a href="#" class="nav-link">Network</a>
+                    <a href="#" class="nav-link">Blocks</a>
+                    <a href="#" class="nav-link">Transactions</a>
+                    <a href="sacrifice.html" class="explorer-btn">
+                        <i class="fas fa-compass"></i> Explorer
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="hero-title">Kaspa BlockDAG Explorer</h1>
+            <p class="hero-subtitle">
+                Lightning-fast blockchain exploration. Search addresses, transactions, and blocks instantly.
+            </p>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="search-container">
+            <input 
+                type="text" 
+                class="search-input" 
+                id="search-input"
+                placeholder="Search by Address / Transaction Hash / Block Hash"
+                autocomplete="off"
+            >
+            <button class="search-btn" id="search-btn">
+                <span>Search</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section" id="results-section">
+        <!-- Results will be inserted here -->
+    </section>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        const API_URL = window.location.origin;
+        const PUBLIC_API = `${API_URL}/api/kaspa-public`;
+
+        // ===== TOAST NOTIFICATIONS =====
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ===== SEARCH FUNCTIONALITY =====
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const resultsSection = document.getElementById('results-section');
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                showToast('Please enter a search query', 'error');
+                return;
+            }
+
+            // Show loading
+            resultsSection.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-circle-notch"></i>
+                    <p>Searching blockchain...</p>
+                </div>
+            `;
+
+            try {
+                let result = null;
+                let type = null;
+
+                // Determine type and search
+                if (query.startsWith('kaspa:')) {
+                    // Address search
+                    type = 'address';
+                    result = await searchAddress(query);
+                } else if (query.length === 64) {
+                    // Could be transaction or block hash
+                    try {
+                        result = await searchTransaction(query);
+                        type = 'transaction';
+                    } catch {
+                        result = await searchBlock(query);
+                        type = 'block';
+                    }
+                } else {
+                    showToast('Invalid query format', 'error');
+                    resultsSection.innerHTML = '';
+                    return;
+                }
+
+                if (result) {
+                    displayResult(result, type);
+                    showToast('Search successful!', 'success');
+                } else {
+                    showToast('No results found', 'error');
+                    resultsSection.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <p>No results found for "${query}"</p>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Search error:', error);
+                showToast('Search failed: ' + error.message, 'error');
+                resultsSection.innerHTML = '';
+            }
+        }
+
+        // ===== API CALLS =====
+        async function searchAddress(address) {
+            const res = await fetch(`${PUBLIC_API}/address/${address}`);
+            if (!res.ok) throw new Error('Address not found');
+            return await res.json();
+        }
+
+        async function searchTransaction(hash) {
+            const res = await fetch(`${PUBLIC_API}/transaction/${hash}`);
+            if (!res.ok) throw new Error('Transaction not found');
+            return await res.json();
+        }
+
+        async function searchBlock(hash) {
+            const res = await fetch(`${PUBLIC_API}/block/${hash}`);
+            if (!res.ok) throw new Error('Block not found');
+            return await res.json();
+        }
+
+        // ===== DISPLAY RESULTS =====
+        function displayResult(data, type) {
+            let html = '';
+
+            if (type === 'address') {
+                html = `
+                    <div class="result-card">
+                        <span class="result-type"><i class="fas fa-wallet"></i> Address</span>
+                        <h2 class="result-title">Address Details</h2>
+                        <div class="result-data">
+                            <div class="result-row">
+                                <div class="result-label">Address:</div>
+                                <div class="result-value">${data.address || 'N/A'}</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Balance:</div>
+                                <div class="result-value">${data.balance || '0'} KAS</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Total Sent:</div>
+                                <div class="result-value">${data.totalSent || '0'} KAS</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Total Received:</div>
+                                <div class="result-value">${data.totalReceived || '0'} KAS</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Transactions:</div>
+                                <div class="result-value">${data.transactionCount || '0'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'transaction') {
+                html = `
+                    <div class="result-card">
+                        <span class="result-type"><i class="fas fa-exchange-alt"></i> Transaction</span>
+                        <h2 class="result-title">Transaction Details</h2>
+                        <div class="result-data">
+                            <div class="result-row">
+                                <div class="result-label">Hash:</div>
+                                <div class="result-value">${data.transaction_id || data.hash || 'N/A'}</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Block:</div>
+                                <div class="result-value">${data.block_hash || 'N/A'}</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Amount:</div>
+                                <div class="result-value">${data.outputs?.[0]?.amount || data.amount || '0'} KAS</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Timestamp:</div>
+                                <div class="result-value">${data.block_time ? new Date(data.block_time * 1000).toLocaleString() : 'N/A'}</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Confirmations:</div>
+                                <div class="result-value">${data.is_accepted ? '✅ Confirmed' : '⏳ Pending'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'block') {
+                html = `
+                    <div class="result-card">
+                        <span class="result-type"><i class="fas fa-cube"></i> Block</span>
+                        <h2 class="result-title">Block Details</h2>
+                        <div class="result-data">
+                            <div class="result-row">
+                                <div class="result-label">Hash:</div>
+                                <div class="result-value">${data.blockHash || data.hash || 'N/A'}</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Height:</div>
+                                <div class="result-value">${data.header?.blueScore || data.height || 'N/A'}</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Timestamp:</div>
+                                <div class="result-value">${data.header?.timestamp ? new Date(data.header.timestamp).toLocaleString() : 'N/A'}</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Transactions:</div>
+                                <div class="result-value">${data.transactions?.length || data.transaction_count || '0'}</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Difficulty:</div>
+                                <div class="result-value">${data.header?.difficulty || data.difficulty || 'N/A'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultsSection.innerHTML = html;
+        }
+
+        // ===== EVENT LISTENERS =====
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        // ===== AUTO-FOCUS =====
+        searchInput.focus();
+
+        console.log('🚀 Klassik Landing - Public Search Ready');
+    </script>
+</body>
+</html>
