@@ -506,6 +506,10 @@
             const txCountRes = await fetch(`${KASPA_API}/addresses/${address}/transactions-count`);
             const txCountData = txCountRes.ok ? await txCountRes.json() : { total: 0 };
             
+            // Get recent transactions
+            const txRes = await fetch(`${KASPA_API}/addresses/${address}/full-transactions?limit=10&offset=0`);
+            const txData = txRes.ok ? await txRes.json() : [];
+            
             // Get price for USD conversion
             const priceRes = await fetch(`${KASPA_API}/info/price`);
             const priceData = priceRes.ok ? await priceRes.json() : { price: 0 };
@@ -518,7 +522,9 @@
                 address: address,
                 balance: balanceKAS,
                 balanceUSD: balanceUSD,
-                transactionCount: txCountData.total || 0
+                transactionCount: txCountData.total || 0,
+                transactions: txData,
+                kasPrice: priceData.price || 0
             };
         }
 
@@ -556,6 +562,45 @@
             let html = '';
 
             if (type === 'address') {
+                // Build transactions table
+                let txTable = '';
+                if (data.transactions && data.transactions.length > 0) {
+                    txTable = `
+                        <div style="margin-top: 2rem;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.1rem;">Recent Transactions</h3>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid var(--border-color);">
+                                            <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Timestamp</th>
+                                            <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">TX Hash</th>
+                                            <th style="text-align: right; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Amount</th>
+                                            <th style="text-align: center; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.transactions.map(tx => {
+                                            const amount = tx.outputs?.reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0) || 0;
+                                            const amountKAS = amount / 100000000;
+                                            const timestamp = tx.block_time ? new Date(tx.block_time * 1000).toLocaleDateString() : 'Pending';
+                                            const txHash = tx.transaction_id || 'N/A';
+                                            const shortHash = txHash.substring(0, 8) + '...' + txHash.substring(txHash.length - 8);
+                                            return `
+                                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                                    <td style="padding: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">${timestamp}</td>
+                                                    <td style="padding: 0.75rem; font-family: monospace; font-size: 0.85rem;">${shortHash}</td>
+                                                    <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: var(--accent-blue);">${formatKAS(amountKAS)} KAS</td>
+                                                    <td style="padding: 0.75rem; text-align: center;">${tx.is_accepted ? '<span style="color: #10b981;">✅</span>' : '<span style="color: #f59e0b;">⏳</span>'}</td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                }
+                
                 html = `
                     <div class="result-card">
                         <span class="result-type"><i class="fas fa-wallet"></i> Address</span>
@@ -584,6 +629,7 @@
                                 <div class="result-value">${data.transactionCount}</div>
                             </div>
                         </div>
+                        ${txTable}
                     </div>
                 `;
             } else if (type === 'transaction') {
