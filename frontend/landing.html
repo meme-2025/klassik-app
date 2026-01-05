@@ -572,8 +572,9 @@
                                 <table style="width: 100%; border-collapse: collapse;">
                                     <thead>
                                         <tr style="border-bottom: 2px solid var(--border-color);">
-                                            <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Timestamp</th>
+                                            <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Date</th>
                                             <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">TX Hash</th>
+                                            <th style="text-align: left; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">From/To</th>
                                             <th style="text-align: right; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Amount</th>
                                             <th style="text-align: center; padding: 0.75rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Status</th>
                                         </tr>
@@ -583,6 +584,7 @@
                                             // Calculate if incoming or outgoing
                                             let netAmount = 0;
                                             let isIncoming = false;
+                                            let otherAddress = '';
                                             
                                             // Check outputs to this address
                                             const received = tx.outputs?.filter(out => 
@@ -597,23 +599,46 @@
                                             netAmount = (received - sent) / 100000000;
                                             isIncoming = netAmount > 0;
                                             
-                                            const timestamp = tx.block_time ? new Date(tx.block_time * 1000).toLocaleString('de-DE', {
-                                                year: 'numeric',
-                                                month: '2-digit',
-                                                day: '2-digit',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            }) : 'Pending';
+                                            // Get other address
+                                            if (isIncoming) {
+                                                // Find sender address (from inputs)
+                                                otherAddress = tx.inputs?.find(inp => inp.previous_outpoint_address !== data.address)?.previous_outpoint_address || 'Unknown';
+                                            } else {
+                                                // Find recipient address (from outputs)
+                                                otherAddress = tx.outputs?.find(out => out.script_public_key_address !== data.address)?.script_public_key_address || 'Unknown';
+                                            }
+                                            
+                                            // Format timestamp correctly (block_time is already in milliseconds)
+                                            let timestamp = 'Pending';
+                                            if (tx.block_time) {
+                                                const date = new Date(parseInt(tx.block_time));
+                                                timestamp = date.toLocaleString('en-GB', {
+                                                    year: 'numeric',
+                                                    month: '2-digit',
+                                                    day: '2-digit',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                }).replace(',', '');
+                                            }
                                             
                                             const txHash = tx.transaction_id || 'N/A';
                                             const shortHash = txHash.substring(0, 8) + '...' + txHash.substring(txHash.length - 8);
+                                            const shortAddr = otherAddress !== 'Unknown' ? shortenAddress(otherAddress) : 'Unknown';
                                             const amountColor = isIncoming ? '#10b981' : '#ef4444';
-                                            const amountPrefix = isIncoming ? '+' : '';
+                                            const amountPrefix = isIncoming ? '+' : '-';
+                                            const directionLabel = isIncoming ? 'FROM' : 'TO';
+                                            const directionColor = isIncoming ? '#10b981' : '#ef4444';
                                             
                                             return `
                                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                                     <td style="padding: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">${timestamp}</td>
-                                                    <td style="padding: 0.75rem; font-family: monospace; font-size: 0.85rem;">${shortHash}</td>
+                                                    <td style="padding: 0.75rem; font-family: monospace; font-size: 0.85rem;">
+                                                        <a href="#" onclick="document.getElementById('search-input').value='${txHash}'; document.getElementById('search-btn').click(); return false;" style="color: var(--accent-blue); text-decoration: none;">${shortHash}</a>
+                                                    </td>
+                                                    <td style="padding: 0.75rem; font-size: 0.85rem;">
+                                                        <span style="color: ${directionColor}; font-weight: 600; margin-right: 0.5rem;">${directionLabel}</span>
+                                                        <a href="#" onclick="document.getElementById('search-input').value='${otherAddress}'; document.getElementById('search-btn').click(); return false;" style="color: var(--text-secondary); text-decoration: none; font-family: monospace;">${shortAddr}</a>
+                                                    </td>
                                                     <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: ${amountColor};">${amountPrefix}${formatKAS(Math.abs(netAmount))} KAS</td>
                                                     <td style="padding: 0.75rem; text-align: center;">${tx.is_accepted ? '<span style="color: #10b981;">✅</span>' : '<span style="color: #f59e0b;">⏳</span>'}</td>
                                                 </tr>
