@@ -580,16 +580,41 @@
                                     </thead>
                                     <tbody>
                                         ${data.transactions.map(tx => {
-                                            const amount = tx.outputs?.reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0) || 0;
-                                            const amountKAS = amount / 100000000;
-                                            const timestamp = tx.block_time ? new Date(tx.block_time * 1000).toLocaleDateString() : 'Pending';
+                                            // Calculate if incoming or outgoing
+                                            let netAmount = 0;
+                                            let isIncoming = false;
+                                            
+                                            // Check outputs to this address
+                                            const received = tx.outputs?.filter(out => 
+                                                out.script_public_key_address === data.address
+                                            ).reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0) || 0;
+                                            
+                                            // Check inputs from this address
+                                            const sent = tx.inputs?.filter(inp => 
+                                                inp.previous_outpoint_address === data.address
+                                            ).reduce((sum, inp) => sum + (parseFloat(inp.previous_outpoint_amount) || 0), 0) || 0;
+                                            
+                                            netAmount = (received - sent) / 100000000;
+                                            isIncoming = netAmount > 0;
+                                            
+                                            const timestamp = tx.block_time ? new Date(tx.block_time * 1000).toLocaleString('de-DE', {
+                                                year: 'numeric',
+                                                month: '2-digit',
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            }) : 'Pending';
+                                            
                                             const txHash = tx.transaction_id || 'N/A';
                                             const shortHash = txHash.substring(0, 8) + '...' + txHash.substring(txHash.length - 8);
+                                            const amountColor = isIncoming ? '#10b981' : '#ef4444';
+                                            const amountPrefix = isIncoming ? '+' : '';
+                                            
                                             return `
                                                 <tr style="border-bottom: 1px solid var(--border-color);">
                                                     <td style="padding: 0.75rem; color: var(--text-secondary); font-size: 0.9rem;">${timestamp}</td>
                                                     <td style="padding: 0.75rem; font-family: monospace; font-size: 0.85rem;">${shortHash}</td>
-                                                    <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: var(--accent-blue);">${formatKAS(amountKAS)} KAS</td>
+                                                    <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: ${amountColor};">${amountPrefix}${formatKAS(Math.abs(netAmount))} KAS</td>
                                                     <td style="padding: 0.75rem; text-align: center;">${tx.is_accepted ? '<span style="color: #10b981;">✅</span>' : '<span style="color: #f59e0b;">⏳</span>'}</td>
                                                 </tr>
                                             `;
