@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaspa Explorer | BlockDAG Explorer & Analytics</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓</text></svg>">
+    <link rel="stylesheet" href="assets/css/kaspa-explorer-v4.css">
+    <link rel="stylesheet" href="assets/css/explorer-compact-v3.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Layout helpers */
+        .stats-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 1rem !important; }
+        .stat-info-2 { display: flex; gap: 1.5em; align-items: center; }
+
+        /* Hero/header SVG positioning */
+        .hero-title { position: relative; }
+        .hero-title svg { position: relative; top: 0; right: 0; width: 5em; height: 5rem; margin: 0; pointer-events: none; }
+
+        /* Landing Page Styles */
+        .landing-container { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; }
+        .landing-hero { text-align: center; max-width: 800px; width: 100%; }
+        .landing-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+        /* Enhanced subtitle design */
+        .landing-subtitle {
+            font-size: 1.125rem;
+            color: rgba(255,255,255,0.92);
+            margin-bottom: 2rem;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+            letter-spacing: 0.01em;
+            opacity: 0.95;
+            text-shadow: 0 6px 18px rgba(2,6,23,0.45);
+            background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .landing-search { margin-bottom: 2rem; }
+        .explore-link { display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 2.5rem; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; text-decoration: none; border-radius: 0.75rem; font-size: 1.1rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3); }
+        .explore-link:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5); }
+
+        /* Header hero button and icons - visible by default */
+        .hero-title, .header-actions { color: #ffffff !important; }
+        .hero-title .search-btn, .header-actions .search-btn, #header-search-btn {
+            background: transparent !important;
+            border: none !important;
+            color: #ffffff !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding: 0.25rem 0.5rem !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            opacity: 1 !important;
+        }
+        .hero-title .search-btn span, .header-actions .search-btn span, #header-search-btn span { color: #ffffff !important; display: inline-block !important; line-height: 1 !important; }
+        .hero-title .search-icon, .hero-title .fa-arrow-right, .header-actions .search-icon, .header-actions .fa-arrow-right { color: #ffffff !important; }
+        /* Minimal layout to place two stat bars left and right without design changes */
+        .compact-stats-wrapper { display: flex; gap: 1rem; align-items: flex-start; justify-content: space-between; }
+        .compact-stats-wrapper > .compact-stats-bar { flex: 0 0 49%; }
+        /* Arrange change left of value inside the meta wrapper */
+        .stats-bar-label { display: block; margin-bottom: 0.25rem; }
+        .stats-bar-meta { display: flex; align-items: center; gap: 0.5rem; }
+        .stats-bar-change { order: 1; font-size: 0.85rem; opacity: 0.9; }
+        .stats-bar-value { order: 2; }
+        
+        /* ============================================
+           TOAST NOTIFICATIONS - Professional UX
+           ============================================ */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateX(400px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            z-index: 10000;
+            min-width: 300px;
+            border-left: 4px solid;
+        }
+        
+        .toast-notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast-success {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(30, 41, 59, 0.95));
+        }
+        
+        .toast-error {
+            border-left-color: #ef4444;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(30, 41, 59, 0.95));
+        }
+        
+        .toast-warning {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(30, 41, 59, 0.95));
+        }
+        
+        .toast-info {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(30, 41, 59, 0.95));
+        }
+        
+        .toast-icon {
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .toast-success .toast-icon { color: #10b981; }
+        .toast-error .toast-icon { color: #ef4444; }
+        .toast-warning .toast-icon { color: #f59e0b; }
+        .toast-info .toast-icon { color: #3b82f6; }
+        
+        .toast-message {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            flex: 1;
+        }
+        
+        /* ============================================
+           LOADING SPINNER - Professional Animation
+           ============================================ */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        /* Larger spinner for main content */
+        .stat-value .spinner,
+        .block-value .spinner {
+            width: 24px;
+            height: 24px;
+            border-width: 3px;
+        }
+        
+        /* ============================================
+           TIMER LOADING & CLICK EFFECTS
+           ============================================ */
+        .refresh-timer {
+            position: relative;
+            transition: transform 0.2s ease, opacity 0.3s ease;
+        }
+        
+        .refresh-timer:hover {
+            transform: scale(1.05);
+        }
+        
+        .refresh-timer:active {
+            transform: scale(0.95);
+        }
+        
+        .refresh-timer.loading {
+            opacity: 0.7;
+        }
+        
+        .refresh-timer.loading .timer-text {
+            color: #3b82f6;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        .refresh-timer.loading .timer-progress {
+            stroke: #3b82f6 !important;
+            animation: pulse-stroke 1s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes pulse-stroke {
+            0%, 100% { stroke-opacity: 1; }
+            50% { stroke-opacity: 0.6; }
+        }
+        
+        .timer-loader {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        
+        .refresh-timer.loading .timer-loader {
+            display: block;
+        }
+        
+        /* Live Mode Button */
+        .view-selector-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .live-mode-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .live-mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .live-mode-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    
+        <div class="container nav-container-etherscan">
+            <div class="nav-logo">
+                <span>klassik.scan</span>
+                <span class="beta">BETA</span>
+            </div>
+            
+            <div class="nav-links-compact">
+                <div class="refresh-timer" id="refresh-timer">
+                    <svg class="timer-circle" viewBox="0 0 36 36">
+                        <path class="timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="timer-progress" id="timer-progress" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                    <span class="timer-text" id="timer-text">10</span>
+                    <div class="timer-loader"></div>
+                </div>
+
+            </div>
+        </div>
+    
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1 class="hero-title fade-in-up" style="font-size: 0.8rem; margin-bottom: 0rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0; font-family: 'Space Grotesk', sans-serif;">
+                        <a href="index.html">
+                            <svg style="width: 3rem; height: 3rem; margin-left: 1rem;" viewBox="0 0 197.1 196.9" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="98.6" cy="97.8" r="40.8"/>
+                                <path fill="#FFFFFF" d="M149.4,76.3c-2.8-6.8-7.2-13-12.3-18.1s-11.6-8.9-18.4-11.7c-6.5-2.7-13.8-4.1-21.3-4.1s-15.2,0.3-21.7,3c-6.8,2.8-12.4,8.1-17.5,13.2s-11,10.5-13.8,17.3c-2.7,6.5-1.8,14.5-1.8,22s0.5,14.8,3.3,21.4c2.8,6.8,8.5,11.5,13.6,16.6c5.1,5.1,9.7,11.2,16.5,14c6.5,2.7,14,4.6,21.5,4.6s14.9-2.2,21.4-4.9c6.8-2.8,12.9-7.2,18-12.3c5.1-5.1,9.2-11.3,12-18.1c2.7-6.5,5.8-13.8,5.8-21.3S152.1,82.9,149.4,76.3L149.4,76.3z M113.2,129.8l-11.9-1.8l3.4-23l-24.9,19.2l-7.3-9.6l21.8-16.8L72.5,81.1l7.3-9.6l24.9,19.2l-3.4-23l11.9-1.8l4.7,32L113.2,129.8L113.2,129.8z"/>
+                            </svg>
+                        </a>
+                    </h1>
+                </div>
+
+                <div class="header-actions">
+                    <a class="search-btn" id="header-search-btn" href="kaspa-explorerv5.html">
+                        <i class="fas fa-user"></i>
+                        <span>LogIn/Register</span>
+                        <i class="fas fa-user"></i>
+                    </a>
+                </div>
+
+                <div class="price-status" id="header-price">
+                    <div class="price-main">
+                        <i class="fas fa-coins"></i>
+                        <span class="price-value" id="header-price-value">$0.00</span>
+                    </div>
+                    <span class="price-change" id="header-price-change">0.00%</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    
+    <!-- Main Content (aus v4 übernommen) -->
+    <main class="main">
+        <!-- Hidden stats section for JS detection -->
+        <div id="stats-section" style="display: none;"></div>
+            <!-- Search Bar -->
+        <div class="search-container landing-search">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search by Address / Tx Hash / Block Hash" id="main-search" autocomplete="off">
+                    <button class="search-btn" id="search-btn">
+                        <span>Search</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Search results (SPA) -->
+                <div id="search-results" class="search-results" aria-live="polite"></div>
+        </div>
+
+        <!-- View Selector -->
+        <div class="view-selector-container">
+            <select class="view-selector" id="view-selector">
+                <option value="home">🏠 Home</option>
+                <option value="blockdag">🔗 BlockDAG</option>
+                <option value="analytics">📊 Analytics</option>
+                <option value="live">📡 Live Stats</option>
+            </select>
+            <button class="live-mode-btn" id="live-mode-toggle" onclick="window.realtimeManager?.toggleLiveMode()">
+                ▶️ Enable Live Mode (0.1s)
+            </button>
+        </div>
+
+
+
+        <!-- Compact Stats Bar -->
+        <div class="compact-stats-wrapper">
+        <div class="compact-stats-bar">
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">KAS Price</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-change" id="price-change-24h">Loading...</div>
+                    <div class="stats-bar-value" id="price-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">Market Cap</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="mcap-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">Transactions (24h)</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="total-txs-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">Hashrate</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="hashrate-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">Difficulty</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="difficulty-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">Block Reward</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="block-reward-stat">Loading...</div>
+                </div>
+            </div>
+        </div>
+                <div class="compact-stats-bar">
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">24h Volume</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="volume-24h-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">ATH Price</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="ath-price-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">Total Supply</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="total-supply-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">Remaining Supply</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="remaining-supply-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">Avg Block Time</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="avg-block-time-stat">Loading...</div>
+                </div>
+            </div>
+            <div class="stats-bar-item">
+                <div class="stats-bar-label">Next Halving</div>
+                <div class="stats-bar-meta">
+                    <div class="stats-bar-value" id="next-halving-stat">Loading...</div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Tables Container - Side by Side -->
+        <div class="tables-container">
+            <!-- Latest Blocks Table -->
+            <div class="table-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-cubes"></i>
+                        Latest Blocks
+                    </h2>
+                    <div class="table-controls">
+                        <select class="control-select" id="blocks-sort">
+                            <option value="timestamp-desc">Newest First</option>
+                            <option value="timestamp-asc">Oldest First</option>
+                            <option value="size-desc">Largest Size</option>
+                            <option value="txs-desc">Most Transactions</option>
+                        </select>
+                        <input type="text" class="control-input" id="blocks-filter" placeholder="Filter blocks...">
+                    </div>
+                    <a href="kaspa-blocks-realtime.html" class="view-all-btn">
+                        View All <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="table-container">
+                    <table class="data-table sortable">
+                        <thead>
+                            <tr>
+                                <th data-sort="hash">Block Hash <i class="fas fa-sort"></i></th>
+                                <th data-sort="timestamp">Timestamp <i class="fas fa-sort"></i></th>
+                                <th data-sort="txs">Transactions <i class="fas fa-sort"></i></th>
+                                <th data-sort="size">Size <i class="fas fa-sort"></i></th>
+                                <th data-sort="blueScore">Blue Score <i class="fas fa-sort"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="latest-blocks">
+                            <tr>
+                                <td colspan="5" class="loading-cell">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading latest blocks...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Latest Transactions Table -->
+            <div class="table-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-exchange-alt"></i>
+                        Latest Transactions
+                    </h2>
+                    <div class="table-controls">
+                        <select class="control-select" id="txs-sort">
+                            <option value="timestamp-desc">Newest First</option>
+                            <option value="timestamp-asc">Oldest First</option>
+                            <option value="amount-desc">Highest Amount</option>
+                            <option value="amount-asc">Lowest Amount</option>
+                        </select>
+                        <input type="text" class="control-input" id="txs-filter" placeholder="Filter transactions...">
+                    </div>
+                    <a href="kaspa-transactions-realtime.html" class="view-all-btn">
+                        View All <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="table-container">
+                    <table class="data-table sortable">
+                        <thead>
+                            <tr>
+                                <th data-sort="hash">Tx Hash <i class="fas fa-sort"></i></th>
+                                <th data-sort="from">From <i class="fas fa-sort"></i></th>
+                                <th data-sort="to">To <i class="fas fa-sort"></i></th>
+                                <th data-sort="amount">Amount <i class="fas fa-sort"></i></th>
+                                <th data-sort="timestamp">Time <i class="fas fa-sort"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="latest-txs">
+                            <tr>
+                                <td colspan="5" class="loading-cell">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading latest transactions...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Data Blocks Compact -->
+        <div class="data-blocks-compact">
+            <div class="data-row">
+                <div class="data-block mini">
+                    <div class="data-block-label">Total Supply</div>
+                    <div class="data-block-value" id="total-supply">Loading...</div>
+                </div>
+                <div class="data-block mini">
+                    <div class="data-block-label">Circulating Supply</div>
+                    <div class="data-block-value" id="circ-supply">Loading...</div>
+                </div>
+                <div class="data-block mini">
+                    <div class="data-block-label">Mineable Remaining</div>
+                    <div class="data-block-value" id="mineable-supply">Loading...</div>
+                </div>
+                <div class="data-block mini">
+                    <div class="data-block-label">Avg Block Time</div>
+                    <div class="data-block-value" id="avg-blocktime">~1s</div>
+                </div>
+                <div class="data-block mini">
+                    <div class="data-block-label">Miner Rewards (24h)</div>
+                    <div class="data-block-value" id="coinbase-24h">Loading...</div>
+                </div>
+                <div class="data-block mini">
+                    <div class="data-block-label">Regular TXs (24h)</div>
+                    <div class="data-block-value" id="regular-txs-24h">Loading...</div>
+                </div>
+                <div class="data-block mini">
+                    <div class="data-block-label">Total Blocks</div>
+                    <div class="data-block-value" id="total-blocks">Loading...</div>
+                </div>
+                <div class="data-block mini">
+                    <div class="data-block-label">Daily Transactions</div>
+                    <div class="data-block-value" id="daily-txs">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        <!-- BlockDAG View -->
+        <div class="view" id="blockdag-view">
+            <section class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-project-diagram"></i>
+                            Live BlockDAG Visualization
+                        </h2>
+                        <div class="controls">
+                            <button class="control-btn" id="dag-play">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="control-btn" id="dag-pause">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button class="control-btn" id="dag-reset">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="blockdag-container">
+                        <canvas id="blockdag-canvas"></canvas>
+                        <div class="blockdag-stats">
+                            <div class="dag-stat">
+                                <span class="dag-stat-label">Nodes:</span>
+                                <span class="dag-stat-value" id="dag-nodes">0</span>
+                            </div>
+                            <div class="dag-stat">
+                                <span class="dag-stat-label">Edges:</span>
+                                <span class="dag-stat-value" id="dag-edges">0</span>
+                            </div>
+                            <div class="dag-stat">
+                                <span class="dag-stat-label">FPS:</span>
+                                <span class="dag-stat-value" id="dag-fps">60</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Analytics View -->
+        <div class="view" id="analytics-view">
+            <section class="section">
+                <div class="container">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        Network Analytics
+                    </h2>
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Price History (7D)</h3>
+                                <select class="chart-select" id="price-timeframe">
+                                    <option value="24h">24H</option>
+                                    <option value="7d" selected>7D</option>
+                                    <option value="30d">30D</option>
+                                    <option value="90d">90D</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="price-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Hashrate History</h3>
+                                <select class="chart-select" id="hashrate-timeframe">
+                                    <option value="24h">24H</option>
+                                    <option value="7d" selected>7D</option>
+                                    <option value="30d">30D</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="hashrate-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Transaction Volume</h3>
+                                <select class="chart-select" id="tx-timeframe">
+                                    <option value="24h">24H</option>
+                                    <option value="7d" selected>7D</option>
+                                    <option value="30d">30D</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="tx-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Difficulty Adjustment</h3>
+                                <select class="chart-select" id="diff-timeframe">
+                                    <option value="24h">24H</option>
+                                    <option value="7d" selected>7D</option>
+                                    <option value="30d">30D</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="difficulty-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Live Stats View -->
+        <div class="view" id="live-view">
+            <section class="section">
+                <div class="container">
+                    <h2 class="section-title">
+                        <i class="fas fa-broadcast-tower"></i>
+                        Live Network Statistics
+                    </h2>
+                    <div class="live-grid">
+                        <div class="live-card">
+                            <div class="live-card-header">
+                                <i class="fas fa-server"></i>
+                                <h3>Network Info</h3>
+                            </div>
+                            <div class="live-card-body">
+                                <div class="live-row">
+                                    <span class="live-label">DAA Score:</span>
+                                    <span class="live-value" id="live-daa">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Blue Score:</span>
+                                    <span class="live-value" id="live-blue">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Virtual Parent Hashes:</span>
+                                    <span class="live-value" id="live-parents">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Difficulty:</span>
+                                    <span class="live-value" id="live-difficulty">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Block Count:</span>
+                                    <span class="live-value" id="live-blocks">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="live-card">
+                            <div class="live-card-header">
+                                <i class="fas fa-memory"></i>
+                                <h3>Mempool</h3>
+                            </div>
+                            <div class="live-card-body">
+                                <div class="live-row">
+                                    <span class="live-label">Pending Transactions:</span>
+                                    <span class="live-value" id="live-mempool">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Mempool Size:</span>
+                                    <span class="live-value" id="live-mempool-size">0 KB</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Avg Fee:</span>
+                                    <span class="live-value" id="live-fee">0 KAS</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="live-card">
+                            <div class="live-card-header">
+                                <i class="fas fa-chart-bar"></i>
+                                <h3>Mining Stats</h3>
+                            </div>
+                            <div class="live-card-body">
+                                <div class="live-row">
+                                    <span class="live-label">Network Hashrate:</span>
+                                    <span class="live-value" id="live-hashrate">0 PH/s</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Est. Next Diff:</span>
+                                    <span class="live-value" id="live-next-diff">0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Block Time:</span>
+                                    <span class="live-value" id="live-blocktime">1s</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Blocks/Hour:</span>
+                                    <span class="live-value" id="live-bph">3600</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="live-card">
+                            <div class="live-card-header">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <h3>Market Data</h3>
+                            </div>
+                            <div class="live-card-body">
+                                <div class="live-row">
+                                    <span class="live-label">Price (USD):</span>
+                                    <span class="live-value" id="live-price">$0.00</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">24h Change:</span>
+                                    <span class="live-value" id="live-change-24h">+0.00%</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">7d Change:</span>
+                                    <span class="live-value" id="live-change-7d">+0.00%</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Volume (24h):</span>
+                                    <span class="live-value" id="live-volume">$0</span>
+                                </div>
+                                <div class="live-row">
+                                    <span class="live-label">Market Cap:</span>
+                                    <span class="live-value" id="live-mcap">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Activity Feed -->
+                    <div class="activity-section">
+                        <h3 class="activity-title">
+                            <i class="fas fa-stream"></i>
+                            Real-time Activity
+                        </h3>
+                        <div class="activity-feed" id="activity-feed">
+                            <!-- Activity items will be added dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>klassik.kaspa</h4>
+                    <p>Professional BlockDAG Explorer</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Network</h4>
+                    <p id="footer-status">Active</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="assets/js/kaspa-explorer.js"></script>
+    <script src="assets/js/realtime-updates.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</body>
+</html>
