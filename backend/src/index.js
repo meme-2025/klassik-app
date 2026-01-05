@@ -10,6 +10,7 @@ const eventsRoutes = require('./routes/events');
 const bookingsRoutes = require('./routes/bookings');
 const usersRoutes = require('./routes/users');
 const kaspaRoutes = require('./routes/kaspa');
+const kaspaPublicRoutes = require('./routes/kaspa-public');
 const kaspaEnhancedRoutes = require('./routes/kaspa-enhanced');
 const adminRoutes = require('./routes/admin');
 const adminV2Routes = require('./routes/admin-v2');
@@ -108,6 +109,9 @@ app.use('/api/auth', authRoutes);
 
 // ✅ Kaspa blockchain routes (public with blockchain limiter)
 app.use('/api/kaspa', blockchainLimiter, kaspaRoutes);
+
+// ✅ Kaspa PUBLIC API - NO AUTH (for landing page lightweight search)
+app.use('/api/kaspa-public', blockchainLimiter, kaspaPublicRoutes);
 
 // ✅ Enhanced Kaspa API proxy routes (PROTECTED - only for authenticated users)
 // User requirement: "nur registrierte nutzer die engemeldet sind die backend benutzen"
