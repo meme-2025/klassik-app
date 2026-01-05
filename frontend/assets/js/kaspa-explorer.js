@@ -46,7 +46,7 @@ const state = {
 // ============================================
 const API = {
     // Ihr Backend als PRIMARY API
-    BACKEND: 'http://localhost:3000/api/kaspa-enhanced',
+    BACKEND: 'https://klassik.99pace.space/api/kaspa-enhanced',
     // Kaspa.org als Fallback
     KASPA_ORG: 'https://api.kaspa.org',
     // CoinGecko für Preisdaten
