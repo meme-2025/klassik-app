@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const db = require('../db');
 
 // Ensure JWT_SECRET is set
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -11,8 +13,9 @@ if (!JWT_SECRET) {
 /**
  * JWT Authentication Middleware
  * Verifies Bearer token and attaches user to req.user
+ * Also tracks session activity for Admin Panel V2
  */
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   const auth = req.headers.authorization;
   
   if (!auth || !auth.startsWith('Bearer ')) {
@@ -31,6 +34,32 @@ module.exports = (req, res, next) => {
       email: payload.email,
       address: payload.address
     };
+    
+    // Track session activity (non-blocking)
+    setImmediate(async () => {
+      try {
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+        const userId = payload.userId || payload.id;
+        
+        // Update session last_activity
+        await db.query(`
+          UPDATE user_sessions 
+          SET last_activity = CURRENT_TIMESTAMP 
+          WHERE token_hash = $1 AND user_id = $2 AND is_active = TRUE
+        `, [tokenHash, userId]);
+        
+        // Update user last_seen
+        await db.query(`
+          UPDATE users 
+          SET last_seen = CURRENT_TIMESTAMP, is_online = TRUE
+          WHERE id = $1
+        `, [userId]);
+        
+      } catch (err) {
+        // Don't block request on tracking errors
+        console.warn('⚠️ Session tracking error:', err.message);
+      }
+    });
     
     next();
   } catch (err) {

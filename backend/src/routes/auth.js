@@ -367,6 +367,28 @@ router.post('/login', async (req, res) => {
     // Generate JWT token
     const token = generateToken(user);
 
+    // Create session tracking (Admin Panel V2)
+    try {
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      const userAgent = req.headers['user-agent'] || 'Unknown';
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+      await db.query(`
+        INSERT INTO user_sessions (user_id, token_hash, ip_address, user_agent, expires_at)
+        VALUES ($1, $2, $3, $4, $5)
+      `, [user.id, tokenHash, ipAddress, userAgent, expiresAt]);
+
+      // Set user as online
+      await db.query(`
+        UPDATE users SET is_online = TRUE, last_seen = CURRENT_TIMESTAMP WHERE id = $1
+      `, [user.id]);
+
+      console.log(`📊 Session created for ${user.username} from ${ipAddress}`);
+    } catch (sessionErr) {
+      console.warn('⚠️ Failed to create session tracking:', sessionErr.message);
+    }
+
     console.log(`✅ Wallet login: ${user.username} (${normalized})`);
 
     res.json({

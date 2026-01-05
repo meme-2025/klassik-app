@@ -384,6 +384,22 @@ router.get('/address/:address', async (req, res) => {
     const { address } = req.params;
     const data = await callKaspaAPI(`/addresses/${address}/full`);
     
+    // Track search (non-blocking)
+    if (req.user && req.user.userId) {
+      setImmediate(async () => {
+        try {
+          const db = require('../db');
+          const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+          await db.query(`
+            INSERT INTO search_history (user_id, search_query, search_type, result_found, ip_address)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [req.user.userId, address, 'address', !!data, ipAddress]);
+        } catch (err) {
+          console.warn('⚠️ Search tracking failed:', err.message);
+        }
+      });
+    }
+    
     res.json({
       address: address,
       balance: data?.balance || 0,
@@ -396,6 +412,23 @@ router.get('/address/:address', async (req, res) => {
     
   } catch (error) {
     console.error('Address lookup error:', error);
+    
+    // Track failed search
+    if (req.user && req.user.userId) {
+      setImmediate(async () => {
+        try {
+          const db = require('../db');
+          const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+          await db.query(`
+            INSERT INTO search_history (user_id, search_query, search_type, result_found, ip_address)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [req.user.userId, req.params.address, 'address', false, ipAddress]);
+        } catch (err) {
+          console.warn('⚠️ Search tracking failed:', err.message);
+        }
+      });
+    }
+    
     res.status(404).json({
       error: 'Address not found',
       address: req.params.address,
@@ -419,6 +452,22 @@ router.get('/block/:hashOrHeight', async (req, res) => {
       data = await callKaspaAPI(`/blocks/${hashOrHeight}`);
     }
     
+    // Track search (non-blocking)
+    if (req.user && req.user.userId) {
+      setImmediate(async () => {
+        try {
+          const db = require('../db');
+          const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+          await db.query(`
+            INSERT INTO search_history (user_id, search_query, search_type, result_found, ip_address)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [req.user.userId, hashOrHeight, 'block', !!data, ipAddress]);
+        } catch (err) {
+          console.warn('⚠️ Search tracking failed:', err.message);
+        }
+      });
+    }
+    
     res.json({
       timestamp: new Date().toISOString(),
       isLive: true,
@@ -427,6 +476,23 @@ router.get('/block/:hashOrHeight', async (req, res) => {
     
   } catch (error) {
     console.error('Block lookup error:', error);
+    
+    // Track failed search
+    if (req.user && req.user.userId) {
+      setImmediate(async () => {
+        try {
+          const db = require('../db');
+          const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+          await db.query(`
+            INSERT INTO search_history (user_id, search_query, search_type, result_found, ip_address)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [req.user.userId, req.params.hashOrHeight, 'block', false, ipAddress]);
+        } catch (err) {
+          console.warn('⚠️ Search tracking failed:', err.message);
+        }
+      });
+    }
+    
     res.status(404).json({
       error: 'Block not found',
       hashOrHeight: req.params.hashOrHeight,
@@ -441,6 +507,22 @@ router.get('/transaction/:txHash', async (req, res) => {
     const { txHash } = req.params;
     const data = await callKaspaAPI(`/transactions/${txHash}`);
     
+    // Track search (non-blocking)
+    if (req.user && req.user.userId) {
+      setImmediate(async () => {
+        try {
+          const db = require('../db');
+          const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+          await db.query(`
+            INSERT INTO search_history (user_id, search_query, search_type, result_found, ip_address)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [req.user.userId, txHash, 'transaction', !!data, ipAddress]);
+        } catch (err) {
+          console.warn('⚠️ Search tracking failed:', err.message);
+        }
+      });
+    }
+    
     res.json({
       timestamp: new Date().toISOString(),
       isLive: true,
@@ -449,6 +531,23 @@ router.get('/transaction/:txHash', async (req, res) => {
     
   } catch (error) {
     console.error('Transaction lookup error:', error);
+    
+    // Track failed search
+    if (req.user && req.user.userId) {
+      setImmediate(async () => {
+        try {
+          const db = require('../db');
+          const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+          await db.query(`
+            INSERT INTO search_history (user_id, search_query, search_type, result_found, ip_address)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [req.user.userId, req.params.txHash, 'transaction', false, ipAddress]);
+        } catch (err) {
+          console.warn('⚠️ Search tracking failed:', err.message);
+        }
+      });
+    }
+    
     res.status(404).json({
       error: 'Transaction not found',
       txHash: req.params.txHash,
