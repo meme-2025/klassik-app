@@ -219,6 +219,22 @@ async function fetchWithRetry(fetchFn, maxRetries = 3) {
         try {
             return await fetchFn();
         } catch (error) {
+            // ⚠️ SPECIAL: Bei 429 Rate Limit - NICHT retries, sofort stoppen
+            if (error.message && error.message.includes('429')) {
+                console.warn('⚠️ Rate limit hit - stopping retries, waiting 30s...');
+                // Pausiere alle Updates für 30 Sekunden
+                if (window.updateRateController) {
+                    const currentInterval = window.updateRateController.refreshInterval;
+                    window.updateRateController.stopRefresh();
+                    setTimeout(() => {
+                        if (window.updateRateController) {
+                            window.updateRateController.startRefresh(30); // Resume mit 30s
+                        }
+                    }, 30000);
+                }
+                throw error;
+            }
+            
             // Don't retry on last attempt
             if (i === maxRetries - 1) {
                 console.error(`❌ All ${maxRetries} retry attempts failed:`, error);

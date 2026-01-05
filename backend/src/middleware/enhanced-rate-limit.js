@@ -97,7 +97,7 @@ const paymentLimiter = rateLimit({
  */
 const blockchainLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 Minute
-  max: 60, // Max 60 Anfragen = 1/Sekunde
+  max: 300, // Max 300 Anfragen = 5/Sekunde (erhöht für Live Mode)
   message: {
     error: 'Blockchain API rate limit exceeded',
     retryAfter: 'Please reduce request frequency'
