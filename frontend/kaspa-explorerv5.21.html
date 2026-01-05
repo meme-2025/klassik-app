@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kaspa Explorer | BlockDAG Explorer & Analytics</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓</text></svg>">
+    
+    <!-- 🔐 CRITICAL: AUTH CHECK - BEFORE ANYTHING ELSE! -->
+    <script>
+        // SOFORT prüfen ob eingeloggt - BEVOR CSS/JS lädt!
+        (function() {
+            const token = localStorage.getItem('klassik_token');
+            if (!token) {
+                console.warn('🔐 NO AUTH TOKEN - REDIRECTING TO AUTH FLOW');
+                window.location.href = 'auth-flow.html';
+            } else {
+                console.log('✅ Auth token found - proceeding to explorer');
+            }
+        })();
+    </script>
+    
     <link rel="stylesheet" href="assets/css/kaspa-explorer-v4.css">
     <link rel="stylesheet" href="assets/css/explorer-compact-v3.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

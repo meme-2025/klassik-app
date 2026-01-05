@@ -146,8 +146,9 @@ function handleAuthError(error, context = '') {
  */
 function initAuthCheck() {
     if (!isAuthenticated()) {
-        console.warn('⚠️ User not authenticated');
-        showLoginPrompt();
+        console.warn('⚠️ User not authenticated - REDIRECTING TO AUTH FLOW');
+        // SOFORT REDIRECT - KEINE DATEN OHNE LOGIN!
+        window.location.href = 'auth-flow.html';
         return false;
     }
     
