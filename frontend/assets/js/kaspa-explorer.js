@@ -1923,6 +1923,19 @@ function drawBlockDAG(ctx, width, height, frame) {
 // Data Refresh
 // ============================================
 function initializeRefreshTimer() {
+    // Setup click-to-refresh handler
+    const refreshTimer = document.getElementById('refresh-timer');
+    if (refreshTimer) {
+        refreshTimer.style.cursor = 'pointer';
+        refreshTimer.title = 'Click to refresh now';
+        refreshTimer.addEventListener('click', () => {
+            console.log('🔄 Manual refresh triggered');
+            // Reset timer and refresh immediately
+            state.refreshTimer = 10;
+            refreshAllData();
+        });
+    }
+    
     // Start initial countdown
     startRefreshTimer();
     
@@ -1936,7 +1949,7 @@ function startRefreshTimer() {
         clearInterval(state.timerInterval);
     }
     
-    // Reset to 10 seconds (UPDATED)
+    // Reset to 10 seconds
     state.refreshTimer = 10;
     updateTimerDisplay();
     
@@ -1956,32 +1969,60 @@ function startRefreshTimer() {
 function updateTimerDisplay() {
     const timerText = document.getElementById('timer-text');
     const timerProgress = document.getElementById('timer-progress');
+    const refreshTimer = document.getElementById('refresh-timer');
     
     if (timerText) {
         timerText.textContent = state.refreshTimer;
     }
     
     if (timerProgress) {
-        // Calculate percentage (10s = 100%)
+        // Calculate percentage (10s = 100%, countdown to 0)
         const percentage = (state.refreshTimer / 10) * 100;
         timerProgress.setAttribute('stroke-dasharray', `${percentage}, 100`);
     }
 }
 
-function refreshAllData() {
-    console.log('Refreshing all data...');
+function setTimerLoading(isLoading) {
+    const refreshTimer = document.getElementById('refresh-timer');
+    const timerText = document.getElementById('timer-text');
     
-    // Fetch all data (fetchPriceData is now included in fetchNetworkInfo)
-    Promise.all([
-        fetchNetworkInfo(),
-        fetchLatestBlocks(),
-        fetchLatestTransactions()
-    ]).then(() => {
+    if (refreshTimer) {
+        if (isLoading) {
+            refreshTimer.classList.add('loading');
+            refreshTimer.title = 'Loading data...';
+        } else {
+            refreshTimer.classList.remove('loading');
+            refreshTimer.title = 'Click to refresh now';
+        }
+    }
+}
+
+async function refreshAllData() {
+    console.log('🔄 Refreshing all data...');
+    
+    // Show loading state
+    setTimerLoading(true);
+    
+    try {
+        // Fetch all data in parallel
+        await Promise.all([
+            fetchNetworkInfo(),
+            fetchLatestBlocks(),
+            fetchLatestTransactions()
+        ]);
+        
+        // Update UI with new data
         updateUI();
-        console.log('Data refresh complete');
-    }).catch(error => {
-        console.error('Error refreshing data:', error);
-    });
+        
+        console.log('✅ Data refresh complete');
+        
+    } catch (error) {
+        console.error('❌ Error refreshing data:', error);
+        showUserNotification('Failed to refresh data', 'error');
+    } finally {
+        // Hide loading state
+        setTimerLoading(false);
+    }
 }
 
 function startDataRefresh() {

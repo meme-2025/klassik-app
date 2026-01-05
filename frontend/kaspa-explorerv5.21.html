@@ -166,6 +166,64 @@
             height: 24px;
             border-width: 3px;
         }
+        
+        /* ============================================
+           TIMER LOADING & CLICK EFFECTS
+           ============================================ */
+        .refresh-timer {
+            position: relative;
+            transition: transform 0.2s ease, opacity 0.3s ease;
+        }
+        
+        .refresh-timer:hover {
+            transform: scale(1.05);
+        }
+        
+        .refresh-timer:active {
+            transform: scale(0.95);
+        }
+        
+        .refresh-timer.loading {
+            opacity: 0.7;
+        }
+        
+        .refresh-timer.loading .timer-text {
+            color: #3b82f6;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        .refresh-timer.loading .timer-progress {
+            stroke: #3b82f6 !important;
+            animation: pulse-stroke 1s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes pulse-stroke {
+            0%, 100% { stroke-opacity: 1; }
+            50% { stroke-opacity: 0.6; }
+        }
+        
+        .timer-loader {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        
+        .refresh-timer.loading .timer-loader {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -181,9 +239,10 @@
                 <div class="refresh-timer" id="refresh-timer">
                     <svg class="timer-circle" viewBox="0 0 36 36">
                         <path class="timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                        <path class="timer-progress" id="timer-progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="timer-progress" id="timer-progress" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                     </svg>
-                    <span class="timer-text" id="timer-text">60</span>
+                    <span class="timer-text" id="timer-text">10</span>
+                    <div class="timer-loader"></div>
                 </div>
 
             </div>
