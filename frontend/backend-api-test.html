@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend API Testing Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .card h2 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        button:active { transform: translateY(0); }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .status.success { background: #10b981; }
+        .status.error { background: #ef4444; }
+        .status.loading { background: #f59e0b; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        pre {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .metric:last-child { border-bottom: none; }
+        .metric-label { opacity: 0.8; }
+        .metric-value {
+            font-weight: bold;
+            color: #10b981;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1em;
+        }
+        .search-box input::placeholder { color: rgba(255,255,255,0.5); }
+        
+        .endpoint-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+        .endpoint-list li {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .endpoint-list li:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .endpoint-list .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .endpoint-list .method.GET { background: #10b981; }
+        .endpoint-list .method.POST { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Klassik Backend API Testing Dashboard</h1>
+        
+        <div class="grid">
+            <!-- Network Stats -->
+            <div class="card">
+                <h2>📊 Network Stats</h2>
+                <div id="stats-status" class="status loading">Loading...</div>
+                <button onclick="testStats()">Test /stats</button>
+                <button onclick="testKaspadInfo()">Test /kaspad-info</button>
+                <div id="stats-metrics"></div>
+            </div>
+            
+            <!-- Blocks -->
+            <div class="card">
+                <h2>🧱 Latest Blocks</h2>
+                <div id="blocks-status" class="status loading">Loading...</div>
+                <button onclick="testBlocks()">Test /blocks/latest</button>
+                <div id="blocks-data"></div>
+            </div>
+            
+            <!-- Transactions -->
+            <div class="card">
+                <h2>💸 Latest Transactions</h2>
+                <div id="tx-status" class="status loading">Loading...</div>
+                <button onclick="testTransactions()">Test /transactions/latest</button>
+                <div id="tx-data"></div>
+            </div>
+            
+            <!-- Search -->
+            <div class="card">
+                <h2>🔍 Search Functions</h2>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Eingeben: Address, Block, TX Hash...">
+                    <button onclick="testSearch()">Search</button>
+                </div>
+                <div id="search-status"></div>
+                <pre id="search-results"></pre>
+            </div>
+            
+            <!-- Available Endpoints -->
+            <div class="card">
+                <h2>📡 Available Endpoints</h2>
+                <ul class="endpoint-list">
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/stats</li>
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/blocks/latest</li>
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/transactions/latest</li>
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/address/:address</li>
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/block/:hashOrHeight</li>
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/transaction/:txHash</li>
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/mempool</li>
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/kaspad-info</li>
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/fee-estimate</li>
+                    <li onclick="copyEndpoint(this)"><span class="method GET">GET</span> /api/kaspa-enhanced/health</li>
+                </ul>
+                <small style="opacity: 0.7;">Click to copy endpoint</small>
+            </div>
+            
+            <!-- Console -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>📝 Console Log</h2>
+                <button onclick="clearConsole()">Clear</button>
+                <button onclick="exportLogs()">Export Logs</button>
+                <pre id="console"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'https://klassik.99pace.space/api/kaspa-enhanced';
+        // For local testing: 'http://localhost:3000/api/kaspa-enhanced'
+        
+        const console_log = document.getElementById('console');
+        let logs = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logs.push(logEntry);
+            console_log.textContent = logs.slice(-50).join('\n');
+            console_log.scrollTop = console_log.scrollHeight;
+            console.log(logEntry);
+        }
+        
+        async function testStats() {
+            const statusEl = document.getElementById('stats-status');
+            const metricsEl = document.getElementById('stats-metrics');
+            
+            statusEl.className = 'status loading';
+            statusEl.textContent = 'Loading...';
+            log('Testing /stats endpoint...');
+            
+            try {
+                const start = performance.now();
+                const res = await fetch(`${API_BASE}/stats`);
+                const duration = (performance.now() - start).toFixed(2);
+                
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                
+                const data = await res.json();
+                log(`✅ /stats successful (${duration}ms)`, 'success');
+                
+                statusEl.className = 'status success';
+                statusEl.textContent = `✅ Success (${duration}ms)`;
+                
+                metricsEl.innerHTML = `
+                    <div class="metric"><span class="metric-label">Blue Score:</span><span class="metric-value">${data.blueScore || 'N/A'}</span></div>
+                    <div class="metric"><span class="metric-label">Network:</span><span class="metric-value">${data.networkName || 'N/A'}</span></div>
+                    <div class="metric"><span class="metric-label">Hashrate:</span><span class="metric-value">${data.hashrate || 'N/A'}</span></div>
+                    <div class="metric"><span class="metric-label">Difficulty:</span><span class="metric-value">${data.difficulty || 'N/A'}</span></div>
+                    <div class="metric"><span class="metric-label">Price (USD):</span><span class="metric-value">$${data.price?.usd || 'N/A'}</span></div>
+                    <div class="metric"><span class="metric-label">Market Cap:</span><span class="metric-value">$${(data.marketcap?.usd / 1e6).toFixed(2)}M</span></div>
+                    <div class="metric"><span class="metric-label">24h Change:</span><span class="metric-value">${data.price?.usd_24h_change?.toFixed(2)}%</span></div>
+                `;
+            } catch (error) {
+                log(`❌ /stats failed: ${error.message}`, 'error');
+                statusEl.className = 'status error';
+                statusEl.textContent = `❌ Error: ${error.message}`;
+                metricsEl.innerHTML = '<p style="color: #ef4444;">Failed to load stats</p>';
+            }
+        }
+        
+        async function testBlocks() {
+            const statusEl = document.getElementById('blocks-status');
+            const dataEl = document.getElementById('blocks-data');
+            
+            statusEl.className = 'status loading';
+            statusEl.textContent = 'Loading...';
+            log('Testing /blocks/latest endpoint...');
+            
+            try {
+                const start = performance.now();
+                const res = await fetch(`${API_BASE}/blocks/latest?limit=10`);
+                const duration = (performance.now() - start).toFixed(2);
+                
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                
+                const data = await res.json();
+                log(`✅ /blocks/latest successful (${duration}ms) - ${data.length} blocks`, 'success');
+                
+                statusEl.className = 'status success';
+                statusEl.textContent = `✅ ${data.length} blocks (${duration}ms)`;
+                
+                dataEl.innerHTML = `<pre>${JSON.stringify(data.slice(0, 3), null, 2)}</pre>`;
+            } catch (error) {
+                log(`❌ /blocks/latest failed: ${error.message}`, 'error');
+                statusEl.className = 'status error';
+                statusEl.textContent = `❌ Error`;
+                dataEl.innerHTML = '<p style="color: #ef4444;">Failed to load blocks</p>';
+            }
+        }
+        
+        async function testTransactions() {
+            const statusEl = document.getElementById('tx-status');
+            const dataEl = document.getElementById('tx-data');
+            
+            statusEl.className = 'status loading';
+            statusEl.textContent = 'Loading...';
+            log('Testing /transactions/latest endpoint...');
+            
+            try {
+                const start = performance.now();
+                const res = await fetch(`${API_BASE}/transactions/latest?limit=10`);
+                const duration = (performance.now() - start).toFixed(2);
+                
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                
+                const data = await res.json();
+                log(`✅ /transactions/latest successful (${duration}ms)`, 'success');
+                
+                statusEl.className = 'status success';
+                statusEl.textContent = `✅ Success (${duration}ms)`;
+                
+                dataEl.innerHTML = `<pre>${JSON.stringify(data.transactions?.slice(0, 3) || data.slice(0, 3), null, 2)}</pre>`;
+            } catch (error) {
+                log(`❌ /transactions/latest failed: ${error.message}`, 'error');
+                statusEl.className = 'status error';
+                statusEl.textContent = `❌ Error`;
+                dataEl.innerHTML = '<p style="color: #ef4444;">Failed to load transactions</p>';
+            }
+        }
+        
+        async function testKaspadInfo() {
+            log('Testing /kaspad-info endpoint...');
+            try {
+                const res = await fetch(`${API_BASE}/kaspad-info`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                log(`✅ /kaspad-info successful`, 'success');
+                alert('Kaspad Info:\n' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log(`❌ /kaspad-info failed: ${error.message}`, 'error');
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function testSearch() {
+            const input = document.getElementById('search-input').value.trim();
+            const statusEl = document.getElementById('search-status');
+            const resultsEl = document.getElementById('search-results');
+            
+            if (!input) {
+                alert('Bitte Suchbegriff eingeben');
+                return;
+            }
+            
+            statusEl.innerHTML = '<span class="status loading">Searching...</span>';
+            log(`Searching for: ${input}`);
+            
+            // Detect type
+            let endpoint;
+            if (input.startsWith('kaspa:')) {
+                endpoint = `/address/${encodeURIComponent(input)}`;
+            } else if (/^[0-9]+$/.test(input)) {
+                endpoint = `/block/${input}`;
+            } else if (input.length === 64) {
+                endpoint = `/transaction/${input}`;
+            } else {
+                endpoint = `/block/${input}`;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}${endpoint}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                
+                const data = await res.json();
+                log(`✅ Search successful: ${endpoint}`, 'success');
+                
+                statusEl.innerHTML = '<span class="status success">✅ Found</span>';
+                resultsEl.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                log(`❌ Search failed: ${error.message}`, 'error');
+                statusEl.innerHTML = '<span class="status error">❌ Not found</span>';
+                resultsEl.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        function copyEndpoint(el) {
+            const text = el.textContent.replace(/GET|POST/, '').trim();
+            navigator.clipboard.writeText(API_BASE + text.replace('/api/kaspa-enhanced', ''));
+            log(`Copied: ${text}`);
+            el.style.background = 'rgba(16, 185, 129, 0.3)';
+            setTimeout(() => el.style.background = '', 500);
+        }
+        
+        function clearConsole() {
+            logs = [];
+            console_log.textContent = '';
+            log('Console cleared');
+        }
+        
+        function exportLogs() {
+            const blob = new Blob([logs.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `api-test-logs-${Date.now()}.txt`;
+            a.click();
+            log('Logs exported');
+        }
+        
+        // Auto-test on load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Dashboard loaded', 'success');
+            log(`API Base URL: ${API_BASE}`);
+            setTimeout(() => {
+                testStats();
+                testBlocks();
+                testTransactions();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

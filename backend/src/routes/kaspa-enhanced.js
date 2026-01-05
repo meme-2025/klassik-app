@@ -360,27 +360,76 @@ router.get('/health', async (req, res) => {
 router.get('/address/:address', async (req, res) => {
   try {
     const { address } = req.params;
-    const utxos = await kaspaRPC('getUtxosByAddressesRequest', [{ addresses: [address] }]);
-    
-    let totalBalance = 0;
-    for (const utxo of utxos.entries || []) {
-      totalBalance += parseInt(utxo.amount);
-    }
+    const data = await callKaspaAPI(`/addresses/${address}/full`);
     
     res.json({
       address: address,
-      balance: totalBalance,
-      utxoCount: utxos.entries?.length || 0,
+      balance: data?.balance || 0,
+      transactionCount: data?.transaction_count || 0,
+      utxoCount: data?.utxo_count || 0,
       timestamp: new Date().toISOString(),
       isLive: true,
-      source: 'local-ubuntu-node'
+      ...data
     });
     
   } catch (error) {
-    console.error('Live address lookup error:', error);
-    res.status(503).json({
-      error: 'Cannot fetch live address data',
+    console.error('Address lookup error:', error);
+    res.status(404).json({
+      error: 'Address not found',
       address: req.params.address,
+      message: error.message
+    });
+  }
+});
+
+// Block by hash or height
+router.get('/block/:hashOrHeight', async (req, res) => {
+  try {
+    const { hashOrHeight } = req.params;
+    let data;
+    
+    // Check if numeric (height) or hash
+    if (/^\d+$/.test(hashOrHeight)) {
+      // It's a block height
+      data = await callKaspaAPI(`/blocks/${hashOrHeight}`);
+    } else {
+      // It's a block hash
+      data = await callKaspaAPI(`/blocks/${hashOrHeight}`);
+    }
+    
+    res.json({
+      timestamp: new Date().toISOString(),
+      isLive: true,
+      ...data
+    });
+    
+  } catch (error) {
+    console.error('Block lookup error:', error);
+    res.status(404).json({
+      error: 'Block not found',
+      hashOrHeight: req.params.hashOrHeight,
+      message: error.message
+    });
+  }
+});
+
+// Transaction by hash
+router.get('/transaction/:txHash', async (req, res) => {
+  try {
+    const { txHash } = req.params;
+    const data = await callKaspaAPI(`/transactions/${txHash}`);
+    
+    res.json({
+      timestamp: new Date().toISOString(),
+      isLive: true,
+      ...data
+    });
+    
+  } catch (error) {
+    console.error('Transaction lookup error:', error);
+    res.status(404).json({
+      error: 'Transaction not found',
+      txHash: req.params.txHash,
       message: error.message
     });
   }

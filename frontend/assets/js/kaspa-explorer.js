@@ -42,16 +42,23 @@ const state = {
 };
 
 // ============================================
-// API Configuration - ECHTE funktionierende Endpoints
+// API Configuration - Backend-First Architecture
 // ============================================
 const API = {
-    // Ihr Backend als PRIMARY API
+    // Primary: Ihr Backend (enthält bereits CoinGecko-Daten!)
     BACKEND: 'https://klassik.99pace.space/api/kaspa-enhanced',
-    // Kaspa.org als Fallback
-    KASPA_ORG: 'https://api.kaspa.org',
-    // CoinGecko für Preisdaten
-    CORS_PROXY: 'https://api.allorigins.win/raw?url=',
-    COINGECKO_SIMPLE: 'https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true'
+    // Für lokales Testing: 'http://localhost:3000/api/kaspa-enhanced'
+    
+    // Endpoints
+    ENDPOINTS: {
+        STATS: '/stats',
+        BLOCKS: '/blocks',
+        TRANSACTIONS: '/transactions',
+        BLOCK_BY_HASH: '/block',
+        ADDRESS: '/address',
+        TRANSACTION: '/transaction',
+        KASPAD_INFO: '/kaspad-info'
+    }
 };
 
 let ws = null;
@@ -427,41 +434,44 @@ async function handleQueryFromURL() {
 
 async function fetchTransaction(txHash) {
     try {
-        const res = await fetch(`https://api.kaspa.org/transaction/${encodeURIComponent(txHash)}`);
+        // Nutze Backend API
+        const res = await fetch(`${API.BACKEND}${API.ENDPOINTS.TRANSACTION}/${encodeURIComponent(txHash)}`);
         if (!res.ok) throw new Error('Transaction not found');
         const data = await res.json();
         showSearchResults(`Transaction: ${txHash}`, data);
     } catch (err) {
+        console.error('❌ Transaction fetch failed:', err);
         showSearchResults('Transaction not found', { error: err.message });
     }
 }
 
 async function fetchAddress(address) {
     try {
-        const res = await fetch(`https://api.kaspa.org/address/${encodeURIComponent(address)}`);
+        // Nutze Backend API
+        const res = await fetch(`${API.BACKEND}${API.ENDPOINTS.ADDRESS}/${encodeURIComponent(address)}`);
         if (!res.ok) throw new Error('Address not found');
         const data = await res.json();
         showSearchResults(`Address: ${address}`, data);
     } catch (err) {
+        console.error('❌ Address fetch failed:', err);
         showSearchResults('Address not found', { error: err.message });
     }
 }
 
 async function fetchBlock(blockOrHeight) {
     try {
-        // Try by hash first
-        let res = await fetch(`https://api.kaspa.org/block/${encodeURIComponent(blockOrHeight)}`);
-        if (res.status === 404) {
-            // fallback: try height endpoint if numeric
-            if (/^\d+$/.test(blockOrHeight)) {
-                res = await fetch(`https://api.kaspa.org/block/by-height/${blockOrHeight}`);
-            }
+        // Nutze Backend API
+        let res = await fetch(`${API.BACKEND}${API.ENDPOINTS.BLOCK_BY_HASH}/${encodeURIComponent(blockOrHeight)}`);
+        if (res.status === 404 && /^\d+$/.test(blockOrHeight)) {
+            // Fallback: Versuche über Block-Höhe
+            res = await fetch(`${API.BACKEND}/block-by-height/${blockOrHeight}`);
         }
 
         if (!res.ok) throw new Error('Block not found');
         const data = await res.json();
         showSearchResults(`Block: ${blockOrHeight}`, data);
     } catch (err) {
+        console.error('❌ Block fetch failed:', err);
         showSearchResults('Block not found', { error: err.message });
     }
 }
@@ -523,32 +533,20 @@ async function fetchInitialData() {
 
 async function fetchNetworkInfo() {
     try {
-        // 1. Versuche BACKEND mit Retry Logic
+        // Backend liefert ALLE Daten: Network + CoinGecko Price Data
         let statsData = null;
         try {
             statsData = await fetchWithRetry(async () => {
-                const backendRes = await fetch(`${API.BACKEND}/stats`);
+                const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.STATS}`);
                 if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
                 return await backendRes.json();
             });
-            console.log('✅ Backend Stats:', statsData);
+            console.log('✅ Backend Stats (inkl. CoinGecko):', statsData);
         } catch (backendError) {
-            console.warn('⚠️ Backend nicht erreichbar:', backendError.message);
-            showUserNotification('Backend unavailable, using fallback data', 'warning');
-        }
-        
-        // 2. CoinGecko für Preisdaten mit Retry
-        let priceData = null;
-        try {
-            priceData = await fetchWithRetry(async () => {
-                const priceRes = await fetch(`${API.CORS_PROXY}${encodeURIComponent(API.COINGECKO_SIMPLE)}`);
-                if (!priceRes.ok) throw new Error(`HTTP ${priceRes.status}`);
-                return await priceRes.json();
-            });
-            console.log('✅ CoinGecko Price:', priceData);
-        } catch (priceError) {
-            console.warn('⚠️ CoinGecko failed:', priceError.message);
-            showUserNotification('Price data unavailable', 'warning');
+            console.error('❌ Backend nicht erreichbar:', backendError.message);
+            showUserNotification('Backend unavailable, using fallback data', 'error');
+            await fetchNetworkInfoFallback();
+            return;
         }
         
         // Kaspa Konstanten
@@ -578,15 +576,16 @@ async function fetchNetworkInfo() {
             dailyTransactions: null // Wird aus Block-Daten berechnet
         };
         
+        // Backend enthält bereits CoinGecko-Daten in statsData.price
         state.price = {
-            current: priceData?.kaspa?.usd || 0,
-            change24h: priceData?.kaspa?.usd_24h_change || 0,
-            change7d: 0,
-            marketCap: priceData?.kaspa?.usd_market_cap || 0,
-            volume24h: priceData?.kaspa?.usd_24h_vol || 0,
-            ath: priceData?.kaspa?.ath || 0,  // NUR echte Daten, kein Fallback
-            athDate: priceData?.kaspa?.ath_date || null,
-            rank: 'N/A'
+            current: statsData?.price?.usd || null,
+            change24h: statsData?.price?.usd_24h_change || null,
+            change7d: statsData?.price?.usd_7d_change || null,
+            marketCap: statsData?.marketcap?.usd || null,
+            volume24h: statsData?.price?.usd_24h_vol || null,
+            ath: statsData?.price?.ath || null,  // NUR echte Daten vom Backend
+            athDate: statsData?.price?.ath_date || null,
+            rank: statsData?.price?.market_cap_rank || 'N/A'
         };
         
         console.log('✅ Network State:', state.network);
@@ -703,30 +702,21 @@ async function fetchLatestBlocks() {
     try {
         let blocksData = null;
         
-        // 1. Versuche BACKEND
+        // Backend mit Retry Logic
         try {
-            const backendRes = await fetch(`${API.BACKEND}/blocks/latest?limit=10`);
-            if (backendRes.ok) {
-                blocksData = await backendRes.json();
-                console.log('✅ Backend Blocks:', blocksData);
-            }
+            blocksData = await fetchWithRetry(async () => {
+                const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.BLOCKS}/latest?limit=20`);
+                if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
+                return await backendRes.json();
+            });
+            console.log('✅ Backend Blocks (20 Blocks für bessere Statistik):', blocksData);
         } catch (backendError) {
-            console.warn('⚠️ Backend blocks nicht erreichbar, versuche Fallback...');
-            
-            // 2. Fallback: kaspa.org
-            try {
-                const fallbackRes = await fetch(`${API.KASPA_ORG}/blocks?limit=10`);
-                if (fallbackRes.ok) {
-                    blocksData = await fallbackRes.json();
-                    console.log('✅ Kaspa.org Blocks:', blocksData);
-                }
-            } catch (fallbackError) {
-                console.warn('⚠️ Kaspa.org auch nicht erreichbar:', fallbackError.message);
-            }
+            console.error('❌ Backend blocks error:', backendError.message);
+            showUserNotification('Failed to load blocks data', 'error');
         }
         
-        if (blocksData && blocksData.blocks && Array.isArray(blocksData.blocks)) {
-            state.blocks = blocksData.blocks.slice(0, 10).map(block => ({
+        if (blocksData && Array.isArray(blocksData)) {
+            state.blocks = blocksData.slice(0, 20).map(block => ({
                 hash: block.hash || block.blockHash || generateMockHash(),
                 timestamp: block.timestamp || block.time || Date.now(),
                 transactions: block.txCount || block.transactionCount || block.transactions?.length || 0,
@@ -802,8 +792,35 @@ function calculateDailyTransactions() {
 
 async function fetchLatestTransactions() {
     try {
-        // Verwende Mock-Daten für Transaktionen
-        generateMockTransactions();
+        let txData = null;
+        
+        // Backend mit Retry Logic
+        try {
+            txData = await fetchWithRetry(async () => {
+                const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.TRANSACTIONS}/latest?limit=20`);
+                if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
+                return await backendRes.json();
+            });
+            console.log('✅ Backend Transactions:', txData);
+        } catch (backendError) {
+            console.error('❌ Backend transactions error:', backendError.message);
+            showUserNotification('Failed to load transactions', 'error');
+        }
+        
+        if (txData && txData.transactions && Array.isArray(txData.transactions)) {
+            state.transactions = txData.transactions.slice(0, 20).map(tx => ({
+                hash: tx.hash || tx.transaction_id || generateMockHash(),
+                from: tx.inputs?.[0]?.previous_outpoint_address || 'N/A',
+                to: tx.outputs?.[0]?.script_public_key_address || 'N/A',
+                amount: tx.outputs?.reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0) / 1e8 || 0, // Convert from sompi
+                timestamp: tx.block_time || tx.timestamp || Date.now(),
+                fee: tx.mass || 0
+            }));
+            console.log('Parsed transactions:', state.transactions.length);
+        } else {
+            console.warn('⚠️ No transaction data, using mock');
+            generateMockTransactions();
+        }
         
         console.log('Generated transactions:', state.transactions.length);
     } catch (error) {

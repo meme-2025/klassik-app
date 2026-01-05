@@ -224,6 +224,37 @@
         .refresh-timer.loading .timer-loader {
             display: block;
         }
+        
+        /* Live Mode Button */
+        .view-selector-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .live-mode-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .live-mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .live-mode-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -311,6 +342,9 @@
                 <option value="analytics">📊 Analytics</option>
                 <option value="live">📡 Live Stats</option>
             </select>
+            <button class="live-mode-btn" id="live-mode-toggle" onclick="window.realtimeManager?.toggleLiveMode()">
+                ▶️ Enable Live Mode (0.1s)
+            </button>
         </div>
 
 
@@ -776,8 +810,9 @@
         </div>
     </footer>
 
-    <!-- Scripts übernommen aus v4 -->
+    <!-- Scripts -->
     <script src="assets/js/kaspa-explorer.js"></script>
+    <script src="assets/js/realtime-updates.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </body>
 </html>
