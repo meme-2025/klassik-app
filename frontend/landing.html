@@ -494,9 +494,22 @@
 
         // ===== API CALLS =====
         async function searchAddress(address) {
-            const res = await fetch(`${KASPA_API}/addresses/${address}/full`);
-            if (!res.ok) throw new Error('Address not found');
-            return await res.json();
+            // Get balance
+            const balanceRes = await fetch(`${KASPA_API}/addresses/${address}/balance`);
+            if (!balanceRes.ok) throw new Error('Address not found');
+            const balanceData = await balanceRes.json();
+            
+            // Get transaction count
+            const txCountRes = await fetch(`${KASPA_API}/addresses/${address}/transactions-count`);
+            const txCountData = txCountRes.ok ? await txCountRes.json() : { total: 0 };
+            
+            return {
+                address: address,
+                balance: balanceData.balance || 0,
+                totalSent: 0, // Not available in basic API
+                totalReceived: 0, // Not available in basic API
+                transactionCount: txCountData.total || 0
+            };
         }
 
         async function searchTransaction(hash) {
@@ -545,6 +558,7 @@
                     </div>
                 `;
             } else if (type === 'transaction') {
+                const totalOutput = data.outputs?.reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0) || 0;
                 html = `
                     <div class="result-card">
                         <span class="result-type"><i class="fas fa-exchange-alt"></i> Transaction</span>
@@ -552,22 +566,26 @@
                         <div class="result-data">
                             <div class="result-row">
                                 <div class="result-label">Hash:</div>
-                                <div class="result-value">${data.transaction_id || data.hash || 'N/A'}</div>
+                                <div class="result-value">${data.transaction_id || 'N/A'}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Block:</div>
-                                <div class="result-value">${data.block_hash || 'N/A'}</div>
+                                <div class="result-label">Block Hash:</div>
+                                <div class="result-value">${data.block_hash?.[0] || 'Pending'}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Amount:</div>
-                                <div class="result-value">${data.outputs?.[0]?.amount || data.amount || '0'} KAS</div>
+                                <div class="result-label">Total Amount:</div>
+                                <div class="result-value">${(totalOutput / 100000000).toFixed(8)} KAS</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Timestamp:</div>
-                                <div class="result-value">${data.block_time ? new Date(data.block_time * 1000).toLocaleString() : 'N/A'}</div>
+                                <div class="result-label">Inputs:</div>
+                                <div class="result-value">${data.inputs?.length || 0}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Confirmations:</div>
+                                <div class="result-label">Outputs:</div>
+                                <div class="result-value">${data.outputs?.length || 0}</div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Status:</div>
                                 <div class="result-value">${data.is_accepted ? '✅ Confirmed' : '⏳ Pending'}</div>
                             </div>
                         </div>
@@ -581,23 +599,23 @@
                         <div class="result-data">
                             <div class="result-row">
                                 <div class="result-label">Hash:</div>
-                                <div class="result-value">${data.blockHash || data.hash || 'N/A'}</div>
+                                <div class="result-value">${data.hash || 'N/A'}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Height:</div>
-                                <div class="result-value">${data.header?.blueScore || data.height || 'N/A'}</div>
+                                <div class="result-label">Blue Score:</div>
+                                <div class="result-value">${data.header?.blue_score || 'N/A'}</div>
                             </div>
                             <div class="result-row">
                                 <div class="result-label">Timestamp:</div>
-                                <div class="result-value">${data.header?.timestamp ? new Date(data.header.timestamp).toLocaleString() : 'N/A'}</div>
+                                <div class="result-value">${data.header?.timestamp ? new Date(parseInt(data.header.timestamp)).toLocaleString() : 'N/A'}</div>
                             </div>
                             <div class="result-row">
                                 <div class="result-label">Transactions:</div>
-                                <div class="result-value">${data.transactions?.length || data.transaction_count || '0'}</div>
+                                <div class="result-value">${data.transactions?.length || 0}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Difficulty:</div>
-                                <div class="result-value">${data.header?.difficulty || data.difficulty || 'N/A'}</div>
+                                <div class="result-label">Parents:</div>
+                                <div class="result-value">${data.header?.parents?.[0]?.parent_hashes?.length || 0}</div>
                             </div>
                         </div>
                     </div>
