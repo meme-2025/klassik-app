@@ -407,8 +407,7 @@
 
     <script>
         // ===== CONFIGURATION =====
-        const API_URL = window.location.origin;
-        const PUBLIC_API = `${API_URL}/api/kaspa-public`;
+        const KASPA_API = 'https://api.kaspa.org';
 
         // ===== TOAST NOTIFICATIONS =====
         function showToast(message, type = 'info') {
@@ -495,19 +494,19 @@
 
         // ===== API CALLS =====
         async function searchAddress(address) {
-            const res = await fetch(`${PUBLIC_API}/address/${address}`);
+            const res = await fetch(`${KASPA_API}/addresses/${address}/full`);
             if (!res.ok) throw new Error('Address not found');
             return await res.json();
         }
 
         async function searchTransaction(hash) {
-            const res = await fetch(`${PUBLIC_API}/transaction/${hash}`);
+            const res = await fetch(`${KASPA_API}/transactions/${hash}`);
             if (!res.ok) throw new Error('Transaction not found');
             return await res.json();
         }
 
         async function searchBlock(hash) {
-            const res = await fetch(`${PUBLIC_API}/block/${hash}`);
+            const res = await fetch(`${KASPA_API}/blocks/${hash}`);
             if (!res.ok) throw new Error('Block not found');
             return await res.json();
         }
