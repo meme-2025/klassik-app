@@ -584,8 +584,8 @@ async function fetchNetworkInfo() {
             change7d: 0,
             marketCap: priceData?.kaspa?.usd_market_cap || 0,
             volume24h: priceData?.kaspa?.usd_24h_vol || 0,
-            ath: 0.1268,
-            athDate: 'Unknown',
+            ath: priceData?.kaspa?.ath || 0,  // NUR echte Daten, kein Fallback
+            athDate: priceData?.kaspa?.ath_date || null,
             rank: 'N/A'
         };
         
@@ -607,45 +607,46 @@ async function fetchNetworkInfo() {
 // Fallback function for direct API calls if backend proxy fails
 async function fetchNetworkInfoFallback() {
     try {
-        console.log('Using fallback - setting default values...');
+        console.log('⚠️ Using fallback - NO FAKE DATA, only showing Loading state...');
         
-        // Setze Standardwerte
-        const maxSupply = 28704026601;
-        const estimatedCirculating = 25000000000;
+        // KEINE FAKE-WERTE! Nur Max Supply ist bekannt (Kaspa Konstante)
+        const maxSupply = 28704026601; // Bekannte Kaspa Max Supply
         
         state.network = {
-            daaScore: 0,
-            blueScore: 0,
-            hashrate: 1.2, // 1.2 PH/s - bereits in PH/s
-            difficulty: 180000000000000,
-            mempool: 0,
-            blockCount: 50000000,
-            virtualParentHashes: 0,
+            daaScore: null,
+            blueScore: null,
+            hashrate: null,
+            difficulty: null,
+            mempool: null,
+            blockCount: null,
+            virtualParentHashes: null,
             networkName: 'Kaspa Mainnet',
-            dailyTransactions: 432000, // ~5 TX pro Block * 86400 Blocks/Tag
-            peerCount: 50,
-            circulatingSupply: estimatedCirculating,
-            totalSupply: estimatedCirculating,
+            dailyTransactions: null,
+            peerCount: null,
+            circulatingSupply: null,
+            totalSupply: null,
             maxSupply: maxSupply,
-            remainingSupply: maxSupply - estimatedCirculating,
-            supplyPercentage: ((estimatedCirculating / maxSupply) * 100).toFixed(2),
-            blockReward: 50,
-            nextHalvingDate: 'TBA',
-            nextHalvingAmount: 25
+            remainingSupply: null,
+            supplyPercentage: null,
+            blockReward: null,
+            nextHalvingDate: null,
+            nextHalvingAmount: null
         };
         
         state.price = {
-            current: 0.05, // Fallback Preis
-            change24h: 0,
-            change7d: 0,
-            marketCap: 1250000000, // ~$1.25B
-            volume24h: 50000000, // ~$50M
+            current: null,
+            change24h: null,
+            change7d: null,
+            marketCap: null,
+            volume24h: null,
+            ath: null,
+            athDate: null,
             rank: 'N/A'
         };
         
-        console.log('Fallback values set');
+        console.log('⚠️ Fallback: All values set to null (will show "Loading..." in UI)');
     } catch (error) {
-        console.error('Even fallback failed:', error);
+        console.error('❌ Even fallback failed:', error);
     }
 }
 
@@ -1291,23 +1292,23 @@ function updateRightColumnStats() {
         }
     }
     
-    // ATH Price (mock data - in real scenario would come from API)
+    // ATH Price - NUR aus echten API-Daten
     const athPriceStatElem = document.getElementById('ath-price-stat');
     if (athPriceStatElem) {
         const athPrice = state.price?.ath;
         if (athPrice && !isNaN(athPrice) && athPrice > 0) {
             athPriceStatElem.textContent = `$${athPrice.toFixed(4)}`;
         } else {
-            athPriceStatElem.textContent = '$0.1268'; // Fallback ATH
+            athPriceStatElem.textContent = 'Loading...';
         }
     }
     
-    // Total Supply
+    // Total Supply - aus API
     const totalSupplyStatElem = document.getElementById('total-supply-stat');
     if (totalSupplyStatElem) {
         const totalSupply = state.network?.totalSupply;
         if (totalSupply && !isNaN(totalSupply) && totalSupply > 0) {
-            // Supply ist bereits in KAS, nicht in Sompi
+            // Supply ist bereits in KAS
             const totalInBillions = (totalSupply / 1e9).toFixed(2);
             totalSupplyStatElem.textContent = `${totalInBillions}B KAS`;
         } else {
@@ -1315,43 +1316,76 @@ function updateRightColumnStats() {
         }
     }
     
-    // Circulating Supply
-    const circSupplyStatElem = document.getElementById('circ-supply-stat');
-    if (circSupplyStatElem) {
+    // REMAINING SUPPLY (Was noch gemintet werden kann) = Max Supply - Circulating Supply
+    const remainingSupplyStatElem = document.getElementById('remaining-supply-stat');
+    if (remainingSupplyStatElem) {
+        const maxSupply = state.network?.maxSupply;
         const circSupply = state.network?.circulatingSupply;
-        if (circSupply && !isNaN(circSupply) && circSupply > 0) {
-            // Supply ist bereits in KAS, nicht in Sompi
-            const circInBillions = (circSupply / 1e9).toFixed(2);
-            circSupplyStatElem.textContent = `${circInBillions}B KAS`;
+        
+        if (maxSupply && circSupply && !isNaN(maxSupply) && !isNaN(circSupply) && maxSupply > 0 && circSupply > 0) {
+            const remaining = maxSupply - circSupply;
+            const remainingInBillions = (remaining / 1e9).toFixed(2);
+            remainingSupplyStatElem.textContent = `${remainingInBillions}B KAS`;
         } else {
-            circSupplyStatElem.textContent = 'Loading...';
+            remainingSupplyStatElem.textContent = 'Loading...';
         }
     }
     
-    // Average Block Time
+    // Average Block Time - BERECHNET aus echten Block-Timestamps
     const avgBlockTimeStatElem = document.getElementById('avg-block-time-stat');
     if (avgBlockTimeStatElem) {
-        // Kaspa protocol target is ~1 second per block
-        avgBlockTimeStatElem.textContent = '~1.0s';
+        if (state.blocks && state.blocks.length >= 2) {
+            // Berechne durchschnittliche Zeit zwischen Blocks
+            let totalTimeDiff = 0;
+            let validDiffs = 0;
+            
+            for (let i = 0; i < state.blocks.length - 1; i++) {
+                const block1 = state.blocks[i];
+                const block2 = state.blocks[i + 1];
+                
+                if (block1.timestamp && block2.timestamp) {
+                    const timeDiff = Math.abs(block1.timestamp - block2.timestamp);
+                    // Nur realistische Werte (0.1s bis 10s)
+                    if (timeDiff >= 100 && timeDiff <= 10000) {
+                        totalTimeDiff += timeDiff;
+                        validDiffs++;
+                    }
+                }
+            }
+            
+            if (validDiffs > 0) {
+                const avgBlockTime = totalTimeDiff / validDiffs / 1000; // in Sekunden
+                avgBlockTimeStatElem.textContent = `~${avgBlockTime.toFixed(2)}s`;
+                console.log(`✅ Avg Block Time calculated: ${avgBlockTime.toFixed(2)}s from ${validDiffs} blocks`);
+            } else {
+                avgBlockTimeStatElem.textContent = 'Loading...';
+            }
+        } else {
+            avgBlockTimeStatElem.textContent = 'Loading...';
+        }
     }
     
-    // Next Halving
+    // Next Halving - NUR aus API-Daten, KEIN "TBA" Platzhalter
     const nextHalvingStatElem = document.getElementById('next-halving-stat');
     if (nextHalvingStatElem) {
         const halvingDate = state.network?.nextHalvingDate;
-        if (halvingDate && halvingDate !== 'N/A') {
-            // Try to format the date nicely
+        
+        // Nur anzeigen wenn echte Daten vorhanden
+        if (halvingDate && halvingDate !== 'N/A' && halvingDate !== 'TBA' && halvingDate !== 'Unknown') {
             try {
                 const date = new Date(halvingDate);
                 const now = new Date();
                 const daysUntil = Math.floor((date - now) / (1000 * 60 * 60 * 24));
-                if (daysUntil > 0) {
+                
+                if (!isNaN(daysUntil) && daysUntil > 0) {
                     nextHalvingStatElem.textContent = `in ${daysUntil} days`;
+                } else if (!isNaN(date.getTime())) {
+                    nextHalvingStatElem.textContent = date.toLocaleDateString();
                 } else {
-                    nextHalvingStatElem.textContent = halvingDate;
+                    nextHalvingStatElem.textContent = 'Loading...';
                 }
             } catch (e) {
-                nextHalvingStatElem.textContent = halvingDate;
+                nextHalvingStatElem.textContent = 'Loading...';
             }
         } else {
             nextHalvingStatElem.textContent = 'Loading...';
