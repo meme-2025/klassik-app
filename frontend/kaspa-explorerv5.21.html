@@ -12,8 +12,8 @@
         (function() {
             const token = localStorage.getItem('klassik_token');
             if (!token) {
-                console.warn('🔐 NO AUTH TOKEN - REDIRECTING TO AUTH FLOW');
-                window.location.href = 'auth-flow.html';
+                console.warn('🔐 NO AUTH TOKEN - REDIRECTING TO SACRIFICE');
+                window.location.href = 'sacrifice.html';
             } else {
                 console.log('✅ Auth token found - proceeding to explorer');
             }
@@ -281,6 +281,7 @@
         }
         
         /* Refresh Timer Styles */
+        .refresh-timer {
             position: relative;
             transition: transform 0.2s ease, opacity 0.3s ease;
         }

@@ -146,9 +146,9 @@ function handleAuthError(error, context = '') {
  */
 function initAuthCheck() {
     if (!isAuthenticated()) {
-        console.warn('⚠️ User not authenticated - REDIRECTING TO AUTH FLOW');
+        console.warn('⚠️ User not authenticated - REDIRECTING TO SACRIFICE');
         // SOFORT REDIRECT - KEINE DATEN OHNE LOGIN!
-        window.location.href = 'auth-flow.html';
+        window.location.href = 'sacrifice.html';
         return false;
     }
     

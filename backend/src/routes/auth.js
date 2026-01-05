@@ -349,7 +349,7 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const userRes = await db.query(
-      'SELECT id, address, username, created_at FROM users WHERE LOWER(address) = $1',
+      'SELECT id, address, username, created_at, is_admin, sacrifice_points FROM users WHERE LOWER(address) = $1',
       [normalized]
     );
 
@@ -397,7 +397,9 @@ router.post('/login', async (req, res) => {
         id: user.id,
         address: user.address,
         username: user.username,
-        created_at: user.created_at
+        created_at: user.created_at,
+        is_admin: user.is_admin || false,
+        sacrifice_points: user.sacrifice_points || 0
       },
       token,
       expiresIn: JWT_EXPIRY

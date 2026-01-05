@@ -2,8 +2,13 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Klassik - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <!-- 🔐 AUTH PROTECTION -->
+    <script>
+        if (!localStorage.getItem('klassik_token')) {
+            window.location.href = 'sacrifice.html';
+        }
+    </script>    <title>Klassik - Dashboard</title>
     <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>

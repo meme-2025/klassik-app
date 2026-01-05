@@ -8,8 +8,8 @@ const { ethers } = require('ethers');
  */
 
 const SACRIFICE_ADDRESS = process.env.KASPA_SACRIFICE_ADDRESS || 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
-const POINTS_PER_KAS = parseInt(process.env.POINTS_PER_KAS || '100'); // 1 KAS = 100 points
-const MIN_POINTS_REQUIRED = parseInt(process.env.MIN_POINTS_REQUIRED || '100'); // Minimum 100 points = 1 KAS
+const POINTS_PER_KAS = parseInt(process.env.POINTS_PER_KAS || '1'); // 1 KAS = 1 point (KEINE Manipulation!)
+const MIN_POINTS_REQUIRED = parseInt(process.env.MIN_POINTS_REQUIRED || '1'); // Minimum 1 point = 1 KAS
 
 const KASPA_APIs = {
   restServer: process.env.KASPA_REST_SERVER || null,
@@ -394,7 +394,8 @@ async function registerWithSacrifice(req, res) {
           address: user.address,
           kaspaAddress: user.kaspa_address,
           username: user.username,
-          sacrificePoints: user.sacrifice_points
+          sacrificePoints: user.sacrifice_points,
+          is_admin: false // New users are never admin
         },
         token,
         expiresIn: process.env.JWT_EXPIRY || '7d'
