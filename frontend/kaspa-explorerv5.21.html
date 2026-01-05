@@ -69,6 +69,103 @@
         .stats-bar-meta { display: flex; align-items: center; gap: 0.5rem; }
         .stats-bar-change { order: 1; font-size: 0.85rem; opacity: 0.9; }
         .stats-bar-value { order: 2; }
+        
+        /* ============================================
+           TOAST NOTIFICATIONS - Professional UX
+           ============================================ */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateX(400px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            z-index: 10000;
+            min-width: 300px;
+            border-left: 4px solid;
+        }
+        
+        .toast-notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast-success {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(30, 41, 59, 0.95));
+        }
+        
+        .toast-error {
+            border-left-color: #ef4444;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(30, 41, 59, 0.95));
+        }
+        
+        .toast-warning {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(30, 41, 59, 0.95));
+        }
+        
+        .toast-info {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(30, 41, 59, 0.95));
+        }
+        
+        .toast-icon {
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .toast-success .toast-icon { color: #10b981; }
+        .toast-error .toast-icon { color: #ef4444; }
+        .toast-warning .toast-icon { color: #f59e0b; }
+        .toast-info .toast-icon { color: #3b82f6; }
+        
+        .toast-message {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            flex: 1;
+        }
+        
+        /* ============================================
+           LOADING SPINNER - Professional Animation
+           ============================================ */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        /* Larger spinner for main content */
+        .stat-value .spinner,
+        .block-value .spinner {
+            width: 24px;
+            height: 24px;
+            border-width: 3px;
+        }
     </style>
 </head>
 <body>

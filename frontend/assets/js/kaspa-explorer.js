@@ -58,6 +58,148 @@ let ws = null;
 let charts = {};
 
 // ============================================
+// UTILITY FUNCTIONS - Smart Formatting & UX
+// ============================================
+
+/**
+ * Smart Hashrate Formatting - Automatically selects appropriate unit
+ * @param {number} value - Raw hashrate value
+ * @returns {string} Formatted hashrate with unit (e.g., "1.23 PH/s")
+ */
+function formatHashrate(value) {
+    if (!value || value === 0) return '0 H/s';
+    
+    const units = ['H/s', 'KH/s', 'MH/s', 'GH/s', 'TH/s', 'PH/s', 'EH/s'];
+    let unitIndex = 0;
+    let val = value;
+    
+    while (val >= 1000 && unitIndex < units.length - 1) {
+        val /= 1000;
+        unitIndex++;
+    }
+    
+    return `${val.toFixed(2)} ${units[unitIndex]}`;
+}
+
+/**
+ * Smart Number Formatting - Adds K/M/B/T suffixes
+ * @param {number} num - Raw number
+ * @returns {string} Formatted number (e.g., "28.70B")
+ */
+function formatNumber(num) {
+    if (!num || num === 0) return '0';
+    
+    if (num >= 1e12) return `${(num / 1e12).toFixed(2)}T`;
+    if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B`;
+    if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`;
+    if (num >= 1e3) return `${(num / 1e3).toFixed(2)}K`;
+    
+    return num.toLocaleString();
+}
+
+/**
+ * Smart Difficulty Formatting
+ * @param {number} difficulty - Raw difficulty value
+ * @returns {string} Formatted difficulty
+ */
+function formatDifficulty(difficulty) {
+    return formatNumber(difficulty);
+}
+
+/**
+ * Fetch with automatic retry logic and exponential backoff
+ * @param {Function} fetchFn - Async function to retry
+ * @param {number} maxRetries - Maximum retry attempts (default: 3)
+ * @returns {Promise} Result of successful fetch
+ */
+async function fetchWithRetry(fetchFn, maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            return await fetchFn();
+        } catch (error) {
+            // Don't retry on last attempt
+            if (i === maxRetries - 1) {
+                console.error(`❌ All ${maxRetries} retry attempts failed:`, error);
+                throw error;
+            }
+            
+            // Calculate delay with exponential backoff: 1s, 2s, 4s
+            const delay = Math.pow(2, i) * 1000;
+            console.warn(`⚠️ Attempt ${i + 1}/${maxRetries} failed, retrying in ${delay}ms...`);
+            
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+}
+
+/**
+ * Show user notification toast
+ * @param {string} message - Notification message
+ * @param {string} type - Notification type: 'success', 'error', 'warning', 'info'
+ */
+function showUserNotification(message, type = 'info') {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    
+    // Add icon based on type
+    const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+/**
+ * Set loading state for an element
+ * @param {HTMLElement} element - Target element
+ * @param {boolean} isLoading - Whether to show loading state
+ */
+function setLoadingState(element, isLoading) {
+    if (!element) return;
+    
+    if (isLoading) {
+        element.classList.add('loading');
+        // Store original content
+        if (!element.dataset.originalContent) {
+            element.dataset.originalContent = element.innerHTML;
+        }
+        element.innerHTML = '<div class="spinner"></div>';
+    } else {
+        element.classList.remove('loading');
+        // Restore original content if it was text
+        if (element.dataset.originalContent && element.dataset.originalContent !== element.innerHTML) {
+            // Don't restore, will be updated by data
+            delete element.dataset.originalContent;
+        }
+    }
+}
+
+// ============================================
 // Initialization
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -381,22 +523,33 @@ async function fetchInitialData() {
 
 async function fetchNetworkInfo() {
     try {
-        // 1. Versuche BACKEND
+        // 1. Versuche BACKEND mit Retry Logic
         let statsData = null;
         try {
-            const backendRes = await fetch(`${API.BACKEND}/stats`);
-            if (backendRes.ok) {
-                statsData = await backendRes.json();
-                console.log('✅ Backend Stats:', statsData);
-            }
+            statsData = await fetchWithRetry(async () => {
+                const backendRes = await fetch(`${API.BACKEND}/stats`);
+                if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
+                return await backendRes.json();
+            });
+            console.log('✅ Backend Stats:', statsData);
         } catch (backendError) {
             console.warn('⚠️ Backend nicht erreichbar:', backendError.message);
+            showUserNotification('Backend unavailable, using fallback data', 'warning');
         }
         
-        // 2. CoinGecko für Preisdaten
-        const priceRes = await fetch(`${API.CORS_PROXY}${encodeURIComponent(API.COINGECKO_SIMPLE)}`);
-        const priceData = await priceRes.json();
-        console.log('✅ CoinGecko Price:', priceData);
+        // 2. CoinGecko für Preisdaten mit Retry
+        let priceData = null;
+        try {
+            priceData = await fetchWithRetry(async () => {
+                const priceRes = await fetch(`${API.CORS_PROXY}${encodeURIComponent(API.COINGECKO_SIMPLE)}`);
+                if (!priceRes.ok) throw new Error(`HTTP ${priceRes.status}`);
+                return await priceRes.json();
+            });
+            console.log('✅ CoinGecko Price:', priceData);
+        } catch (priceError) {
+            console.warn('⚠️ CoinGecko failed:', priceError.message);
+            showUserNotification('Price data unavailable', 'warning');
+        }
         
         // Kaspa Konstanten
         const maxSupply = 28704026601;
@@ -439,8 +592,14 @@ async function fetchNetworkInfo() {
         console.log('✅ Network State:', state.network);
         console.log('✅ Price State:', state.price);
         
+        // Success notification nur beim ersten Laden
+        if (!state.dataLoaded) {
+            showUserNotification('Network data loaded successfully', 'success');
+        }
+        
     } catch (error) {
         console.error('❌ Failed to fetch network info:', error);
+        showUserNotification('Failed to load network data, using fallback', 'error');
         await fetchNetworkInfoFallback();
     }
 }
@@ -937,14 +1096,16 @@ function updateQuickStats() {
         }
     }
     
-    // Hashrate
+    // Hashrate - SMART FORMATTING
     const hashrateElem = document.getElementById('hashrate-stat');
     const difficultyInfoElem = document.getElementById('difficulty-info');
     if (hashrateElem) {
         if (!isNaN(state.network.hashrate) && state.network.hashrate !== null && state.network.hashrate > 0) {
-            hashrateElem.textContent = `${safeToFixed(state.network.hashrate, 2)} PH/s`;
+            // Convert PH/s to H/s for smart formatting
+            const hashrateInHashPerSec = state.network.hashrate * 1e15;
+            hashrateElem.textContent = formatHashrate(hashrateInHashPerSec);
             if (difficultyInfoElem && !isNaN(state.network.difficulty)) {
-                difficultyInfoElem.textContent = `Diff: ${formatCompact(state.network.difficulty)}`;
+                difficultyInfoElem.textContent = `Diff: ${formatDifficulty(state.network.difficulty)}`;
             }
         } else {
             hashrateElem.textContent = 'Loading...';
@@ -954,11 +1115,11 @@ function updateQuickStats() {
         }
     }
     
-    // Difficulty (standalone stat)
+    // Difficulty (standalone stat) - SMART FORMATTING
     const difficultyStatElem = document.getElementById('difficulty-stat');
     if (difficultyStatElem) {
         if (!isNaN(state.network.difficulty) && state.network.difficulty !== null && state.network.difficulty > 0) {
-            difficultyStatElem.textContent = formatCompact(state.network.difficulty);
+            difficultyStatElem.textContent = formatDifficulty(state.network.difficulty);
         } else {
             difficultyStatElem.textContent = 'Loading...';
         }
