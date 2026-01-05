@@ -240,13 +240,16 @@
             padding: 0.75rem;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 0.5rem;
+            align-items: flex-start;
         }
 
         .result-label {
             flex: 0 0 140px;
             color: var(--text-secondary);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .result-value {
@@ -503,11 +506,18 @@
             const txCountRes = await fetch(`${KASPA_API}/addresses/${address}/transactions-count`);
             const txCountData = txCountRes.ok ? await txCountRes.json() : { total: 0 };
             
+            // Get price for USD conversion
+            const priceRes = await fetch(`${KASPA_API}/info/price`);
+            const priceData = priceRes.ok ? await priceRes.json() : { price: 0 };
+            
+            // Convert balance from sompi to KAS (1 KAS = 100000000 sompi)
+            const balanceKAS = parseFloat(balanceData.balance || 0) / 100000000;
+            const balanceUSD = balanceKAS * (priceData.price || 0);
+            
             return {
                 address: address,
-                balance: balanceData.balance || 0,
-                totalSent: 0, // Not available in basic API
-                totalReceived: 0, // Not available in basic API
+                balance: balanceKAS,
+                balanceUSD: balanceUSD,
                 transactionCount: txCountData.total || 0
             };
         }
@@ -525,6 +535,23 @@
         }
 
         // ===== DISPLAY RESULTS =====
+        function formatKAS(amount) {
+            const parts = amount.toFixed(8).split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return parts.join('.');
+        }
+        
+        function formatUSD(amount) {
+            return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        function shortenAddress(addr) {
+            if (!addr) return 'N/A';
+            const prefix = addr.substring(0, 13); // kaspa:qqht933
+            const suffix = addr.substring(addr.length - 8); // lk92gr2f
+            return `${prefix}...${suffix}`;
+        }
+        
         function displayResult(data, type) {
             let html = '';
 
@@ -535,58 +562,63 @@
                         <h2 class="result-title">Address Details</h2>
                         <div class="result-data">
                             <div class="result-row">
-                                <div class="result-label">Address:</div>
-                                <div class="result-value">${data.address || 'N/A'}</div>
+                                <div class="result-label">Balance</div>
+                                <div class="result-value" style="font-size: 1.5rem; font-weight: 700; color: var(--accent-blue);">
+                                    ${formatKAS(data.balance)} KAS
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 400; margin-top: 0.25rem;">
+                                        ${formatUSD(data.balanceUSD)}
+                                    </div>
+                                </div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Balance:</div>
-                                <div class="result-value">${data.balance || '0'} KAS</div>
+                                <div class="result-label">Address</div>
+                                <div class="result-value" style="font-size: 0.85rem;">
+                                    ${shortenAddress(data.address)}
+                                    <button onclick="navigator.clipboard.writeText('${data.address}')" style="margin-left: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
+                                </div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Total Sent:</div>
-                                <div class="result-value">${data.totalSent || '0'} KAS</div>
-                            </div>
-                            <div class="result-row">
-                                <div class="result-label">Total Received:</div>
-                                <div class="result-value">${data.totalReceived || '0'} KAS</div>
-                            </div>
-                            <div class="result-row">
-                                <div class="result-label">Transactions:</div>
-                                <div class="result-value">${data.transactionCount || '0'}</div>
+                                <div class="result-label">Transactions</div>
+                                <div class="result-value">${data.transactionCount}</div>
                             </div>
                         </div>
                     </div>
                 `;
             } else if (type === 'transaction') {
                 const totalOutput = data.outputs?.reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0) || 0;
+                const amountKAS = totalOutput / 100000000;
                 html = `
                     <div class="result-card">
                         <span class="result-type"><i class="fas fa-exchange-alt"></i> Transaction</span>
                         <h2 class="result-title">Transaction Details</h2>
                         <div class="result-data">
                             <div class="result-row">
-                                <div class="result-label">Hash:</div>
-                                <div class="result-value">${data.transaction_id || 'N/A'}</div>
+                                <div class="result-label">Amount</div>
+                                <div class="result-value" style="font-size: 1.3rem; font-weight: 700; color: var(--accent-blue);">
+                                    ${formatKAS(amountKAS)} KAS
+                                </div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Block Hash:</div>
-                                <div class="result-value">${data.block_hash?.[0] || 'Pending'}</div>
+                                <div class="result-label">Hash</div>
+                                <div class="result-value" style="font-size: 0.85rem;">${shortenAddress(data.transaction_id || 'N/A')}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Total Amount:</div>
-                                <div class="result-value">${(totalOutput / 100000000).toFixed(8)} KAS</div>
+                                <div class="result-label">Block Hash</div>
+                                <div class="result-value" style="font-size: 0.85rem;">${data.block_hash?.[0] ? shortenAddress(data.block_hash[0]) : 'Pending'}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Inputs:</div>
+                                <div class="result-label">Inputs</div>
                                 <div class="result-value">${data.inputs?.length || 0}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Outputs:</div>
+                                <div class="result-label">Outputs</div>
                                 <div class="result-value">${data.outputs?.length || 0}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Status:</div>
-                                <div class="result-value">${data.is_accepted ? '✅ Confirmed' : '⏳ Pending'}</div>
+                                <div class="result-label">Status</div>
+                                <div class="result-value">${data.is_accepted ? '<span style="color: #10b981;">✅ Confirmed</span>' : '<span style="color: #f59e0b;">⏳ Pending</span>'}</div>
                             </div>
                         </div>
                     </div>
@@ -598,23 +630,25 @@
                         <h2 class="result-title">Block Details</h2>
                         <div class="result-data">
                             <div class="result-row">
-                                <div class="result-label">Hash:</div>
-                                <div class="result-value">${data.hash || 'N/A'}</div>
+                                <div class="result-label">Hash</div>
+                                <div class="result-value" style="font-size: 0.85rem;">${shortenAddress(data.hash || 'N/A')}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Blue Score:</div>
-                                <div class="result-value">${data.header?.blue_score || 'N/A'}</div>
+                                <div class="result-label">Blue Score</div>
+                                <div class="result-value" style="font-size: 1.3rem; font-weight: 700; color: var(--accent-blue);">
+                                    ${(data.header?.blue_score || 0).toLocaleString()}
+                                </div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Timestamp:</div>
+                                <div class="result-label">Timestamp</div>
                                 <div class="result-value">${data.header?.timestamp ? new Date(parseInt(data.header.timestamp)).toLocaleString() : 'N/A'}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Transactions:</div>
+                                <div class="result-label">Transactions</div>
                                 <div class="result-value">${data.transactions?.length || 0}</div>
                             </div>
                             <div class="result-row">
-                                <div class="result-label">Parents:</div>
+                                <div class="result-label">Parents</div>
                                 <div class="result-value">${data.header?.parents?.[0]?.parent_hashes?.length || 0}</div>
                             </div>
                         </div>
