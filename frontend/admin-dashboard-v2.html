@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Klassik Admin Panel - Champions League Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #49C3E7, #2E8B9E);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(73, 195, 231, 0.3);
+        }
+        
+        .admin-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .trophy { font-size: 3rem; animation: bounce 2s infinite; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(73, 195, 231, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(73, 195, 231, 0.6);
+            box-shadow: 0 10px 30px rgba(73, 195, 231, 0.2);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #49C3E7;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(73, 195, 231, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #49C3E7;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: rgba(73, 195, 231, 0.1);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(73, 195, 231, 0.3);
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        tr:hover {
+            background: rgba(73, 195, 231, 0.05);
+        }
+        
+        .online-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #00ff00;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .badge-admin {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+        }
+        
+        .badge-verified {
+            background: linear-gradient(135deg, #00ff00, #00cc00);
+            color: #000;
+        }
+        
+        .badge-pending {
+            background: linear-gradient(135deg, #ff9500, #ff6b00);
+            color: #fff;
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(135deg, #49C3E7, #2E8B9E);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(73, 195, 231, 0.4);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>
+            <span class="trophy">🏆</span>
+            Klassik Admin Panel
+            <span class="trophy">🏆</span>
+        </h1>
+        <p>Champions League Level Dashboard - Real-time Monitoring</p>
+        <button class="refresh-btn" onclick="refreshAll()">
+            <i class="fas fa-sync"></i>
+            Refresh All Data
+        </button>
+    </div>
+
+    <!-- Real-time Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="total-users">0</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🟢</div>
+            <div class="stat-value" id="online-users">0</div>
+            <div class="stat-label">Online Now</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="total-sacrifices">0</div>
+            <div class="stat-label">Total Sacrifices</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🔍</div>
+            <div class="stat-value" id="total-searches">0</div>
+            <div class="stat-label">Total Searches</div>
+        </div>
+    </div>
+
+    <!-- Online Users Section -->
+    <div class="section">
+        <h2 class="section-title">
+            <i class="fas fa-users"></i>
+            Online Users Right Now
+        </h2>
+        <div id="online-users-table"></div>
+    </div>
+
+    <!-- All Users Section -->
+    <div class="section">
+        <h2 class="section-title">
+            <i class="fas fa-user-friends"></i>
+            All Registered Users
+        </h2>
+        <div id="all-users-table"></div>
+    </div>
+
+    <!-- Sacrifices Section -->
+    <div class="section">
+        <h2 class="section-title">
+            <i class="fas fa-gift"></i>
+            Sacrifice Transactions
+        </h2>
+        <div id="sacrifices-table"></div>
+    </div>
+
+    <!-- Search History Section -->
+    <div class="section">
+        <h2 class="section-title">
+            <i class="fas fa-search"></i>
+            Search History
+        </h2>
+        <div id="search-history-table"></div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        
+        async function fetchAdminData(endpoint) {
+            const token = localStorage.getItem('klassik_token');
+            const response = await fetch(`${API_URL}/api/admin-v2/${endpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch ${endpoint}`);
+            }
+            
+            return await response.json();
+        }
+        
+        async function loadOnlineUsers() {
+            try {
+                const data = await fetchAdminData('online-users');
+                const container = document.getElementById('online-users-table');
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="loading">No users currently online</p>';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Username</th>
+                                <th>Wallet</th>
+                                <th>Points</th>
+                                <th>Last Seen</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(user => `
+                                <tr>
+                                    <td><span class="online-dot"></span>Online</td>
+                                    <td>${user.username} ${user.is_admin ? '<span class="badge badge-admin">ADMIN</span>' : ''}</td>
+                                    <td><code>${user.address.substring(0, 10)}...</code></td>
+                                    <td>${user.sacrifice_points}</td>
+                                    <td>${new Date(user.last_seen).toLocaleString()}</td>
+                                    <td>${user.ip_address || 'N/A'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Error loading online users:', error);
+                document.getElementById('online-users-table').innerHTML = '<p class="error">Error loading data</p>';
+            }
+        }
+        
+        async function loadAllUsers() {
+            try {
+                const data = await fetchAdminData('users');
+                const container = document.getElementById('all-users-table');
+                
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Wallet</th>
+                                <th>Kaspa Wallet</th>
+                                <th>Points</th>
+                                <th>Status</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(user => `
+                                <tr>
+                                    <td>${user.id}</td>
+                                    <td>${user.username} ${user.is_admin ? '<span class="badge badge-admin">ADMIN</span>' : ''}</td>
+                                    <td><code>${user.address.substring(0, 10)}...</code></td>
+                                    <td>${user.kaspa_address ? `<code>${user.kaspa_address.substring(0, 10)}...</code>` : 'N/A'}</td>
+                                    <td>${user.sacrifice_points}</td>
+                                    <td>${user.is_online ? '<span class="online-dot"></span>Online' : 'Offline'}</td>
+                                    <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('total-users').textContent = data.length;
+                document.getElementById('online-users').textContent = data.filter(u => u.is_online).length;
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+        
+        async function loadSacrifices() {
+            try {
+                const data = await fetchAdminData('sacrifices');
+                const container = document.getElementById('sacrifices-table');
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="loading">No sacrifices yet</p>';
+                    document.getElementById('total-sacrifices').textContent = '0';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>TX Hash</th>
+                                <th>Amount (KAS)</th>
+                                <th>Points</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(sac => `
+                                <tr>
+                                    <td>${sac.username || 'Unknown'}</td>
+                                    <td><code>${sac.tx_hash.substring(0, 16)}...</code></td>
+                                    <td>${sac.amount} KAS</td>
+                                    <td>${sac.points_earned}</td>
+                                    <td><span class="badge ${sac.verified ? 'badge-verified' : 'badge-pending'}">${sac.verified ? 'Verified' : 'Pending'}</span></td>
+                                    <td>${new Date(sac.created_at).toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('total-sacrifices').textContent = data.length;
+            } catch (error) {
+                console.error('Error loading sacrifices:', error);
+            }
+        }
+        
+        async function loadSearchHistory() {
+            try {
+                const data = await fetchAdminData('searches');
+                const container = document.getElementById('search-history-table');
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="loading">No search history</p>';
+                    document.getElementById('total-searches').textContent = '0';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Query</th>
+                                <th>Type</th>
+                                <th>Found</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(search => `
+                                <tr>
+                                    <td>${search.username || 'Anonymous'}</td>
+                                    <td><code>${search.search_query}</code></td>
+                                    <td>${search.search_type || 'N/A'}</td>
+                                    <td>${search.result_found ? '✅' : '❌'}</td>
+                                    <td>${new Date(search.created_at).toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('total-searches').textContent = data.length;
+            } catch (error) {
+                console.error('Error loading search history:', error);
+            }
+        }
+        
+        async function refreshAll() {
+            console.log('🔄 Refreshing all admin data...');
+            await Promise.all([
+                loadOnlineUsers(),
+                loadAllUsers(),
+                loadSacrifices(),
+                loadSearchHistory()
+            ]);
+            console.log('✅ Refresh complete!');
+        }
+        
+        // Auto-refresh every 10 seconds
+        setInterval(refreshAll, 10000);
+        
+        // Initial load
+        document.addEventListener('DOMContentLoaded', refreshAll);
+    </script>
+</body>
+</html>

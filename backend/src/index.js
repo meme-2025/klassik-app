@@ -12,6 +12,7 @@ const usersRoutes = require('./routes/users');
 const kaspaRoutes = require('./routes/kaspa');
 const kaspaEnhancedRoutes = require('./routes/kaspa-enhanced');
 const adminRoutes = require('./routes/admin');
+const adminV2Routes = require('./routes/admin-v2');
 const searchRoutes = require('./routes/search');
 const { router: communityRoutes, communityManager } = require('./controllers/community');
 const ordersController = require('./controllers/orders');
@@ -108,11 +109,15 @@ app.use('/api/auth', authRoutes);
 // ✅ Kaspa blockchain routes (public with blockchain limiter)
 app.use('/api/kaspa', blockchainLimiter, kaspaRoutes);
 
-// ✅ Enhanced Kaspa API proxy routes (public with caching & rate limiting)
-app.use('/api/kaspa-enhanced', blockchainLimiter, kaspaEnhancedRoutes);
+// ✅ Enhanced Kaspa API proxy routes (PROTECTED - only for authenticated users)
+// User requirement: "nur registrierte nutzer die engemeldet sind die backend benutzen"
+app.use('/api/kaspa-enhanced', authMiddleware, blockchainLimiter, kaspaEnhancedRoutes);
 
 // ✅ Admin dashboard routes (protected by wallet address + IP whitelist + admin limiter)
 app.use('/api/admin', adminLimiter, adminRoutes);
+
+// ✅ Admin V2 - Revolutionary admin panel (protected by JWT auth + admin-only middleware)
+app.use('/api/admin-v2', authMiddleware, adminV2Routes);
 
 // Search routes (public)
 app.use('/api/search', searchRoutes);

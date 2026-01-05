@@ -9,7 +9,7 @@ const { ethers } = require('ethers');
 
 const SACRIFICE_ADDRESS = process.env.KASPA_SACRIFICE_ADDRESS || 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
 const POINTS_PER_KAS = parseInt(process.env.POINTS_PER_KAS || '100'); // 1 KAS = 100 points
-const MIN_POINTS_REQUIRED = parseInt(process.env.MIN_POINTS_REQUIRED || '1'); // Minimum 1 point (0.01 KAS)
+const MIN_POINTS_REQUIRED = parseInt(process.env.MIN_POINTS_REQUIRED || '100'); // Minimum 100 points = 1 KAS
 
 const KASPA_APIs = {
   restServer: process.env.KASPA_REST_SERVER || null,

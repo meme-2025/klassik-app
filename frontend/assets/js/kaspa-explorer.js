@@ -61,6 +61,101 @@ const API = {
     }
 };
 
+// ============================================
+// 🔐 AUTHENTICATION HELPERS
+// ============================================
+
+/**
+ * Get JWT token from localStorage
+ */
+function getAuthToken() {
+    return localStorage.getItem('klassik_token');
+}
+
+/**
+ * Get authorization headers for API calls
+ */
+function getAuthHeaders() {
+    const token = getAuthToken();
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+    
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return headers;
+}
+
+/**
+ * Check if user is authenticated
+ */
+function isAuthenticated() {
+    const token = getAuthToken();
+    const user = localStorage.getItem('klassik_user');
+    return !!(token && user);
+}
+
+/**
+ * Show login prompt when authentication is required
+ */
+function showLoginPrompt() {
+    const explorerContent = document.querySelector('.explorer-container');
+    if (!explorerContent) return;
+    
+    explorerContent.innerHTML = `
+        <div class="auth-required" style="text-align: center; padding: 3rem; background: rgba(73, 195, 231, 0.05); border-radius: 20px; border: 2px solid rgba(73, 195, 231, 0.2); max-width: 600px; margin: 3rem auto;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🔐</div>
+            <h2 style="color: #49C3E7; margin-bottom: 1rem;">Authentication Required</h2>
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 2rem;">
+                Please connect your wallet to access the Kaspa Explorer.<br>
+                Only registered users can view blockchain data.
+            </p>
+            <button onclick="window.location.href='index.html'" style="padding: 1rem 2rem; font-size: 1.1rem; background: linear-gradient(135deg, #49C3E7, #2E8B9E); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 600; transition: all 0.3s ease;">
+                Go to Login
+            </button>
+        </div>
+    `;
+}
+
+/**
+ * Handle authentication errors
+ */
+function handleAuthError(error, context = '') {
+    console.error(`🔐 Auth error (${context}):`, error);
+    
+    // Clear invalid token
+    localStorage.removeItem('klassik_token');
+    localStorage.removeItem('klassik_user');
+    
+    // Show login prompt
+    showLoginPrompt();
+    
+    // Stop all data refreshing
+    if (state.refreshInterval) {
+        clearInterval(state.refreshInterval);
+    }
+    if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+    }
+}
+
+/**
+ * Initialize auth check on page load
+ */
+function initAuthCheck() {
+    if (!isAuthenticated()) {
+        console.warn('⚠️ User not authenticated');
+        showLoginPrompt();
+        return false;
+    }
+    
+    const user = JSON.parse(localStorage.getItem('klassik_user'));
+    console.log(`✅ Authenticated as: ${user.username} (${user.address.substring(0, 8)}...)`);
+    return true;
+}
+
 let ws = null;
 let charts = {};
 
@@ -210,6 +305,12 @@ function setLoadingState(element, isLoading) {
 // Initialization
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
+    // 🔐 CRITICAL: Check authentication FIRST
+    if (!initAuthCheck()) {
+        console.warn('❌ Authentication failed - stopping initialization');
+        return; // Don't initialize explorer if not authenticated
+    }
+    
     // Check if this is a landing page (no stats section)
     const isLandingPage = !document.getElementById('stats-section');
     
@@ -537,12 +638,25 @@ async function fetchNetworkInfo() {
         let statsData = null;
         try {
             statsData = await fetchWithRetry(async () => {
-                const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.STATS}`);
+                const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.STATS}`, {
+                    headers: getAuthHeaders()
+                });
+                
+                // Handle authentication errors
+                if (backendRes.status === 401) {
+                    handleAuthError('Token expired or invalid', 'fetchNetworkInfo');
+                    throw new Error('Authentication required');
+                }
+                
                 if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
                 return await backendRes.json();
             });
             console.log('✅ Backend Stats (inkl. CoinGecko):', statsData);
         } catch (backendError) {
+            // If auth error, don't continue
+            if (backendError.message === 'Authentication required') {
+                return;
+            }
             console.error('❌ Backend nicht erreichbar:', backendError.message);
             showUserNotification('Backend unavailable, using fallback data', 'error');
             await fetchNetworkInfoFallback();
@@ -716,12 +830,24 @@ async function fetchLatestBlocks() {
         // Backend mit Retry Logic
         try {
             blocksData = await fetchWithRetry(async () => {
-                const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.BLOCKS}/latest?limit=20`);
+                const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.BLOCKS}/latest?limit=20`, {
+                    headers: getAuthHeaders()
+                });
+                
+                // Handle authentication errors
+                if (backendRes.status === 401) {
+                    handleAuthError('Token expired', 'fetchLatestBlocks');
+                    throw new Error('Authentication required');
+                }
+                
                 if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
                 return await backendRes.json();
             });
             console.log('✅ Backend Blocks (20 Blocks für bessere Statistik):', blocksData);
         } catch (backendError) {
+            if (backendError.message === 'Authentication required') {
+                return;
+            }
             console.error('❌ Backend blocks error:', backendError.message);
             showUserNotification('Failed to load blocks data', 'error');
         }
@@ -815,12 +941,24 @@ async function fetchLatestTransactions() {
         // Backend mit Retry Logic
         try {
             txData = await fetchWithRetry(async () => {
-                const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.TRANSACTIONS}/latest?limit=20`);
+                const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.TRANSACTIONS}/latest?limit=20`, {
+                    headers: getAuthHeaders()
+                });
+                
+                // Handle authentication errors
+                if (backendRes.status === 401) {
+                    handleAuthError('Token expired', 'fetchLatestTransactions');
+                    throw new Error('Authentication required');
+                }
+                
                 if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
                 return await backendRes.json();
             });
             console.log('✅ Backend Transactions:', txData);
         } catch (backendError) {
+            if (backendError.message === 'Authentication required') {
+                return;
+            }
             console.error('❌ Backend transactions error:', backendError.message);
             showUserNotification('Failed to load transactions', 'error');
         }
@@ -833,14 +971,29 @@ async function fetchLatestTransactions() {
         console.log('💸 Transactions array:', txArray.length, 'items');
         
         if (txArray && txArray.length > 0) {
-            state.transactions = txArray.slice(0, 20).map(tx => ({
-                hash: tx.hash || tx.transaction_id || generateMockHash(),
-                from: tx.inputs?.[0]?.previous_outpoint_address || 'N/A',
-                to: tx.outputs?.[0]?.script_public_key_address || 'N/A',
-                amount: tx.outputs?.reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0) / 1e8 || 0, // Convert from sompi
-                timestamp: tx.block_time || tx.timestamp || Date.now(),
-                fee: tx.mass || 0
-            }));
+            state.transactions = txArray.slice(0, 20).map(tx => {
+                // Fix: outputs could be array or object
+                let outputsArray = Array.isArray(tx.outputs) ? tx.outputs : 
+                                  (tx.outputs ? Object.values(tx.outputs) : []);
+                
+                // Calculate total amount from outputs (if it's an array)
+                let totalAmount = 0;
+                if (outputsArray.length > 0) {
+                    totalAmount = outputsArray.reduce((sum, out) => {
+                        const amount = parseFloat(out?.amount || 0);
+                        return sum + amount;
+                    }, 0) / 1e8; // Convert from sompi
+                }
+                
+                return {
+                    hash: tx.hash || tx.transaction_id || generateMockHash(),
+                    from: tx.inputs?.[0]?.previous_outpoint_address || 'N/A',
+                    to: outputsArray[0]?.script_public_key_address || 'N/A',
+                    amount: totalAmount || 0,
+                    timestamp: tx.block_time || tx.timestamp || Date.now(),
+                    fee: tx.mass || 0
+                };
+            });
             console.log('Parsed transactions:', state.transactions.length);
         } else {
             console.warn('⚠️ No transaction data, using mock');

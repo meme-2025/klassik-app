@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Klassik - World Cup Login Experience</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #49C3E7, #2E8B9E);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .logo p {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(73, 195, 231, 0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 0 0.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active {
+            background: linear-gradient(135deg, #49C3E7, #2E8B9E);
+            transform: scale(1.1);
+        }
+        
+        .step.completed {
+            background: rgba(0, 255, 0, 0.2);
+        }
+        
+        .step-number {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .step-label {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+        
+        .form-section {
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h2 {
+            color: #49C3E7;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(73, 195, 231, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #49C3E7;
+            box-shadow: 0 0 20px rgba(73, 195, 231, 0.3);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, #49C3E7, #2E8B9E);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(73, 195, 231, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 1rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .alert-error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid rgba(255, 0, 0, 0.5);
+            color: #ff6b6b;
+        }
+        
+        .alert-success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 2px solid rgba(0, 255, 0, 0.5);
+            color: #51cf66;
+        }
+        
+        .alert-info {
+            background: rgba(73, 195, 231, 0.2);
+            border: 2px solid rgba(73, 195, 231, 0.5);
+            color: #49C3E7;
+        }
+        
+        .sacrifice-info {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .sacrifice-info h3 {
+            color: #ffd700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .sacrifice-steps {
+            list-style: none;
+            counter-reset: step;
+        }
+        
+        .sacrifice-steps li {
+            counter-increment: step;
+            margin-bottom: 1rem;
+            padding-left: 2.5rem;
+            position: relative;
+        }
+        
+        .sacrifice-steps li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .wallet-address {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 10px;
+            font-family: monospace;
+            color: #49C3E7;
+            word-break: break-all;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .copy-btn {
+            background: rgba(73, 195, 231, 0.2);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            color: #49C3E7;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(73, 195, 231, 0.4);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #49C3E7, #2E8B9E);
+            transition: width 0.5s ease;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🏆 KLASSIK</h1>
+            <p>World Cup Level Authentication Experience</p>
+        </div>
+        
+        <div class="card">
+            <!-- Progress Bar -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 25%"></div>
+            </div>
+            
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step active" id="step-1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Connect</div>
+                </div>
+                <div class="step" id="step-2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Sacrifice</div>
+                </div>
+                <div class="step" id="step-3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Register</div>
+                </div>
+                <div class="step" id="step-4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Done</div>
+                </div>
+            </div>
+            
+            <!-- Alerts -->
+            <div id="alert-container"></div>
+            
+            <!-- Step 1: Connect Wallet -->
+            <div class="form-section active" id="section-connect">
+                <h2><i class="fas fa-wallet"></i> Connect Your Wallet</h2>
+                <p style="margin-bottom: 2rem; color: rgba(255,255,255,0.7);">
+                    Click the button below to connect your MetaMask wallet and start the authentication process.
+                </p>
+                <button class="btn" id="connect-wallet-btn">
+                    <i class="fas fa-wallet"></i>
+                    Connect MetaMask
+                </button>
+            </div>
+            
+            <!-- Step 2: Sacrifice Check -->
+            <div class="form-section" id="section-sacrifice">
+                <h2><i class="fas fa-gift"></i> Sacrifice Verification</h2>
+                <p style="margin-bottom: 1rem; color: rgba(255,255,255,0.7);">
+                    Checking your Kaspa sacrifice status...
+                </p>
+                
+                <div id="sacrifice-status"></div>
+                
+                <!-- Sacrifice Instructions -->
+                <div class="sacrifice-info" id="sacrifice-instructions" style="display: none;">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Sacrifice Required</h3>
+                    <p style="margin-bottom: 1rem;">You need to sacrifice <strong>1 KAS</strong> to register. Follow these steps:</p>
+                    
+                    <ol class="sacrifice-steps">
+                        <li>Open your Kaspa wallet (Kaspium, KDX, or other)</li>
+                        <li>Send <strong>exactly 1 KAS or more</strong> to this address:
+                            <div class="wallet-address">
+                                <span id="sacrifice-address">kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc</span>
+                                <button class="copy-btn" onclick="copyAddress()">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </li>
+                        <li>Wait for at least 10 confirmations</li>
+                        <li>Click "Check Sacrifice" below to verify</li>
+                    </ol>
+                </div>
+                
+                <button class="btn" id="check-sacrifice-btn">
+                    <i class="fas fa-sync"></i>
+                    Check Sacrifice Status
+                </button>
+            </div>
+            
+            <!-- Step 3: Registration -->
+            <div class="form-section" id="section-register">
+                <h2><i class="fas fa-user-plus"></i> Create Your Account</h2>
+                
+                <div class="input-group">
+                    <label for="username">Choose Username</label>
+                    <input type="text" id="username" placeholder="Enter username (3-30 characters)" maxlength="30" />
+                </div>
+                
+                <div class="input-group">
+                    <label for="kaspa-address">Your Kaspa Wallet Address</label>
+                    <input type="text" id="kaspa-address" placeholder="kaspa:..." />
+                </div>
+                
+                <button class="btn" id="register-btn">
+                    <i class="fas fa-user-check"></i>
+                    Complete Registration
+                </button>
+            </div>
+            
+            <!-- Step 4: Success -->
+            <div class="form-section" id="section-success">
+                <h2><i class="fas fa-check-circle"></i> Welcome to Klassik!</h2>
+                <p style="margin-bottom: 2rem; color: rgba(255,255,255,0.7); text-align: center;">
+                    🎉 Your account has been created successfully!
+                </p>
+                
+                <div style="background: rgba(73, 195, 231, 0.1); padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                    <p><strong>Username:</strong> <span id="success-username"></span></p>
+                    <p><strong>Wallet:</strong> <span id="success-wallet"></span></p>
+                    <p><strong>Points:</strong> <span id="success-points"></span></p>
+                </div>
+                
+                <button class="btn" onclick="window.location.href='kaspa-explorerv5.21.html'">
+                    <i class="fas fa-rocket"></i>
+                    Go to Kaspa Explorer
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <script src="assets/js/auth-flow.js"></script>
+</body>
+</html>

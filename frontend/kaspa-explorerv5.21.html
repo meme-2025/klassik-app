@@ -170,7 +170,102 @@
         /* ============================================
            TIMER LOADING & CLICK EFFECTS
            ============================================ */
-        .refresh-timer {
+        /* Header Controls Group */
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        /* Bandwidth Monitor Styles */
+        .bandwidth-monitor {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(73, 195, 231, 0.1);
+            border: 2px solid rgba(73, 195, 231, 0.3);
+            border-radius: 12px;
+            font-family: 'Orbitron', monospace;
+            cursor: help;
+            transition: all 0.3s ease;
+        }
+        
+        .bandwidth-monitor:hover {
+            background: rgba(73, 195, 231, 0.15);
+            border-color: rgba(73, 195, 231, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .bandwidth-icon {
+            font-size: 1.2rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .bandwidth-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        
+        .bandwidth-current {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #49C3E7;
+        }
+        
+        .bandwidth-total {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* Update Rate Switcher Styles */
+        .update-rate-switcher {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.3rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 2px solid rgba(73, 195, 231, 0.2);
+        }
+        
+        .rate-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.5rem 0.8rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Orbitron', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .rate-btn:hover {
+            background: rgba(73, 195, 231, 0.1);
+            color: #49C3E7;
+        }
+        
+        .rate-btn.active {
+            background: linear-gradient(135deg, #49C3E7, #2E8B9E);
+            color: white;
+            box-shadow: 0 0 15px rgba(73, 195, 231, 0.5);
+        }
+        
+        .rate-btn i {
+            font-size: 1rem;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* Refresh Timer Styles */
             position: relative;
             transition: transform 0.2s ease, opacity 0.3s ease;
         }
@@ -267,6 +362,7 @@
             </div>
             
             <div class="nav-links-compact">
+                <!-- Refresh Timer -->
                 <div class="refresh-timer" id="refresh-timer">
                     <svg class="timer-circle" viewBox="0 0 36 36">
                         <path class="timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
@@ -275,7 +371,31 @@
                     <span class="timer-text" id="timer-text">10</span>
                     <div class="timer-loader"></div>
                 </div>
-
+                
+                <!-- Bandwidth Monitor (NEU) -->
+                <div class="bandwidth-monitor" id="bandwidth-monitor" title="Data transferred">
+                    <div class="bandwidth-icon">📊</div>
+                    <div class="bandwidth-stats">
+                        <div class="bandwidth-current" id="bandwidth-current">0 KB/s</div>
+                        <div class="bandwidth-total" id="bandwidth-total">0 MB</div>
+                    </div>
+                </div>
+                
+                <!-- Update Rate Switcher (NEU) -->
+                <div class="update-rate-switcher" id="update-rate-switcher">
+                    <button class="rate-btn" data-rate="realtime" title="Real-time (0.1s)">
+                        <i class="fas fa-bolt"></i>
+                        <span>Live</span>
+                    </button>
+                    <button class="rate-btn active" data-rate="10" title="Every 10 seconds">
+                        <i class="fas fa-sync"></i>
+                        <span>10s</span>
+                    </button>
+                    <button class="rate-btn" data-rate="60" title="Every 60 seconds">
+                        <i class="fas fa-hourglass-half"></i>
+                        <span>60s</span>
+                    </button>
+                </div>
             </div>
         </div>
     
@@ -811,6 +931,9 @@
     </footer>
 
     <!-- Scripts -->
+    <!-- NEW: Bandwidth Monitor & Update Rate Controller (BEFORE other scripts) -->
+    <script src="assets/js/bandwidth-monitor.js"></script>
+    
     <script src="assets/js/kaspa-explorer.js"></script>
     <script src="assets/js/realtime-updates.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
