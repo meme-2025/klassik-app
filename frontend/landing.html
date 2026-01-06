@@ -601,21 +601,32 @@
                                             netAmount = (receivedAmount - sentAmount) / 100000000;
                                             isIncoming = netAmount > 0;
                                             
-                                            // Get other address
+                                            // Get other address - better logic
                                             if (isIncoming && receivedAmount > 0) {
-                                                // Incoming: show first input address that's not ours
-                                                const fromInput = tx.inputs?.find(inp => 
-                                                    inp.previous_outpoint_address && 
-                                                    inp.previous_outpoint_address !== data.address
-                                                );
-                                                otherAddress = fromInput?.previous_outpoint_address || 'Coinbase';
+                                                // Incoming: show first input address that exists
+                                                if (tx.inputs && tx.inputs.length > 0) {
+                                                    // Check if this is a coinbase transaction (no previous_outpoint_address)
+                                                    const hasValidInput = tx.inputs.some(inp => inp.previous_outpoint_address);
+                                                    if (!hasValidInput) {
+                                                        otherAddress = 'Coinbase';
+                                                    } else {
+                                                        // Find first input that's not our address
+                                                        const fromInput = tx.inputs.find(inp => 
+                                                            inp.previous_outpoint_address && 
+                                                            inp.previous_outpoint_address !== data.address
+                                                        );
+                                                        otherAddress = fromInput?.previous_outpoint_address || 'Multi-Sender';
+                                                    }
+                                                } else {
+                                                    otherAddress = 'Coinbase';
+                                                }
                                             } else if (!isIncoming && sentAmount > 0) {
                                                 // Outgoing: show first output address that's not ours
                                                 const toOutput = tx.outputs?.find(out => 
                                                     out.script_public_key_address && 
                                                     out.script_public_key_address !== data.address
                                                 );
-                                                otherAddress = toOutput?.script_public_key_address || 'Unknown';
+                                                otherAddress = toOutput?.script_public_key_address || 'Multi-Recipient';
                                             } else {
                                                 otherAddress = 'Unknown';
                                             }
@@ -710,20 +721,98 @@
             } else if (type === 'transaction') {
                 const totalOutput = data.outputs?.reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0) || 0;
                 const amountKAS = totalOutput / 100000000;
+                
+                // Build inputs table
+                const inputsTable = data.inputs && data.inputs.length > 0 ? `
+                    <div style="margin-top: 2rem;">
+                        <h3 style="color: var(--text-primary); font-size: 1.1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-arrow-right" style="color: #ef4444;"></i> Inputs (Von wem)
+                        </h3>
+                        <table style="width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.02); border-radius: 0.5rem; overflow: hidden;">
+                            <thead>
+                                <tr style="background: rgba(14, 165, 233, 0.1); border-bottom: 2px solid var(--border-color);">
+                                    <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem;">Adresse</th>
+                                    <th style="padding: 0.75rem; text-align: right; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem;">Betrag</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.inputs.map(inp => {
+                                    const addr = inp.previous_outpoint_address || 'Coinbase (Mining)';
+                                    const amount = parseFloat(inp.previous_outpoint_amount || 0) / 100000000;
+                                    const shortAddr = addr !== 'Coinbase (Mining)' ? shortenAddress(addr) : addr;
+                                    const addressHtml = addr !== 'Coinbase (Mining)' 
+                                        ? `<a href="#" onclick="document.getElementById('search-input').value='${addr}'; document.getElementById('search-btn').click(); return false;" style="color: var(--text-primary); text-decoration: none; font-family: monospace; font-size: 0.85rem;">${shortAddr}</a>
+                                           <button onclick="navigator.clipboard.writeText('${addr}'); event.stopPropagation(); return false;" style="margin-left: 0.25rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.15rem 0.35rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.7rem;">
+                                               <i class="fas fa-copy"></i>
+                                           </button>`
+                                        : `<span style="color: var(--text-secondary); font-style: italic;">${addr}</span>`;
+                                    return `
+                                        <tr style="border-bottom: 1px solid var(--border-color);">
+                                            <td style="padding: 0.75rem;">${addressHtml}</td>
+                                            <td style="padding: 0.75rem; text-align: right; font-family: monospace; color: var(--text-primary);">${formatKAS(amount)} KAS</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                ` : '';
+                
+                // Build outputs table
+                const outputsTable = data.outputs && data.outputs.length > 0 ? `
+                    <div style="margin-top: 2rem;">
+                        <h3 style="color: var(--text-primary); font-size: 1.1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-arrow-left" style="color: #10b981;"></i> Outputs (Zu wem)
+                        </h3>
+                        <table style="width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.02); border-radius: 0.5rem; overflow: hidden;">
+                            <thead>
+                                <tr style="background: rgba(14, 165, 233, 0.1); border-bottom: 2px solid var(--border-color);">
+                                    <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem;">Adresse</th>
+                                    <th style="padding: 0.75rem; text-align: right; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem;">Betrag</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.outputs.map(out => {
+                                    const addr = out.script_public_key_address || 'N/A';
+                                    const amount = parseFloat(out.amount || 0) / 100000000;
+                                    const shortAddr = addr !== 'N/A' ? shortenAddress(addr) : addr;
+                                    const addressHtml = addr !== 'N/A'
+                                        ? `<a href="#" onclick="document.getElementById('search-input').value='${addr}'; document.getElementById('search-btn').click(); return false;" style="color: var(--text-primary); text-decoration: none; font-family: monospace; font-size: 0.85rem;">${shortAddr}</a>
+                                           <button onclick="navigator.clipboard.writeText('${addr}'); event.stopPropagation(); return false;" style="margin-left: 0.25rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.15rem 0.35rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.7rem;">
+                                               <i class="fas fa-copy"></i>
+                                           </button>`
+                                        : `<span style="color: var(--text-secondary); font-style: italic;">${addr}</span>`;
+                                    return `
+                                        <tr style="border-bottom: 1px solid var(--border-color);">
+                                            <td style="padding: 0.75rem;">${addressHtml}</td>
+                                            <td style="padding: 0.75rem; text-align: right; font-family: monospace; color: var(--text-primary);">${formatKAS(amount)} KAS</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                ` : '';
+                
                 html = `
                     <div class="result-card">
                         <span class="result-type"><i class="fas fa-exchange-alt"></i> Transaction</span>
                         <h2 class="result-title">Transaction Details</h2>
                         <div class="result-data">
                             <div class="result-row">
-                                <div class="result-label">Amount</div>
+                                <div class="result-label">Gesamt-Betrag</div>
                                 <div class="result-value" style="font-size: 1.3rem; font-weight: 700; color: var(--accent-blue);">
                                     ${formatKAS(amountKAS)} KAS
                                 </div>
                             </div>
                             <div class="result-row">
                                 <div class="result-label">Hash</div>
-                                <div class="result-value" style="font-size: 0.85rem;">${shortenAddress(data.transaction_id || 'N/A')}</div>
+                                <div class="result-value" style="font-size: 0.85rem;">
+                                    ${shortenAddress(data.transaction_id || 'N/A')}
+                                    <button onclick="navigator.clipboard.writeText('${data.transaction_id || ''}')" style="margin-left: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
+                                </div>
                             </div>
                             <div class="result-row">
                                 <div class="result-label">Block Hash</div>
@@ -731,17 +820,19 @@
                             </div>
                             <div class="result-row">
                                 <div class="result-label">Inputs</div>
-                                <div class="result-value">${data.inputs?.length || 0}</div>
+                                <div class="result-value">${data.inputs?.length || 0} Sender</div>
                             </div>
                             <div class="result-row">
                                 <div class="result-label">Outputs</div>
-                                <div class="result-value">${data.outputs?.length || 0}</div>
+                                <div class="result-value">${data.outputs?.length || 0} Empfänger</div>
                             </div>
                             <div class="result-row">
                                 <div class="result-label">Status</div>
                                 <div class="result-value">${data.is_accepted ? '<span style="color: #10b981;">✅ Confirmed</span>' : '<span style="color: #f59e0b;">⏳ Pending</span>'}</div>
                             </div>
                         </div>
+                        ${inputsTable}
+                        ${outputsTable}
                     </div>
                 `;
             } else if (type === 'block') {
