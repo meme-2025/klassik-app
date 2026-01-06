@@ -586,29 +586,46 @@
                                             let isIncoming = false;
                                             let otherAddress = '';
                                             
-                                            // Check outputs to this address
-                                            const received = tx.outputs?.filter(out => 
+                                            // Check if this address is in outputs (receiving)
+                                            const myOutputs = tx.outputs?.filter(out => 
                                                 out.script_public_key_address === data.address
-                                            ).reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0) || 0;
+                                            ) || [];
+                                            const receivedAmount = myOutputs.reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0);
                                             
-                                            // Check inputs from this address
-                                            const sent = tx.inputs?.filter(inp => 
+                                            // Check if this address is in inputs (sending)
+                                            const myInputs = tx.inputs?.filter(inp => 
                                                 inp.previous_outpoint_address === data.address
-                                            ).reduce((sum, inp) => sum + (parseFloat(inp.previous_outpoint_amount) || 0), 0) || 0;
+                                            ) || [];
+                                            const sentAmount = myInputs.reduce((sum, inp) => sum + (parseFloat(inp.previous_outpoint_amount) || 0), 0);
                                             
-                                            netAmount = (received - sent) / 100000000;
+                                            netAmount = (receivedAmount - sentAmount) / 100000000;
                                             isIncoming = netAmount > 0;
                                             
                                             // Get other address
-                                            if (isIncoming) {
-                                                // Find sender address (from inputs)
-                                                otherAddress = tx.inputs?.find(inp => inp.previous_outpoint_address !== data.address)?.previous_outpoint_address || 'Unknown';
+                                            if (isIncoming && receivedAmount > 0) {
+                                                // Incoming: show first input address that's not ours
+                                                const fromInput = tx.inputs?.find(inp => 
+                                                    inp.previous_outpoint_address && 
+                                                    inp.previous_outpoint_address !== data.address
+                                                );
+                                                otherAddress = fromInput?.previous_outpoint_address || 'Coinbase';
+                                            } else if (!isIncoming && sentAmount > 0) {
+                                                // Outgoing: show first output address that's not ours
+                                                const toOutput = tx.outputs?.find(out => 
+                                                    out.script_public_key_address && 
+                                                    out.script_public_key_address !== data.address
+                                                );
+                                                otherAddress = toOutput?.script_public_key_address || 'Unknown';
                                             } else {
-                                                // Find recipient address (from outputs)
-                                                otherAddress = tx.outputs?.find(out => out.script_public_key_address !== data.address)?.script_public_key_address || 'Unknown';
+                                                otherAddress = 'Unknown';
                                             }
                                             
-                                            // Format timestamp correctly (block_time is already in milliseconds)
+                                            // Skip transactions with 0 net amount
+                                            if (Math.abs(netAmount) < 0.00000001) {
+                                                return '';
+                                            }
+                                            
+                                            // Format timestamp correctly
                                             let timestamp = 'Pending';
                                             if (tx.block_time) {
                                                 const date = new Date(parseInt(tx.block_time));
@@ -623,11 +640,19 @@
                                             
                                             const txHash = tx.transaction_id || 'N/A';
                                             const shortHash = txHash.substring(0, 8) + '...' + txHash.substring(txHash.length - 8);
-                                            const shortAddr = otherAddress !== 'Unknown' ? shortenAddress(otherAddress) : 'Unknown';
+                                            const shortAddr = otherAddress !== 'Unknown' && otherAddress !== 'Coinbase' ? shortenAddress(otherAddress) : otherAddress;
                                             const amountColor = isIncoming ? '#10b981' : '#ef4444';
                                             const amountPrefix = isIncoming ? '+' : '-';
                                             const directionLabel = isIncoming ? 'FROM' : 'TO';
                                             const directionColor = isIncoming ? '#10b981' : '#ef4444';
+                                            
+                                            // Address with copy button
+                                            const addressHtml = otherAddress !== 'Unknown' && otherAddress !== 'Coinbase' 
+                                                ? `<a href="#" onclick="document.getElementById('search-input').value='${otherAddress}'; document.getElementById('search-btn').click(); return false;" style="color: var(--text-secondary); text-decoration: none; font-family: monospace;">${shortAddr}</a>
+                                                   <button onclick="navigator.clipboard.writeText('${otherAddress}'); event.stopPropagation(); return false;" style="margin-left: 0.25rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.15rem 0.35rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.7rem;">
+                                                       <i class="fas fa-copy"></i>
+                                                   </button>`
+                                                : `<span style="color: var(--text-secondary); font-style: italic;">${otherAddress}</span>`;
                                             
                                             return `
                                                 <tr style="border-bottom: 1px solid var(--border-color);">
@@ -637,7 +662,7 @@
                                                     </td>
                                                     <td style="padding: 0.75rem; font-size: 0.85rem;">
                                                         <span style="color: ${directionColor}; font-weight: 600; margin-right: 0.5rem;">${directionLabel}</span>
-                                                        <a href="#" onclick="document.getElementById('search-input').value='${otherAddress}'; document.getElementById('search-btn').click(); return false;" style="color: var(--text-secondary); text-decoration: none; font-family: monospace;">${shortAddr}</a>
+                                                        ${addressHtml}
                                                     </td>
                                                     <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: ${amountColor};">${amountPrefix}${formatKAS(Math.abs(netAmount))} KAS</td>
                                                     <td style="padding: 0.75rem; text-align: center;">${tx.is_accepted ? '<span style="color: #10b981;">✅</span>' : '<span style="color: #f59e0b;">⏳</span>'}</td>
