@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaspa Explorer | BlockDAG Explorer & Analytics</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓</text></svg>">
+    <link rel="stylesheet" href="assets/css/kaspa-explorer-v4.css">
+    <link rel="stylesheet" href="assets/css/explorer-compact-v3.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== BASE & VARIABLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: rgba(30, 41, 59, 0.6);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --accent-blue: #0ea5e9;
+            --accent-purple: #8b5cf6;
+            --border-color: rgba(148, 163, 184, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== KASPA-LANDING DESIGN ===== */
+        .stats-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 1rem !important; }
+        .stat-info-2 { display: flex; gap: 1.5em; align-items: center; }
+        
+        .hero-title { position: relative; }
+        .hero-title svg { position: relative; top: 0; right: 0; width: 5em; height: 5rem; margin: 0; pointer-events: none; }
+
+        .landing-container { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; }
+        .landing-hero { text-align: center; max-width: 800px; width: 100%; }
+        .landing-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        
+        .landing-subtitle {
+            font-size: 1.125rem;
+            color: rgba(255,255,255,0.92);
+            margin-bottom: 2rem;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+            letter-spacing: 0.01em;
+            opacity: 0.95;
+            text-shadow: 0 6px 18px rgba(2,6,23,0.45);
+            background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .landing-search { margin-bottom: 2rem; }
+        .explore-link { display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 2.5rem; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; text-decoration: none; border-radius: 0.75rem; font-size: 1.1rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3); }
+        .explore-link:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5); }
+
+        .hero-title, .header-actions { color: #ffffff !important; }
+        .hero-title .search-btn, .header-actions .search-btn, #header-search-btn {
+            background: transparent !important;
+            border: none !important;
+            color: #ffffff !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding: 0.25rem 0.5rem !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            opacity: 1 !important;
+        }
+        .hero-title .search-btn span, .header-actions .search-btn span, #header-search-btn span { color: #ffffff !important; display: inline-block !important; line-height: 1 !important; }
+        .hero-title .search-icon, .hero-title .fa-arrow-right, .header-actions .search-icon, .header-actions .fa-arrow-right { color: #ffffff !important; }
+
+        /* ===== NAVIGATION ===== */
+        .container.nav-container-etherscan {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .beta {
+            background: var(--accent-blue);
+            color: white;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo h1 a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .header-actions a {
+            transition: opacity 0.2s ease;
+        }
+
+        .header-actions a:hover {
+            opacity: 0.8;
+        }
+
+        .price-status {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
+        }
+
+        .price-main {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .price-value {
+            font-size: 1.1rem;
+        }
+
+        .price-change {
+            font-size: 0.85rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .price-change.positive {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .price-change.negative {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        /* ===== SEARCH ===== */
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-wrapper {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-wrapper:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .search-icon {
+            padding: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 1rem;
+            padding: 1rem 0.5rem;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ===== RESULTS ===== */
+        .results-section {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-type {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .result-data {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .result-row {
+            display: flex;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .result-label {
+            flex: 0 0 140px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-value {
+            flex: 1;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        /* ===== TRANSACTION TABLE ===== */
+        .tx-table-wrapper {
+            overflow-x: auto;
+            margin-top: 2rem;
+        }
+
+        .tx-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .tx-table thead tr {
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tx-table th {
+            text-align: left;
+            padding: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .tx-table th.center {
+            text-align: center;
+        }
+
+        .tx-table th.right {
+            text-align: right;
+        }
+
+        .tx-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s ease;
+        }
+
+        .tx-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tx-table td {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .tx-timestamp {
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .tx-hash {
+            font-family: monospace;
+        }
+
+        .tx-hash a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .tx-hash a:hover {
+            color: var(--accent-purple);
+        }
+
+        .tx-address-list div {
+            padding: 0.15rem 0;
+        }
+
+        .tx-address-list a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-family: monospace;
+            font-size: 0.8rem;
+            transition: color 0.2s ease;
+        }
+
+        .tx-address-list a:hover {
+            color: var(--accent-blue);
+        }
+
+        .tx-address-list a.highlighted {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .tx-address-extra {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-style: italic;
+        }
+
+        .tx-coinbase {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .tx-arrow {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .tx-amount {
+            text-align: right;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .tx-amount.incoming {
+            color: #10b981;
+        }
+
+        .tx-amount.outgoing {
+            color: #ef4444;
+        }
+
+        .tx-status {
+            text-align: center;
+        }
+
+        .load-more-btn {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .load-more-btn:hover {
+            background: rgba(14, 165, 233, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* ===== LOADING & EMPTY ===== */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .loading i {
+            font-size: 3rem;
+            animation: spin 1s linear infinite;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast-success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-color);
+            padding: 2rem 0;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-section h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .footer-section p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* ===== MOBILE RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .landing-title {
+                font-size: 2.5rem;
+            }
+
+            .landing-subtitle {
+                font-size: 1rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .header-content {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .logo h1 {
+                font-size: 0.7rem !important;
+            }
+
+            .logo svg {
+                width: 2.5rem !important;
+                height: 2.5rem !important;
+            }
+
+            .header-actions {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .price-status {
+                align-items: flex-start;
+            }
+
+            .search-wrapper {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .search-icon {
+                display: none;
+            }
+
+            .search-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .results-section {
+                padding: 0 1rem 2rem;
+            }
+
+            .result-card {
+                padding: 1rem;
+            }
+
+            .result-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .result-label {
+                flex: none;
+            }
+
+            .tx-table-wrapper {
+                margin: 1rem -1rem;
+                padding: 0 1rem;
+            }
+
+            .tx-table {
+                font-size: 0.75rem;
+            }
+
+            .tx-table th,
+            .tx-table td {
+                padding: 0.5rem 0.25rem;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .landing-title {
+                font-size: 2rem;
+            }
+
+            .tx-table th:nth-child(4),
+            .tx-table td:nth-child(4) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <div class="container nav-container-etherscan">
+        <div class="nav-logo">
+            <span>klassik.scan</span>
+            <span class="beta">BETA</span>
+        </div>
+        <div class="nav-links-compact"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1 class="hero-title fade-in-up" style="font-size: 0.8rem; margin-bottom: 0rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0; font-family: 'Space Grotesk', sans-serif;">
+                        <a href="index.html">
+                            <svg style="width: 3rem; height: 3rem; margin-left: 1rem;" viewBox="0 0 197.1 196.9" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="98.6" cy="97.8" r="40.8"/>
+                                <path fill="#FFFFFF" d="M149.4,76.3c-2.8-6.8-7.2-13-12.3-18.1s-11.6-8.9-18.4-11.7c-6.5-2.7-13.8-4.1-21.3-4.1s-15.2,0.3-21.7,3c-6.8,2.8-12.4,8.1-17.5,13.2s-11,10.5-13.8,17.3c-2.7,6.5-1.8,14.5-1.8,22s0.5,14.8,3.3,21.4c2.8,6.8,8.5,11.5,13.6,16.6c5.1,5.1,9.7,11.2,16.5,14c6.5,2.7,14,4.6,21.5,4.6s14.9-2.2,21.4-4.9c6.8-2.8,12.9-7.2,18-12.3c5.1-5.1,9.2-11.3,12-18.1c2.7-6.5,5.8-13.8,5.8-21.3S152.1,82.9,149.4,76.3L149.4,76.3z M113.2,129.8l-11.9-1.8l3.4-23l-24.9,19.2l-7.3-9.6l21.8-16.8L72.5,81.1l7.3-9.6l24.9,19.2l-3.4-23l11.9-1.8l4.7,32L113.2,129.8L113.2,129.8z"/>
+                            </svg>
+                        </a>
+                    </h1>
+                </div>
+
+                <div class="header-actions">
+                    <a class="search-btn" id="header-search-btn" href="kaspa-explorerv5.3.html">
+                        <i class="fas fa-chart-line search-icon"></i>
+                        <span>Watch Explorer</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="price-status" id="header-price">
+                    <div class="price-main">
+                        <i class="fas fa-coins"></i>
+                        <span class="price-value" id="header-price-value">$0.00</span>
+                    </div>
+                    <span class="price-change" id="header-price-change">0.00%</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Landing Content -->
+    <div class="landing-container">
+        <div class="landing-hero">
+            <h1 class="landing-title"></h1>
+            <p class="landing-subtitle">Realtime network data & transaction explorer</p>
+
+            <!-- Search Bar -->
+            <div class="search-container landing-search">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search by Address / Tx Hash / Block Hash" id="main-search" autocomplete="off">
+                    <button class="search-btn" id="search-btn">
+                        <span>Search</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <section class="results-section" id="results-section">
+        <!-- Results will be inserted here -->
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>klassik.kaspa</h4>
+                    <p>Professional BlockDAG Explorer</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Network</h4>
+                    <p id="footer-status">Active</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // ===== CONFIGURATION =====
+        const KASPA_API = 'https://api.kaspa.org';
+        let currentAddress = null;
+        let currentTransactions = [];
+        let transactionLimit = 50;
+
+        // ===== PRICE LOADING =====
+        async function loadKaspaPrice() {
+            try {
+                const res = await fetch(`${KASPA_API}/info/price`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const price = data.price || 0;
+                    const change = data.change || 0;
+                    
+                    document.getElementById('header-price-value').textContent = `$${price.toFixed(4)}`;
+                    const changeEl = document.getElementById('header-price-change');
+                    changeEl.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+                    changeEl.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
+                }
+            } catch (error) {
+                console.error('Price load error:', error);
+            }
+        }
+
+        // ===== TOAST NOTIFICATIONS =====
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ===== SEARCH FUNCTIONALITY =====
+        const searchInput = document.getElementById('main-search');
+        const searchBtn = document.getElementById('search-btn');
+        const resultsSection = document.getElementById('results-section');
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                showToast('Please enter a search query', 'error');
+                return;
+            }
+
+            // Show loading
+            resultsSection.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-circle-notch"></i>
+                    <p>Searching blockchain...</p>
+                </div>
+            `;
+
+            try {
+                let result = null;
+                let type = null;
+
+                // Determine type and search
+                if (query.startsWith('kaspa:')) {
+                    type = 'address';
+                    result = await searchAddress(query);
+                } else if (query.length === 64) {
+                    try {
+                        result = await searchTransaction(query);
+                        type = 'transaction';
+                    } catch {
+                        result = await searchBlock(query);
+                        type = 'block';
+                    }
+                } else {
+                    showToast('Invalid query format', 'error');
+                    resultsSection.innerHTML = '';
+                    return;
+                }
+
+                if (result) {
+                    displayResult(result, type);
+                    showToast('Search successful!', 'success');
+                } else {
+                    showToast('No results found', 'error');
+                    resultsSection.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <p>No results found for "${query}"</p>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Search error:', error);
+                showToast('Search failed: ' + error.message, 'error');
+                resultsSection.innerHTML = '';
+            }
+        }
+
+        // ===== API CALLS =====
+        async function searchAddress(address) {
+            currentAddress = address;
+            transactionLimit = 50;
+            
+            // Get balance
+            const balanceRes = await fetch(`${KASPA_API}/addresses/${address}/balance`);
+            if (!balanceRes.ok) throw new Error('Address not found');
+            const balanceData = await balanceRes.json();
+            
+            // Get transaction count
+            const txCountRes = await fetch(`${KASPA_API}/addresses/${address}/transactions-count`);
+            const txCountData = txCountRes.ok ? await txCountRes.json() : { total: 0 };
+            
+            // CRITICAL: Get transactions with resolve_previous_outpoints=light parameter
+            const txRes = await fetch(`${KASPA_API}/addresses/${address}/full-transactions?limit=${transactionLimit}&offset=0&resolve_previous_outpoints=light`);
+            const txData = txRes.ok ? await txRes.json() : [];
+            currentTransactions = txData;
+            
+            // Get price for USD conversion
+            const priceRes = await fetch(`${KASPA_API}/info/price`);
+            const priceData = priceRes.ok ? await priceRes.json() : { price: 0 };
+            
+            // Convert balance from sompi to KAS (1 KAS = 100000000 sompi)
+            const balanceKAS = parseFloat(balanceData.balance || 0) / 100000000;
+            const balanceUSD = balanceKAS * (priceData.price || 0);
+            
+            return {
+                address: address,
+                balance: balanceKAS,
+                balanceUSD: balanceUSD,
+                transactionCount: txCountData.total || 0,
+                transactions: txData,
+                kasPrice: priceData.price || 0
+            };
+        }
+
+        async function loadMoreTransactions() {
+            if (!currentAddress) return;
+            
+            transactionLimit += 10;
+            // CRITICAL: Include resolve_previous_outpoints=light parameter
+            const txRes = await fetch(`${KASPA_API}/addresses/${currentAddress}/full-transactions?limit=${transactionLimit}&offset=0&resolve_previous_outpoints=light`);
+            if (txRes.ok) {
+                const txData = await txRes.json();
+                currentTransactions = txData;
+                
+                // Re-render the address view
+                const balanceRes = await fetch(`${KASPA_API}/addresses/${currentAddress}/balance`);
+                const balanceData = await balanceRes.json();
+                const txCountRes = await fetch(`${KASPA_API}/addresses/${currentAddress}/transactions-count`);
+                const txCountData = txCountRes.ok ? await txCountRes.json() : { total: 0 };
+                const priceRes = await fetch(`${KASPA_API}/info/price`);
+                const priceData = priceRes.ok ? await priceRes.json() : { price: 0 };
+                const balanceKAS = parseFloat(balanceData.balance || 0) / 100000000;
+                const balanceUSD = balanceKAS * (priceData.price || 0);
+                
+                const data = {
+                    address: currentAddress,
+                    balance: balanceKAS,
+                    balanceUSD: balanceUSD,
+                    transactionCount: txCountData.total || 0,
+                    transactions: currentTransactions,
+                    kasPrice: priceData.price || 0
+                };
+                
+                displayResult(data, 'address');
+            }
+        }
+
+        async function searchTransaction(hash) {
+            const res = await fetch(`${KASPA_API}/transactions/${hash}`);
+            if (!res.ok) throw new Error('Transaction not found');
+            return await res.json();
+        }
+
+        async function searchBlock(hash) {
+            const res = await fetch(`${KASPA_API}/blocks/${hash}`);
+            if (!res.ok) throw new Error('Block not found');
+            return await res.json();
+        }
+
+        // ===== DISPLAY HELPERS =====
+        function formatKAS(amount) {
+            const parts = amount.toFixed(8).split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return parts.join('.');
+        }
+        
+        function formatUSD(amount) {
+            return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        function shortenAddress(addr) {
+            if (!addr) return 'N/A';
+            const prefix = addr.substring(0, 13);
+            const suffix = addr.substring(addr.length - 8);
+            return `${prefix}...${suffix}`;
+        }
+
+        function search(address) {
+            searchInput.value = address;
+            performSearch();
+        }
+
+        // ===== DISPLAY RESULTS =====
+        function displayResult(data, type) {
+            let html = '';
+
+            if (type === 'address') {
+                // Build transactions table
+                let txTable = '';
+                if (data.transactions && data.transactions.length > 0) {
+                    const txRows = data.transactions.map(tx => {
+                        // Calculate if incoming or outgoing
+                        const myOutputs = tx.outputs?.filter(out => out.script_public_key_address === data.address) || [];
+                        const receivedAmount = myOutputs.reduce((sum, out) => sum + (parseFloat(out.amount) || 0), 0);
+                        const myInputs = tx.inputs?.filter(inp => inp.previous_outpoint_address === data.address) || [];
+                        const sentAmount = myInputs.reduce((sum, inp) => sum + (parseFloat(inp.previous_outpoint_amount) || 0), 0);
+                        const netAmount = (receivedAmount - sentAmount) / 100000000;
+                        
+                        // Skip zero transactions
+                        if (Math.abs(netAmount) < 0.00000001) return '';
+                        
+                        const isIncoming = netAmount > 0;
+                        
+                        // Get FROM addresses (inputs)
+                        let fromAddresses = [];
+                        if (tx.inputs && tx.inputs.length > 0) {
+                            const validInputs = tx.inputs.filter(inp => inp.previous_outpoint_address);
+                            if (validInputs.length === 0) {
+                                fromAddresses = ['Coinbase'];
+                            } else {
+                                fromAddresses = [...new Set(validInputs.map(inp => inp.previous_outpoint_address))];
+                            }
+                        } else {
+                            fromAddresses = ['Coinbase'];
+                        }
+                        
+                        // Get TO addresses (outputs)
+                        let toAddresses = [];
+                        if (tx.outputs && tx.outputs.length > 0) {
+                            toAddresses = [...new Set(tx.outputs
+                                .filter(out => out.script_public_key_address)
+                                .map(out => out.script_public_key_address))];
+                        }
+                        
+                        // Build FROM column (show max 3, then "Show more")
+                        const maxDisplay = 3;
+                        let fromHtml = '';
+                        if (fromAddresses.length > 0 && fromAddresses[0]) {
+                            fromHtml = fromAddresses.slice(0, maxDisplay).map(addr => {
+                                if (addr === 'Coinbase') {
+                                    return `<div><span class="tx-coinbase">Coinbase</span></div>`;
+                                }
+                                const isHighlighted = addr === data.address;
+                                const shortAddr = shortenAddress(addr);
+                                return `<div>
+                                    <a href="#" onclick="search('${addr}'); return false;" 
+                                       class="${isHighlighted ? 'highlighted' : ''}">${shortAddr}</a>
+                                </div>`;
+                            }).join('');
+                        }
+                        const fromExtra = fromAddresses.length > maxDisplay ? 
+                            `<div class="tx-address-extra">Show more (+${fromAddresses.length - maxDisplay})</div>` : '';
+                        
+                        // Build TO column
+                        const toHtml = toAddresses.slice(0, maxDisplay).map(addr => {
+                            const isHighlighted = addr === data.address;
+                            const shortAddr = shortenAddress(addr);
+                            return `<div>
+                                <a href="#" onclick="search('${addr}'); return false;" 
+                                   class="${isHighlighted ? 'highlighted' : ''}">${shortAddr}</a>
+                            </div>`;
+                        }).join('');
+                        const toExtra = toAddresses.length > maxDisplay ? 
+                            `<div class="tx-address-extra">Show more (+${toAddresses.length - maxDisplay})</div>` : '';
+                        
+                        // Format timestamp - "X days ago" format
+                        let timestamp = 'Pending';
+                        if (tx.block_time) {
+                            const date = new Date(parseInt(tx.block_time));
+                            const now = new Date();
+                            const diffMs = now - date;
+                            const diffSecs = Math.floor(diffMs / 1000);
+                            const diffMins = Math.floor(diffSecs / 60);
+                            const diffHours = Math.floor(diffMins / 60);
+                            const diffDays = Math.floor(diffHours / 24);
+                            
+                            if (diffSecs < 60) {
+                                timestamp = `${diffSecs} sec${diffSecs !== 1 ? 's' : ''} ago`;
+                            } else if (diffMins < 60) {
+                                timestamp = `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
+                            } else if (diffHours < 24) {
+                                timestamp = `${diffHours} hr${diffHours !== 1 ? 's' : ''} ago`;
+                            } else {
+                                timestamp = `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+                            }
+                        }
+                        
+                        const txHash = tx.transaction_id || 'N/A';
+                        const shortHash = txHash.substring(0, 8) + '…' + txHash.substring(txHash.length - 8);
+                        const amountClass = isIncoming ? 'incoming' : 'outgoing';
+                        const amountPrefix = isIncoming ? '+' : '-';
+                        
+                        return `
+                            <tr>
+                                <td class="tx-timestamp">${timestamp}</td>
+                                <td class="tx-hash">
+                                    <a href="#" onclick="searchInput.value='${txHash}'; performSearch(); return false;">${shortHash}</a>
+                                </td>
+                                <td class="tx-address-list">${fromHtml}${fromExtra}</td>
+                                <td class="tx-arrow">→</td>
+                                <td class="tx-address-list">${toHtml}${toExtra}</td>
+                                <td class="tx-amount ${amountClass}">${amountPrefix}${formatKAS(Math.abs(netAmount))} KAS</td>
+                                <td class="tx-status">${tx.is_accepted ? '<span style="color: #10b981;">✅</span>' : '<span style="color: #ef4444;">⏳</span>'}</td>
+                            </tr>
+                        `;
+                    }).filter(row => row).join('');
+
+                    if (txRows) {
+                        txTable = `
+                            <div class="tx-table-wrapper">
+                                <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.1rem;">Transactions</h3>
+                                <table class="tx-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Timestamp</th>
+                                            <th>ID</th>
+                                            <th>From</th>
+                                            <th class="center"></th>
+                                            <th>To</th>
+                                            <th class="right">Amount</th>
+                                            <th class="center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${txRows}
+                                    </tbody>
+                                </table>
+                                <div style="text-align: center;">
+                                    <button onclick="loadMoreTransactions()" class="load-more-btn">
+                                        Load More Transactions
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                html = `
+                    <div class="result-card">
+                        <span class="result-type"><i class="fas fa-wallet"></i> Address</span>
+                        <h2 class="result-title">Address Details</h2>
+                        <div class="result-data">
+                            <div class="result-row">
+                                <div class="result-label">Balance</div>
+                                <div class="result-value" style="font-size: 1.5rem; font-weight: 700; color: var(--accent-blue);">
+                                    ${formatKAS(data.balance)} KAS
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 400; margin-top: 0.25rem;">
+                                        ${formatUSD(data.balanceUSD)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Address</div>
+                                <div class="result-value" style="font-size: 0.85rem;">
+                                    ${shortenAddress(data.address)}
+                                    <button onclick="navigator.clipboard.writeText('${data.address}')" style="margin-left: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="result-row">
+                                <div class="result-label">Transactions</div>
+                                <div class="result-value">${data.transactionCount}</div>
+                            </div>
+                        </div>
+                        ${txTable}
+                    </div>
+                `;
+            }
+
+            resultsSection.innerHTML = html;
+        }
+
+        // ===== EVENT LISTENERS =====
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        // ===== INIT =====
+        loadKaspaPrice();
+        setInterval(loadKaspaPrice, 60000); // Update price every minute
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="assets/js/kaspa-explorer.js"></script>
+</body>
+</html>

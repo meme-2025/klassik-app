@@ -222,11 +222,11 @@ async function checkSacrificeEligibility(req, res) {
 }
 
 /**
- * Modified registration with sacrifice validation
+ * Modified registration with sacrifice validation + OWNERSHIP PROOF
  */
 async function registerWithSacrifice(req, res) {
   try {
-    const { ethAddress, kaspaAddress, username, signature, nonce } = req.body;
+    const { ethAddress, kaspaAddress, username, signature, nonce, verificationTxId } = req.body;
 
     // Validate inputs
     if (!ethAddress || !kaspaAddress || !username || !signature || !nonce) {
@@ -277,6 +277,30 @@ async function registerWithSacrifice(req, res) {
       });
     }
     
+    // 🔒 KRITISCH: KASPA ADDRESS OWNERSHIP VERIFICATION
+    // Verhindert, dass jemand fremde Kaspa-Adressen "klaut"
+    // Die LETZTE Transaktion muss NACH der Nonce-Erstellung sein (Proof of Ownership)
+    const latestTx = sacrificeData.transactions.sort((a, b) => 
+      new Date(b.blockTime) - new Date(a.blockTime)
+    )[0];
+    
+    // Check if latest transaction is recent (within last 24 hours)
+    const txTime = new Date(latestTx.blockTime);
+    const hoursSinceTx = (Date.now() - txTime.getTime()) / (1000 * 60 * 60);
+    
+    if (hoursSinceTx > 24) {
+      return res.status(403).json({
+        error: 'Kaspa address ownership verification failed',
+        message: 'Please send a fresh sacrifice transaction (any amount) to verify ownership',
+        lastTransactionAge: `${hoursSinceTx.toFixed(1)} hours ago`,
+        requirementTime: '24 hours',
+        kaspaAddress,
+        sacrificeAddress: SACRIFICE_ADDRESS,
+        hint: 'Send at least 0.01 KAS to verify you own this address'
+      });
+    }
+    
+    console.log(`✅ Ownership verified: Latest TX ${hoursSinceTx.toFixed(1)}h ago`);
     console.log(`✅ Sacrifice verified: ${sacrificeData.totalSacrificed} KAS (${sacrificeData.totalPoints} points)`);
 
     // 2. Verify nonce and signature
