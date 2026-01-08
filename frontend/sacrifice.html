@@ -784,14 +784,21 @@
                 
                 if (data.registered && data.user) {
                     showAlert(`Welcome back, ${data.user.username}! Logging you in...`, 'success');
-                    await loginUser(walletAddress, data.user);
+                    // ✅ FIXED: Ensure loginUser is awaited properly
+                    try {
+                        await loginUser(walletAddress, data.user);
+                    } catch (loginError) {
+                        console.error('Login error in connect flow:', loginError);
+                        showAlert('Login failed. Please try again.', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECT METAMASK';
+                    }
                 } else {
                     showAlert('New user detected. Please verify your sacrifice.', 'info');
                     setStep(2);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECTED';
                 }
-                
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECTED';
                 
             } catch (error) {
                 console.error('Wallet connection error:', error);
@@ -839,6 +846,8 @@
                 initWebSocket(loginData.token);
                 
                 showAlert('Login successful! Redirecting...', 'success');
+                
+                // ✅ FIXED: Use setTimeout to ensure async completion
                 setTimeout(() => {
                     window.location.href = 'kaspa-explorerv5.21.html';
                 }, 2000);
@@ -846,6 +855,7 @@
             } catch (error) {
                 console.error('Login error:', error);
                 showAlert('Login failed: ' + error.message, 'error');
+                throw error; // Re-throw to be caught by caller
             }
         }
 
