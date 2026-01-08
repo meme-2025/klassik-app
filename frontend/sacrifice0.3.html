@@ -526,52 +526,18 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script>
-        // ===== GLOBAL CONFIGURATION =====
+    <script>        // ===== GLOBAL CONFIGURATION (Must be first!) =====
         const SACRIFICE_ADDRESS = 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
-        
-        // ✅ FIXED: Korrekte API-URL (Backend läuft auf Port 3000, nicht 3001!)
         const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-            ? 'http://localhost:3000'  // Backend-Port ist 3000!
-            : window.location.origin;
-
-        // ✅ WebSocket-Verbindung für Live-Updates
-        let socket = null;
+            ? 'http://localhost:3001'
+            : window.location.origin; // Use same origin in production (e.g. klassik.99pace.space)
 
         // ===== GLOBAL STATE =====
         let currentStep = 1;
         let walletAddress = null;
         let kaspaAddress = null;
         let sacrificeData = null;
-
-        // ===== WEBSOCKET INTEGRATION =====
-        function initWebSocket(token) {
-            if (socket) return; // Bereits verbunden
-            
-            socket = io(API_URL, {
-                auth: { token },
-                transports: ['websocket', 'polling']
-            });
-            
-            socket.on('connect', () => {
-                console.log('✅ WebSocket connected');
-            });
-            
-            socket.on('sacrifice:update', (data) => {
-                console.log('📊 Sacrifice update received:', data);
-                if (data.address === kaspaAddress) {
-                    showAlert(`New transaction detected: ${data.amount} KAS!`, 'success');
-                    // Auto-refresh sacrifice data
-                    document.getElementById('checkSacrificeBtn').click();
-                }
-            });
-            
-            socket.on('disconnect', () => {
-                console.log('❌ WebSocket disconnected');
-            });
-        }
-
+        // ===== CONFIGURATION =====
         // ===== STEP MANAGEMENT =====
         function setStep(step) {
             currentStep = step;
@@ -763,26 +729,11 @@
                 
                 showAlert(`Connected: ${walletAddress.substring(0, 10)}...`, 'success');
                 
-                // ✅ FIXED: Korrekter API-Endpunkt (Backend hat /api/auth/check)
-                const response = await fetch(`${API_URL}/api/auth/check?address=${walletAddress}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    console.warn('⚠️ User check failed, assuming new user');
-                    showAlert('New user detected. Please verify your sacrifice.', 'info');
-                    setStep(2);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECTED';
-                    return;
-                }
-                
+                // Check if user exists
+                const response = await fetch(`${API_URL}/api/auth/check?address=${walletAddress}`);
                 const data = await response.json();
                 
-                if (data.registered && data.user) {
+                if (data.registered) {
                     showAlert(`Welcome back, ${data.user.username}! Logging you in...`, 'success');
                     await loginUser(walletAddress, data.user);
                 } else {
@@ -790,12 +741,9 @@
                     setStep(2);
                 }
                 
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECTED';
-                
             } catch (error) {
                 console.error('Wallet connection error:', error);
-                showAlert(error.message || 'Failed to connect wallet. Please try again.', 'error');
+                showAlert(error.message || 'Failed to connect wallet', 'error');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECT METAMASK';
             }
@@ -804,13 +752,7 @@
         // ===== LOGIN EXISTING USER =====
         async function loginUser(address, user) {
             try {
-                // ✅ FIXED: Backend-Endpunkt ist /api/auth/nonce
                 const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`);
-                
-                if (!nonceRes.ok) {
-                    throw new Error('Failed to fetch nonce');
-                }
-                
                 const { nonce, message } = await nonceRes.json();
                 
                 const signature = await window.ethereum.request({
@@ -818,25 +760,18 @@
                     params: [message, address]
                 });
                 
-                // ✅ FIXED: Backend-Endpunkt ist /api/auth/login
                 const loginRes = await fetch(`${API_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ address, signature })
                 });
                 
-                if (!loginRes.ok) {
-                    const errorData = await loginRes.json();
-                    throw new Error(errorData.error || 'Login failed');
-                }
+                if (!loginRes.ok) throw new Error('Login failed');
                 
                 const loginData = await loginRes.json();
                 
                 localStorage.setItem('klassik_token', loginData.token);
                 localStorage.setItem('klassik_user', JSON.stringify(loginData.user));
-                
-                // ✅ Initialize WebSocket mit Token
-                initWebSocket(loginData.token);
                 
                 showAlert('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
@@ -856,7 +791,7 @@
             kaspaAddress = input.value.trim();
             
             if (!kaspaAddress || !kaspaAddress.startsWith('kaspa:')) {
-                showAlert('Please enter a valid Kaspa address (starts with kaspa:)', 'error');
+                showAlert('Please enter a valid Kaspa address', 'error');
                 return;
             }
             
@@ -864,37 +799,52 @@
             btn.innerHTML = '<span class="loading-spinner"></span> Verifying...';
             
             try {
-                console.log('🔍 Checking sacrifice for:', kaspaAddress);
+                console.log('🔍 Checking sacrifice for:', kaspaAddress, 'with wallet:', walletAddress);
                 
-                // ✅ FIXED: Backend-Endpunkt ist /api/auth/check-sacrifice (POST)
-                const response = await fetch(`${API_URL}/api/auth/check-sacrifice`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        kaspaAddress: kaspaAddress,
-                        ethAddress: walletAddress
-                    })
-                });
+                let response;
+                let sacrificeData;
                 
-                console.log('📡 Response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ HTTP Error:', response.status, errorText);
+                // Try normal API first
+                try {
+                    response = await fetch(`${API_URL}/api/auth/check-sacrifice`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            kaspaAddress: kaspaAddress,
+                            ethAddress: walletAddress
+                        })
+                    });
                     
-                    // Versuche JSON zu parsen, falls möglich
-                    try {
-                        const errorJson = JSON.parse(errorText);
-                        throw new Error(errorJson.error || errorJson.message || 'Verification failed');
-                    } catch (e) {
-                        throw new Error(`Server error (${response.status}): ${errorText}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
                     }
+                    
+                    sacrificeData = await response.json();
+                    console.log('📊 Sacrifice data from main API:', sacrificeData);
+                    
+                } catch (mainApiError) {
+                    console.warn('⚠️ Main API failed, trying local-only API:', mainApiError.message);
+                    
+                    // Fallback to local-only API
+                    response = await fetch(`${API_URL}/api/auth/check-sacrifice-local`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            kaspaAddress: kaspaAddress,
+                            ethAddress: walletAddress
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Local API also failed: HTTP ${response.status}`);
+                    }
+                    
+                    sacrificeData = await response.json();
+                    console.log('📊 Sacrifice data from local API:', sacrificeData);
                 }
                 
-                sacrificeData = await response.json();
-                console.log('📊 Sacrifice data received:', sacrificeData);
+                console.log('📡 Response status:', response.status);
+                console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
                 
                 if (sacrificeData.eligible) {
                     showAlert(`Sacrifice verified! ${sacrificeData.currentPoints} points earned.`, 'success');
@@ -904,20 +854,24 @@
                         <strong>✅ Sacrifice Verified!</strong><br>
                         Amount: <strong>${sacrificeData.totalSacrificed || sacrificeData.totalAmount} KAS</strong><br>
                         Points Earned: <strong style="color: var(--neon-green);">${sacrificeData.currentPoints}</strong><br>
-                        Tier: <strong>${sacrificeData.tier || 'Bronze'}</strong>
+                        Source: <strong style="color: var(--neon-cyan);">${sacrificeData.source || 'unknown'}</strong><br>
+                        Last Checked: <strong>${new Date(sacrificeData.lastChecked).toLocaleString()}</strong>
                     `;
                     
                     setStep(3);
                 } else {
-                    const message = sacrificeData.message || `Sacrifice not found or insufficient. Please send at least 1,000 KAS to: ${SACRIFICE_ADDRESS}`;
+                    const message = sacrificeData.message || `Sacrifice not found. Please send at least 1 KAS to: ${SACRIFICE_ADDRESS}`;
                     showAlert(message, 'error');
-                    console.log('❌ Not eligible:', sacrificeData);
+                    console.log('❌ Not eligible:', message);
                 }
+                
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-search"></i> VERIFY SACRIFICE';
                 
             } catch (error) {
                 console.error('💥 Sacrifice check error:', error);
+                console.error('Error stack:', error.stack);
                 showAlert('Failed to verify sacrifice: ' + error.message, 'error');
-            } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-search"></i> VERIFY SACRIFICE';
             }
@@ -943,13 +897,7 @@
             btn.innerHTML = '<span class="loading-spinner"></span> Registering...';
             
             try {
-                // ✅ FIXED: Hole frischen Nonce
                 const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${walletAddress}`);
-                
-                if (!nonceRes.ok) {
-                    throw new Error('Failed to fetch nonce');
-                }
-                
                 const { nonce, message } = await nonceRes.json();
                 
                 const signature = await window.ethereum.request({
@@ -957,7 +905,6 @@
                     params: [message, walletAddress]
                 });
                 
-                // ✅ FIXED: Backend-Endpunkt ist /api/auth/register (POST)
                 const registerRes = await fetch(`${API_URL}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -972,16 +919,13 @@
                 
                 if (!registerRes.ok) {
                     const error = await registerRes.json();
-                    throw new Error(error.error || error.message || 'Registration failed');
+                    throw new Error(error.error || 'Registration failed');
                 }
                 
                 const data = await registerRes.json();
                 
                 localStorage.setItem('klassik_token', data.token);
                 localStorage.setItem('klassik_user', JSON.stringify(data.user));
-                
-                // ✅ Initialize WebSocket
-                initWebSocket(data.token);
                 
                 document.getElementById('success-username').textContent = data.user.username;
                 document.getElementById('success-wallet').textContent = `${data.user.address.substring(0, 10)}...`;
@@ -992,7 +936,6 @@
             } catch (error) {
                 console.error('Registration error:', error);
                 showAlert('Registration failed: ' + error.message, 'error');
-            } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-user-check"></i> COMPLETE REGISTRATION';
             }
@@ -1035,26 +978,15 @@
             const user = localStorage.getItem('klassik_user');
             
             if (token && user) {
-                try {
-                    const userData = JSON.parse(user);
-                    showAlert(`Already logged in as ${userData.username}. Redirecting...`, 'success');
-                    
-                    // ✅ Initialize WebSocket für logged-in User
-                    initWebSocket(token);
-                    
-                    setTimeout(() => {
-                        window.location.href = 'kaspa-explorerv5.21.html';
-                    }, 2000);
-                } catch (e) {
-                    console.error('Invalid user data in localStorage:', e);
-                    localStorage.removeItem('klassik_token');
-                    localStorage.removeItem('klassik_user');
-                }
+                const userData = JSON.parse(user);
+                showAlert(`Already logged in as ${userData.username}. Redirecting...`, 'success');
+                setTimeout(() => {
+                    window.location.href = 'kaspa-explorerv5.21.html';
+                }, 2000);
             }
         });
 
         console.log('🚀 KaspaHub Sacrifice Dashboard LIVE');
-        console.log('📍 API URL:', API_URL);
         console.log('📍 Sacrifice Address:', SACRIFICE_ADDRESS);
     </script>
 </body>
