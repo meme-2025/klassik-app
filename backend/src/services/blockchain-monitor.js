@@ -290,12 +290,13 @@ class BlockchainMonitor {
     try {
       // Get full transaction to find sender
       let fullTx = tx;
-      if (!tx.outputs || !tx.outputs.length) {
+      if (!tx || !tx.outputs || !tx.outputs.length) {
         fullTx = await this.getTransaction(txHash);
       }
       
-      if (!fullTx) {
-        console.warn('Could not load full transaction:', txHash);
+      if (!fullTx || !fullTx.outputs) {
+        console.warn('⚠️ Could not load transaction details for:', txHash);
+        console.warn('   API may be rate-limiting. Will retry on next poll.');
         return;
       }
       
@@ -303,7 +304,8 @@ class BlockchainMonitor {
       const senderAddress = this.getSenderAddress(fullTx);
       
       if (!senderAddress) {
-        console.warn('Could not determine sender for sacrifice:', txHash);
+        console.warn('⚠️ Could not determine sender for sacrifice:', txHash);
+        console.warn('   Transaction may have only one output (no change).');
         return;
       }
       
