@@ -801,26 +801,50 @@
             try {
                 console.log('🔍 Checking sacrifice for:', kaspaAddress, 'with wallet:', walletAddress);
                 
-                const response = await fetch(`${API_URL}/api/auth/check-sacrifice`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        kaspaAddress: kaspaAddress,
-                        ethAddress: walletAddress
-                    })
-                });
+                let response;
+                let sacrificeData;
+                
+                // Try normal API first
+                try {
+                    response = await fetch(`${API_URL}/api/auth/check-sacrifice`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            kaspaAddress: kaspaAddress,
+                            ethAddress: walletAddress
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    sacrificeData = await response.json();
+                    console.log('📊 Sacrifice data from main API:', sacrificeData);
+                    
+                } catch (mainApiError) {
+                    console.warn('⚠️ Main API failed, trying local-only API:', mainApiError.message);
+                    
+                    // Fallback to local-only API
+                    response = await fetch(`${API_URL}/api/auth/check-sacrifice-local`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            kaspaAddress: kaspaAddress,
+                            ethAddress: walletAddress
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Local API also failed: HTTP ${response.status}`);
+                    }
+                    
+                    sacrificeData = await response.json();
+                    console.log('📊 Sacrifice data from local API:', sacrificeData);
+                }
                 
                 console.log('📡 Response status:', response.status);
                 console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ HTTP Error:', response.status, errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                
-                sacrificeData = await response.json();
-                console.log('📊 Sacrifice data received:', sacrificeData);
                 
                 if (sacrificeData.eligible) {
                     showAlert(`Sacrifice verified! ${sacrificeData.currentPoints} points earned.`, 'success');
@@ -830,7 +854,8 @@
                         <strong>✅ Sacrifice Verified!</strong><br>
                         Amount: <strong>${sacrificeData.totalSacrificed || sacrificeData.totalAmount} KAS</strong><br>
                         Points Earned: <strong style="color: var(--neon-green);">${sacrificeData.currentPoints}</strong><br>
-                        Required: <strong>${sacrificeData.requiredPoints}</strong>
+                        Source: <strong style="color: var(--neon-cyan);">${sacrificeData.source || 'unknown'}</strong><br>
+                        Last Checked: <strong>${new Date(sacrificeData.lastChecked).toLocaleString()}</strong>
                     `;
                     
                     setStep(3);
