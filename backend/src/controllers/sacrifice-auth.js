@@ -14,7 +14,10 @@ const MIN_POINTS_REQUIRED = parseInt(process.env.MIN_POINTS_REQUIRED || '1'); //
 const KASPA_APIs = {
   restServer: process.env.KASPA_REST_SERVER || null,
   primary: 'https://api.kaspa.org',
-  explorer: 'https://explorer.kaspa.org/api'
+  explorer: 'https://explorer.kaspa.org/api',
+  // Alternative APIs (fallback if primary blocked)
+  kaspaLive: 'https://api.kaspa.live/v1',
+  kaspaScan: 'https://api.kaspascan.io/api/v1'
 };
 
 class SacrificeSystem {
@@ -105,9 +108,10 @@ class SacrificeSystem {
     try {
       console.log(`📡 Fetching transactions for ${address}`);
       
-      // Try local node first
+      // Try local node first (FASTEST if available)
       if (KASPA_APIs.restServer) {
         try {
+          console.log(`🔄 Trying local REST server: ${KASPA_APIs.restServer}`);
           const response = await axios.get(`${KASPA_APIs.restServer}/addresses/${address}/transactions`, {
             params: { limit },
             timeout: 10000
@@ -115,24 +119,69 @@ class SacrificeSystem {
           console.log(`✅ Local node returned ${response.data?.length || 0} transactions`);
           return response.data || [];
         } catch (nodeError) {
-          console.warn('⚠️ Local node unavailable, using public API');
+          console.warn('⚠️ Local node unavailable, trying public APIs...');
         }
       }
 
-      // Fallback to public API
-      const response = await axios.get(`${KASPA_APIs.explorer}/addresses/${address}/transactions`, {
-        params: { limit },
-        timeout: 10000
-      });
-      
-      console.log(`✅ Public API returned ${response.data?.length || 0} transactions`);
-      
-      // Debug: Log first transaction structure if available
-      if (response.data && response.data.length > 0) {
-        console.log('📋 Sample transaction structure:', JSON.stringify(response.data[0], null, 2).substring(0, 500));
+      // Try KaspaLive API (usually not blocked)
+      try {
+        console.log(`🔄 Trying KaspaLive API...`);
+        const response = await axios.get(`${KASPA_APIs.kaspaLive}/addresses/${address}/transactions`, {
+          params: { limit },
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'Klassik-Backend/1.0',
+            'Accept': 'application/json'
+          }
+        });
+        
+        console.log(`✅ KaspaLive API returned ${response.data?.length || 0} transactions`);
+        
+        // Debug: Log first transaction structure
+        if (response.data && response.data.length > 0) {
+          console.log('📋 Sample TX structure:', JSON.stringify(response.data[0], null, 2).substring(0, 500));
+        }
+        
+        return response.data || [];
+      } catch (liveError) {
+        console.warn('⚠️ KaspaLive API failed:', liveError.message);
       }
-      
-      return response.data || [];
+
+      // Try Kaspa Explorer API as fallback
+      try {
+        console.log(`🔄 Trying Kaspa Explorer API...`);
+        const response = await axios.get(`${KASPA_APIs.explorer}/addresses/${address}/transactions`, {
+          params: { limit },
+          timeout: 10000
+        });
+        
+        console.log(`✅ Explorer API returned ${response.data?.length || 0} transactions`);
+        
+        if (response.data && response.data.length > 0) {
+          console.log('📋 Sample TX structure:', JSON.stringify(response.data[0], null, 2).substring(0, 500));
+        }
+        
+        return response.data || [];
+      } catch (explorerError) {
+        console.warn('⚠️ Explorer API failed:', explorerError.message);
+      }
+
+      // Last resort: KaspaScan API
+      try {
+        console.log(`🔄 Trying KaspaScan API...`);
+        const response = await axios.get(`${KASPA_APIs.kaspaScan}/address/${address}/transactions`, {
+          params: { limit },
+          timeout: 10000
+        });
+        
+        console.log(`✅ KaspaScan API returned ${response.data?.length || 0} transactions`);
+        return response.data || [];
+      } catch (scanError) {
+        console.warn('⚠️ KaspaScan API failed:', scanError.message);
+      }
+
+      // All APIs failed
+      throw new Error('All Kaspa APIs unavailable. Please try again later or configure local node.');
 
     } catch (error) {
       console.error(`❌ Failed to fetch transactions for ${address}:`, error.message);
