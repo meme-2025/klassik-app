@@ -344,15 +344,14 @@ class BlockchainMonitor {
       await client.query('BEGIN');
       
       const pointsEarned = Math.floor(amount * 100); // 1 KAS = 100 points
-      const blockTimestamp = blockTime ? new Date(blockTime) : new Date();
       
-      // Insert sacrifice transaction (using schema column names: amount, points_earned)
+      // Insert sacrifice transaction (exact schema: tx_hash, kaspa_address, amount, points_earned, verified, verified_at)
       await client.query(`
         INSERT INTO sacrifice_transactions 
-        (kaspa_address, tx_hash, amount, points_earned, block_time, verified, confirmations)
-        VALUES ($1, $2, $3, $4, $5, true, 1)
+        (tx_hash, kaspa_address, amount, points_earned, verified, verified_at)
+        VALUES ($1, $2, $3, $4, true, CURRENT_TIMESTAMP)
         ON CONFLICT (tx_hash) DO NOTHING
-      `, [senderAddress, txHash, amount, pointsEarned, blockTimestamp]);
+      `, [txHash, senderAddress, amount, pointsEarned]);
       
       // Update user points if user exists (but don't require last_sacrifice_check column)
       const userResult = await client.query(`
