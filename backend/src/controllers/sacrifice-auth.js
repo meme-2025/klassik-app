@@ -270,28 +270,36 @@ async function checkSacrificeEligibility(req, res) {
   try {
     const { kaspaAddress, ethAddress } = req.body;
 
+    console.log('🔍 Checking sacrifice eligibility:', { kaspaAddress, ethAddress });
+
     if (!kaspaAddress || !ethAddress) {
       return res.status(400).json({ 
         error: 'Both kaspaAddress and ethAddress are required' 
       });
     }
 
-    if (!ethers.utils.isAddress(ethAddress)) {
+    if (!ethers.isAddress(ethAddress)) {
       return res.status(400).json({ 
         error: 'Invalid Ethereum address format' 
       });
     }
 
-    // TODO: Add Kaspa address format validation
+    // Validate Kaspa address format
+    if (!kaspaAddress.startsWith('kaspa:')) {
+      return res.status(400).json({
+        error: 'Invalid Kaspa address format (must start with kaspa:)'
+      });
+    }
 
     const sacrificeSystem = new SacrificeSystem();
     const eligibility = await sacrificeSystem.validateRegistrationEligibility(kaspaAddress, ethAddress);
 
+    console.log('✅ Eligibility check result:', eligibility);
     res.json(eligibility);
 
   } catch (error) {
-    console.error('checkSacrificeEligibility error:', error);
-    res.status(500).json({ error: 'Failed to check sacrifice eligibility' });
+    console.error('❌ checkSacrificeEligibility error:', error);
+    res.status(500).json({ error: 'Failed to check sacrifice eligibility', details: error.message });
   }
 }
 
