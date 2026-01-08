@@ -11,14 +11,31 @@ const liveMonitor = require('../middleware/live-monitor');
  * - WebSocket notifications for users
  */
 
-const KASPA_APIs = {
-  restServer: process.env.KASPA_REST_SERVER || 'http://localhost:16110',
-  primary: null,
-  explorer: null
+const KASPA_RPC = {
+  server: process.env.KASPA_RPC_SERVER || 'http://localhost:16110'
 };
 
 const POLL_INTERVAL = parseInt(process.env.KASPA_POLL_INTERVAL || '10000'); // 10 seconds
 const SACRIFICE_ADDRESS = process.env.KASPA_SACRIFICE_ADDRESS || 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
+
+/**
+ * Make JSON-RPC call to Kaspa node
+ */
+async function kaspaRPC(method, params = {}) {
+  try {
+    const response = await axios.post(KASPA_RPC.server, {
+      method,
+      params
+    }, {
+      timeout: 10000,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    return response.data;
+  } catch (error) {
+    throw new Error(`Kaspa RPC ${method} failed: ${error.message}`);
+  }
+}
 
 class BlockchainMonitor {
   constructor(io) {
@@ -473,56 +490,53 @@ class BlockchainMonitor {
   }
 
   /**
-   * Get recent transactions from Kaspa APIs
+   * Get UTXOs (transactions) for specific address using Kaspa JSON-RPC
    */
-  async getRecentTransactions(limit = 100) {
+  async getAddressTransactions(address) {
     try {
-      // Use local node only (no public API fallback)
-      if (KASPA_APIs.restServer) {
-        try {
-          const response = await axios.get(`${KASPA_APIs.restServer}/transactions`, {
-            params: { limit },
-            timeout: 10000
-          });
-          return response.data || [];
-        } catch (error) {
-          console.warn('❌ Local Kaspa node unavailable:', error.message);
-          console.warn('   Make sure Kaspa node is running on http://localhost:16110');
-          return []; // Return empty array when local node fails
-        }
-      }
+      const result = await kaspaRPC('getUtxosByAddresses', {
+        addresses: [address]
+      });
       
-      console.warn('⚠️ KASPA_REST_SERVER not configured');
-      return [];
-      
+      return result.entries || [];
     } catch (error) {
-      console.error('Failed to get recent transactions:', error);
+      console.warn('❌ Failed to get address transactions:', error.message);
+      console.warn('   Make sure Kaspa node is running on', KASPA_RPC.server);
       return [];
     }
   }
 
   /**
-   * Get balance for specific address
+   * Get balance for specific address using Kaspa JSON-RPC
    */
   async getAddressBalance(address) {
     try {
-      // Use local node only (no public API fallback)
-      if (KASPA_APIs.restServer) {
-        try {
-          const response = await axios.get(`${KASPA_APIs.restServer}/addresses/${address}/balance`, { timeout: 5000 });
-          return parseFloat(response.data.balance || 0);
-        } catch (error) {
-          console.warn(`❌ Local node unavailable for balance check:`, error.message);
-          return 0; // Return 0 when local node fails
-        }
-      }
+      const result = await kaspaRPC('getBalanceByAddress', {
+        address: address
+      });
       
-      console.warn('⚠️ KASPA_REST_SERVER not configured');
-      return 0;
+      // Balance is in sompi (1 KAS = 100,000,000 sompi)
+      const balanceSompi = parseInt(result.balance || 0);
+      const balanceKAS = balanceSompi / 100000000;
       
+      return balanceKAS;
     } catch (error) {
-      console.warn(`Failed to get balance for ${address}:`, error.message);
+      console.warn(`❌ Failed to get balance for ${address}:`, error.message);
       return 0;
+    }
+  }
+
+  /**
+   * Get recent transactions (monitor UTXO changes for sacrifice address)
+   */
+  async getRecentTransactions(limit = 100) {
+    try {
+      // Get UTXOs for sacrifice address
+      const utxos = await this.getAddressTransactions(SACRIFICE_ADDRESS);
+      return utxos.slice(0, limit);
+    } catch (error) {
+      console.error('Failed to get recent transactions:', error);
+      return [];
     }
   }
 
