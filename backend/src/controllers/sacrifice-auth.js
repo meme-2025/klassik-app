@@ -453,8 +453,11 @@ async function registerWithSacrifice(req, res) {
       return res.status(400).json({ error: 'Invalid or expired nonce' });
     }
 
-    // 3. Verify signature
-    const message = `Sign this message to register with Klassik:\n\nNonce: ${nonce}\nTimestamp: ${new Date().toISOString()}\nKaspa Address: ${kaspaAddress}`;
+    const nonceData = nonceResult.rows[0];
+    const expiresAtISO = new Date(nonceData.expires_at).toISOString();
+
+    // 3. Verify signature - MUST match message from /nonce endpoint
+    const message = `Sign this message to authenticate with Klassik:\n\nNonce: ${nonce}\nTimestamp: ${expiresAtISO}`;
     
     let recoveredAddress;
     try {
