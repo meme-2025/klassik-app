@@ -27,6 +27,8 @@ const { startWatcher } = require('./watcher');
 const debugRoutes = require('./routes/debug');
 const klassikService = require('./klassik/klassik');
 const BlockchainMonitor = require('./services/blockchain-monitor');
+const sacrificeWatcher = require('./services/sacrifice-watcher');
+const GameEngine = require('./services/game-engine');
 const healthController = require('./controllers/health');
 const liveMonitor = require('./middleware/live-monitor');
 const diagnosticRoutes = require('./routes/diagnostic');
@@ -56,6 +58,7 @@ const io = new Server(server, {
 
 // Initialize blockchain monitor with WebSocket
 const blockchainMonitor = new BlockchainMonitor(io);
+const gameEngine = new GameEngine(io);
 
 // Setup community manager with WebSocket
 communityManager.setWebSocket(io);
@@ -157,6 +160,64 @@ app.get('/api/health', healthController.getDetailedHealth);
 app.get('/api/health/metrics', healthController.getMetrics);
 app.get('/api/health/ready', healthController.getReadiness);
 app.get('/api/health/live', healthController.getLiveness);
+
+// Game API Routes
+app.post('/api/game/start', authMiddleware, async (req, res) => {
+  try {
+    const { gameType, buyInAmount } = req.body;
+    const userId = req.user.userId || req.user.id;
+    const session = await gameEngine.startGame(userId, gameType || 'classic', buyInAmount || 100);
+    res.json({ success: true, sessionId: session.id, balance: session.currentBalance, gameType: session.gameType });
+  } catch (error) {
+    console.error('Start game error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/game/bet', authMiddleware, async (req, res) => {
+  try {
+    const { sessionId, amount } = req.body;
+    const result = await gameEngine.placeBet(sessionId, amount);
+    res.json(result);
+  } catch (error) {
+    console.error('Place bet error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/game/cashout', authMiddleware, async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    const result = await gameEngine.cashOut(sessionId);
+    res.json(result);
+  } catch (error) {
+    console.error('Cashout error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/game/session/:sessionId', authMiddleware, async (req, res) => {
+  try {
+    const session = await gameEngine.getSession(req.params.sessionId);
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    res.json(session);
+  } catch (error) {
+    console.error('Get session error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/game/recover', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId || req.user.id;
+    const session = await gameEngine.recoverSession(userId);
+    if (!session) return res.json({ session: null });
+    res.json({ session });
+  } catch (error) {
+    console.error('Recover session error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Orders routes (protected with validation)
 app.post('/api/orders', authMiddleware, validateOrderRequest, ordersController.createOrder);
@@ -342,6 +403,22 @@ server.listen(PORT, HOST, () => {
   console.log('  - POST   /api/orders');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('');
+  
+  // Initialize production services
+  try {
+    await gameEngine.initialize();
+    console.log('✅ Game Engine initialized');
+  } catch (err) {
+    console.error('❌ Game Engine failed:', err.message);
+  }
+  
+  try {
+    sacrificeWatcher.setIO(io);
+    await sacrificeWatcher.start();
+    console.log('✅ Sacrifice Watcher started (24/7 monitoring)');
+  } catch (err) {
+    console.error('❌ Sacrifice Watcher failed:', err.message);
+  }
   
   // Start blockchain watcher
   if (process.env.ENABLE_WATCHER !== 'false') {
