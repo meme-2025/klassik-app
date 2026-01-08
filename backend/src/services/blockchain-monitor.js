@@ -162,24 +162,12 @@ class BlockchainMonitor {
   }
 
   /**
-   * Sacrifice monitoring loop
+   * Sacrifice monitoring loop (DISABLED - handled by processNewTransactions)
    */
   startSacrificeMonitoring() {
-    const checkSacrifices = async () => {
-      if (!this.isRunning) return;
-      
-      try {
-        await this.checkSacrificeTransactions();
-      } catch (error) {
-        console.error('Sacrifice monitoring error:', error);
-      }
-      
-      if (this.isRunning) {
-        setTimeout(checkSacrifices, POLL_INTERVAL * 3); // Check every 30 seconds
-      }
-    };
-    
-    checkSacrifices();
+    // Disabled: Sacrifices are now detected via UTXO polling in processNewTransactions
+    // This old method tried to check users.last_sacrifice_check which doesn't exist
+    console.log('ℹ️ Sacrifice monitoring via UTXO polling (dedicated user check disabled)');
   }
 
   /**
