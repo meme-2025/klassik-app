@@ -254,7 +254,10 @@ io.use(async (socket, next) => {
 });
 
 // WebSocket connection handling (NOW SECURED)
-io// Monitor room (special access - könnte später gesichert werden)
+io.on('connection', (socket) => {
+  console.log(`🔌 Client connected: ${socket.id}`);
+  
+  // Monitor room (special access - könnte später gesichert werden)
   socket.on('join:monitor', () => {
     socket.join('monitor');
     console.log(`📊 Monitor dashboard connected: ${socket.id}`);
@@ -269,10 +272,13 @@ io// Monitor room (special access - könnte später gesichert werden)
     socket.emit('monitor:state', state);
   });
   
-  .on('connection', (socket) => {
-  console.log(`🔌 Authenticated client connected: ${socket.id} (User: ${socket.userId})`);
-  
+  // Payment subscriptions (authenticated users only)
   socket.on('subscribe:payments', async (orderId) => {
+    if (!socket.userId) {
+      socket.emit('error', { message: 'Authentication required' });
+      return;
+    }
+    
     try {
       // ✅ Prüfe ob Order dem User gehört!
       const orderCheck = await db.query(
@@ -294,6 +300,11 @@ io// Monitor room (special access - könnte später gesichert werden)
   });
   
   socket.on('subscribe:sacrifice', (address) => {
+    if (!socket.userAddress) {
+      socket.emit('error', { message: 'Authentication required' });
+      return;
+    }
+    
     // ✅ Nur eigene Adresse subscriben erlauben
     if (address.toLowerCase() !== socket.userAddress.toLowerCase()) {
       socket.emit('error', { message: 'Can only subscribe to your own address' });

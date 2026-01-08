@@ -49,12 +49,14 @@ class LiveMonitor {
 
   // Middleware für Request-Tracking
   trackRequest() {
+    const self = this; // Save reference to this
+    
     return (req, res, next) => {
       const startTime = Date.now();
-      const visitorId = this.getVisitorId(req);
+      const visitorId = self.getVisitorId(req);
 
       // Update visitor info
-      this.updateVisitor(req, visitorId);
+      self.updateVisitor(req, visitorId);
 
       // Track response
       const originalSend = res.send;
@@ -62,7 +64,7 @@ class LiveMonitor {
         const duration = Date.now() - startTime;
         
         // Log event
-        this.logEvent({
+        self.logEvent({
           type: 'api_request',
           method: req.method,
           path: req.path,
@@ -73,19 +75,19 @@ class LiveMonitor {
         });
 
         // Update stats
-        this.stats.totalRequests++;
+        self.stats.totalRequests++;
         if (res.statusCode >= 400) {
-          this.stats.totalErrors++;
+          self.stats.totalErrors++;
         }
 
         const endpoint = `${req.method} ${req.path}`;
-        this.stats.apiCalls[endpoint] = (this.stats.apiCalls[endpoint] || 0) + 1;
+        self.stats.apiCalls[endpoint] = (self.stats.apiCalls[endpoint] || 0) + 1;
 
         return originalSend.call(this, data);
-      }.bind(this);
+      };
 
       next();
-    }.bind(this);
+    };
   }
 
   // Get unique visitor ID
