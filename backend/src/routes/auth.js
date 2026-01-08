@@ -73,13 +73,24 @@ function validateUsername(username) {
  * Verify Ethereum signature
  */
 async function verifySignature(address, signature, nonce, expiresAt) {
-  const message = `Sign this message to authenticate with Klassik:\n\nNonce: ${nonce}\nTimestamp: ${new Date(expiresAt).toISOString()}`;
+  // CRITICAL: Message MUST match exactly what /nonce endpoint sent
+  // expiresAt is already an ISO string from DB, don't re-parse it
+  const message = `Sign this message to authenticate with Klassik:\n\nNonce: ${nonce}\nTimestamp: ${expiresAt}`;
+  
+  console.log('🔐 Verifying signature:');
+  console.log('  Address:', address);
+  console.log('  Nonce:', nonce);
+  console.log('  Timestamp:', expiresAt);
+  console.log('  Message:', message);
+  console.log('  Signature:', signature.substring(0, 20) + '...');
   
   try {
-    const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+    const recoveredAddress = ethers.verifyMessage(message, signature);
+    console.log('  Recovered:', recoveredAddress);
+    console.log('  Match:', recoveredAddress.toLowerCase() === address.toLowerCase());
     return recoveredAddress.toLowerCase() === address.toLowerCase();
   } catch (err) {
-    console.error('Signature verification error:', err);
+    console.error('❌ Signature verification error:', err);
     return false;
   }
 }
@@ -223,8 +234,11 @@ router.post('/register-legacy', async (req, res) => {
       return res.status(401).json({ error: 'Nonce expired. Request a new one.' });
     }
 
+    // Convert DB timestamp to ISO string (to match /nonce endpoint format)
+    const expiresAtISO = new Date(expires_at).toISOString();
+
     // Verify signature
-    const isValid = await verifySignature(normalized, signature, nonce, expires_at);
+    const isValid = await verifySignature(normalized, signature, nonce, expiresAtISO);
     if (!isValid) {
       return res.status(401).json({ 
         error: 'Signature verification failed' 
@@ -345,8 +359,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Nonce expired. Request a new one.' });
     }
 
+    // Convert DB timestamp to ISO string (to match /nonce endpoint format)
+    const expiresAtISO = new Date(expires_at).toISOString();
+
     // Verify signature
-    const isValid = await verifySignature(normalized, signature, nonce, expires_at);
+    const isValid = await verifySignature(normalized, signature, nonce, expiresAtISO);
     if (!isValid) {
       return res.status(401).json({ 
         error: 'Signature verification failed' 
