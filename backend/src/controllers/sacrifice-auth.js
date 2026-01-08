@@ -12,12 +12,12 @@ const POINTS_PER_KAS = parseInt(process.env.POINTS_PER_KAS || '1'); // 1 KAS = 1
 const MIN_POINTS_REQUIRED = parseInt(process.env.MIN_POINTS_REQUIRED || '1'); // Minimum 1 point = 1 KAS
 
 const KASPA_APIs = {
-  restServer: process.env.KASPA_REST_SERVER || null,
-  primary: 'https://api.kaspa.org',
-  explorer: 'https://explorer.kaspa.org/api',
+  restServer: process.env.KASPA_REST_SERVER || 'http://localhost:16110',
+  primary: null,
+  explorer: null,
   // Alternative APIs (fallback if primary blocked)
-  kaspaLive: 'https://api.kaspa.live/v1',
-  kaspaScan: 'https://api.kaspascan.io/api/v1'
+  kaspaLive: null,
+  kaspaScan: null
 };
 
 class SacrificeSystem {

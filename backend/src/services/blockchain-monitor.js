@@ -12,9 +12,9 @@ const liveMonitor = require('../middleware/live-monitor');
  */
 
 const KASPA_APIs = {
-  restServer: process.env.KASPA_REST_SERVER || null,
-  primary: 'https://api.kaspa.org',
-  explorer: 'https://explorer.kaspa.org/api'
+  restServer: process.env.KASPA_REST_SERVER || 'http://localhost:16110',
+  primary: null,
+  explorer: null
 };
 
 const POLL_INTERVAL = parseInt(process.env.KASPA_POLL_INTERVAL || '10000'); // 10 seconds

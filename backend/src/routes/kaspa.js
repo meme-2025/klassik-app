@@ -11,10 +11,10 @@ const CACHE_DURATION = 25000; // 25 seconds (refresh before 30s interval)
 // Public Kaspa API endpoints (fallbacks).
 // You can set `KASPA_REST_SERVER` env var to point to a local kaspa-rest-server (e.g. http://localhost:8080)
 const KASPA_APIS = {
-    restServer: process.env.KASPA_REST_SERVER || null,
-    primary: 'https://api.kaspa.org',
-    explorer: 'https://explorer.kaspa.org/api',
-    coingecko: 'https://api.coingecko.com/api/v3'
+    restServer: process.env.KASPA_REST_SERVER || 'http://localhost:16110',
+    primary: null,
+    explorer: null,
+    coingecko: null
 };
 
 /**
