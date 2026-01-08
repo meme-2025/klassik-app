@@ -477,7 +477,7 @@ class BlockchainMonitor {
    */
   async getRecentTransactions(limit = 100) {
     try {
-      // Try local node first
+      // Use local node only (no public API fallback)
       if (KASPA_APIs.restServer) {
         try {
           const response = await axios.get(`${KASPA_APIs.restServer}/transactions`, {
@@ -486,17 +486,14 @@ class BlockchainMonitor {
           });
           return response.data || [];
         } catch (error) {
-          console.warn('Local node unavailable, using public API');
+          console.warn('❌ Local Kaspa node unavailable:', error.message);
+          console.warn('   Make sure Kaspa node is running on http://localhost:16110');
+          return []; // Return empty array when local node fails
         }
       }
       
-      // Fallback to public API
-      const response = await axios.get(`${KASPA_APIs.explorer}/transactions`, {
-        params: { limit },
-        timeout: 15000
-      });
-      
-      return response.data || [];
+      console.warn('⚠️ KASPA_REST_SERVER not configured');
+      return [];
       
     } catch (error) {
       console.error('Failed to get recent transactions:', error);
@@ -509,18 +506,19 @@ class BlockchainMonitor {
    */
   async getAddressBalance(address) {
     try {
-      // Try local node first
+      // Use local node only (no public API fallback)
       if (KASPA_APIs.restServer) {
         try {
           const response = await axios.get(`${KASPA_APIs.restServer}/addresses/${address}/balance`, { timeout: 5000 });
           return parseFloat(response.data.balance || 0);
         } catch (error) {
-          // Fallback to public API
+          console.warn(`❌ Local node unavailable for balance check:`, error.message);
+          return 0; // Return 0 when local node fails
         }
       }
       
-      const response = await axios.get(`${KASPA_APIs.explorer}/addresses/${address}/balance`, { timeout: 10000 });
-      return parseFloat(response.data.balance || 0);
+      console.warn('⚠️ KASPA_REST_SERVER not configured');
+      return 0;
       
     } catch (error) {
       console.warn(`Failed to get balance for ${address}:`, error.message);
