@@ -445,7 +445,7 @@ async function registerWithSacrifice(req, res) {
 
     // 2. Verify nonce and signature
     const nonceResult = await db.query(
-      'SELECT * FROM auth_nonces WHERE address = $1 AND nonce = $2 AND expires_at > CURRENT_TIMESTAMP',
+      'SELECT * FROM nonces WHERE address = $1 AND nonce = $2 AND expires_at > CURRENT_TIMESTAMP',
       [ethAddress.toLowerCase(), nonce]
     );
 
