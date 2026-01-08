@@ -124,11 +124,8 @@
             </p>
             
             <div class="hero-cta fade-in-up delay-200" style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;">
-                <button class="btn-outline-kaspa hover-lift" onclick="window.location.href='https://kaspa-pool.org/#/dashboard/kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc'" style="width: 100%; max-width: 400px;">
-                    <i class="fas fa-fire"></i>
-                    <span>Mining with Worker</span>
-                </button>
-                <button class="btn-hero-kaspa glow-on-hover" onclick="window.open('http://localhost:3000', '_blank')" style="width: 100%; max-width: 400px;">
+                
+                <button class="btn-hero-kaspa glow-on-hover" onclick="launchApp()" style="width: 100%; max-width: 400px;">
                     <span>Launch App Suite</span>
                     <i class="fas fa-game"></i>
                 </button>
@@ -311,6 +308,26 @@
                 });
             }, 500);
         })();
+        
+        // Smart App Launcher - Auto-detects Production vs Development
+        function launchApp() {
+            const APP_URLS = {
+                production: 'https://app.klassik.99pace.space',  // Production URL
+                development: 'http://localhost:3000'              // Local Development
+            };
+            
+            // Auto-detect environment based on hostname
+            const hostname = window.location.hostname;
+            const isDevelopment = hostname === 'localhost' || hostname === '127.0.0.1';
+            const appUrl = isDevelopment ? APP_URLS.development : APP_URLS.production;
+            
+            // Open in new window/tab - full screen
+            const width = screen.availWidth;
+            const height = screen.availHeight;
+            const features = `width=${width},height=${height},left=0,top=0,resizable=yes,scrollbars=yes,status=yes`;
+            
+            window.open(appUrl, 'KaspaRush', features);
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KaspaHub Sacrifice - Join the revolution and earn exclusive rewards">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.kaspascan.io https://api.kaspa.org https://api.coingecko.com https://klassik.99pace.space https://klassik.99pace.space:8130 http://localhost:3001 http://127.0.0.1:3001;">
+    <title>🔥 SACRIFICE | Klassik Gate</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff88;
+            --neon-yellow: #ffff00;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-green));
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(0,243,255,0.05);
+            border: 1px solid rgba(0,243,255,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .card {
+            background: rgba(20, 20, 40, 0.7);
+            border: 2px solid rgba(0,243,255,0.5);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(0,243,255,0.2);
+            position: relative;
+            backdrop-filter: blur(10px);
+            animation: borderGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes borderGlow {
+            0% {
+                box-shadow: 0 0 40px rgba(0,243,255,0.2);
+            }
+            100% {
+                box-shadow: 0 0 60px rgba(0,243,255,0.5);
+            }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-green));
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0.3;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .step {
+            opacity: 0.4;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+
+        .step.active {
+            opacity: 1;
+            background: rgba(0, 243, 255, 0.2) !important;
+            border: 2px solid var(--neon-cyan) !important;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+        }
+
+        .step.completed {
+            opacity: 0.8;
+            background: rgba(0, 255, 136, 0.2) !important;
+            border: 2px solid var(--neon-green) !important;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Orbitron', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            transition: left 0.3s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,243,255,0.5);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+            color: #000;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid rgba(0,243,255,0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0,243,255,0.4);
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            color: var(--neon-cyan);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .info-box {
+            background: rgba(0,243,255,0.1);
+            border-left: 4px solid var(--neon-cyan);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-success {
+            background: rgba(0,255,136,0.1);
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .alert-error {
+            background: rgba(255,0,255,0.1);
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+        }
+
+        .alert-info {
+            background: rgba(0,243,255,0.1);
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        code {
+            background: rgba(0,0,0,0.5);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .copy-btn {
+            background: rgba(0, 243, 255, 0.2);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--neon-cyan);
+            color: #000;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--neon-cyan);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-checkmark {
+            font-size: 5rem;
+            color: var(--neon-green);
+            text-align: center;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .btn {
+                font-size: 1rem;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <div class="container">
+        <h1 class="title">🔥 REGISTER NOW 🔥</h1>
+        <p class="subtitle">Join the Klassik revolution and earn exclusive access to Worlds fastest Blockchain-Game</p>
+
+        <!-- Stats Grid - Hidden until logged in -->
+        <div class="stats-grid" id="statsGrid" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-value" id="totalSacrificed">0</div>
+                <div class="stat-label">Total KAS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="yourPoints">0</div>
+                <div class="stat-label">Your Points</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <!-- Progress Bar -->
+                <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 2rem; overflow: hidden;">
+                    <div id="progress-fill" style="height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink)); width: 25%; transition: width 0.5s ease;"></div>
+                </div>
+
+                <!-- Step Indicator -->
+                <div style="display: flex; justify-content: space-between; margin-bottom: 2rem; gap: 10px;">
+                    <div class="step active" id="step-1" style="flex: 1; text-align: center; padding: 0.5rem; border-radius: 10px; background: rgba(255,255,255,0.05); transition: all 0.3s ease;">
+                        <div style="font-weight: bold; font-size: 1.2rem;">1</div>
+                        <div style="font-size: 0.8rem; margin-top: 0.25rem;">Connect</div>
+                    </div>
+                    <div class="step" id="step-2" style="flex: 1; text-align: center; padding: 0.5rem; border-radius: 10px; background: rgba(255,255,255,0.05); transition: all 0.3s ease;">
+                        <div style="font-weight: bold; font-size: 1.2rem;">2</div>
+                        <div style="font-size: 0.8rem; margin-top: 0.25rem;">Sacrifice</div>
+                    </div>
+                    <div class="step" id="step-3" style="flex: 1; text-align: center; padding: 0.5rem; border-radius: 10px; background: rgba(255,255,255,0.05); transition: all 0.3s ease;">
+                        <div style="font-weight: bold; font-size: 1.2rem;">3</div>
+                        <div style="font-size: 0.8rem; margin-top: 0.25rem;">Register</div>
+                    </div>
+                    <div class="step" id="step-4" style="flex: 1; text-align: center; padding: 0.5rem; border-radius: 10px; background: rgba(255,255,255,0.05); transition: all 0.3s ease;">
+                        <div style="font-weight: bold; font-size: 1.2rem;">4</div>
+                        <div style="font-size: 0.8rem; margin-top: 0.25rem;">Done</div>
+                    </div>
+                </div>
+
+                <!-- Alerts Container -->
+                <div id="alert-container"></div>
+
+                <!-- Step 1: Connect Wallet -->
+                <div class="form-section active" id="section-connect">
+                    <h2><i class="fas fa-wallet"></i> Connect Your Wallet</h2>
+                    <p style="margin-bottom: 2rem; color: rgba(255,255,255,0.7); text-align: center;">
+                        Click the button below to connect your MetaMask wallet and start the authentication process.
+                    </p>
+                    <button class="btn btn-primary" id="connectBtn">
+                        <i class="fas fa-wallet"></i> CONNECT METAMASK
+                    </button>
+                    
+                    <div style="margin-top: 2rem; text-align: center;">
+                        <button class="btn" onclick="showInfoModal()" style="background: rgba(255, 255, 0, 0.2); border: 2px solid var(--neon-yellow); color: var(--neon-yellow);">
+                            <i class="fas fa-info-circle"></i> HOW IT WORKS
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Sacrifice Check -->
+                <div class="form-section" id="section-sacrifice" style="display: none;">
+                    <h2><i class="fas fa-gift"></i> Sacrifice Verification</h2>
+                    <p style="margin-bottom: 1rem; color: rgba(255,255,255,0.7);">
+                        Enter your Kaspa wallet address to verify your sacrifice:
+                    </p>
+                    
+                    <div class="info-box">
+                        <strong>📍 Sacrifice Address:</strong>
+                        <button class="copy-btn" onclick="copyAddress()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <br>
+                        <code id="sacrifice-address" style="color: var(--neon-cyan); word-break: break-all; cursor: pointer;" onclick="copyAddress()">kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc</code>
+                        <br><br>
+                        <small style="color: rgba(255,255,255,0.6);">
+                            Send at least 1,000 KAS to this address from your personal wallet, then enter your sending address below.
+                        </small>
+                    </div>
+                    
+                    <input type="text" id="kaspaAddressInput" class="input-field" placeholder="Enter your Kaspa address (kaspa:...)">
+                    
+                    <button class="btn btn-primary" id="checkSacrificeBtn">
+                        <i class="fas fa-search"></i> VERIFY SACRIFICE
+                    </button>
+                </div>
+
+                <!-- Step 3: Registration -->
+                <div class="form-section" id="section-register" style="display: none;">
+                    <h2><i class="fas fa-user-check"></i> Complete Registration</h2>
+                    
+                    <div class="info-box" id="sacrifice-info" style="border-left-color: var(--neon-green);">
+                        <!-- Will be filled dynamically -->
+                    </div>
+                    
+                    <p style="margin-bottom: 1rem; color: rgba(255,255,255,0.7);">
+                        Choose your username to complete registration:
+                    </p>
+                    
+                    <input type="text" id="usernameInput" class="input-field" placeholder="Username (3+ characters)" maxlength="20">
+                    <small style="color: rgba(255,255,255,0.5); display: block; margin-bottom: 1rem;">
+                        Only letters, numbers, and underscores allowed
+                    </small>
+                    
+                    <button class="btn btn-success" id="registerBtn">
+                        <i class="fas fa-user-check"></i> COMPLETE REGISTRATION
+                    </button>
+                </div>
+
+                <!-- Step 4: Success -->
+                <div class="form-section" id="section-success" style="display: none;">
+                    <div class="success-checkmark">
+                        ✅
+                    </div>
+                    <h2 style="color: var(--neon-green);">Registration Complete!</h2>
+                    
+                    <div style="text-align: center; margin: 2rem 0;">
+                        <div style="margin-bottom: 1rem;">
+                            <strong style="color: var(--neon-cyan);">Username:</strong>
+                            <span id="success-username" style="color: #fff; margin-left: 10px;"></span>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <strong style="color: var(--neon-cyan);">Wallet:</strong>
+                            <span id="success-wallet" style="color: #fff; margin-left: 10px;"></span>
+                        </div>
+                        <div>
+                            <strong style="color: var(--neon-cyan);">Points Earned:</strong>
+                            <span id="success-points" style="color: var(--neon-green); margin-left: 10px; font-size: 1.5rem; font-weight: bold;"></span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="window.location.href='kaspa-explorerv5.21.html'">
+                        <i class="fas fa-rocket"></i> GO TO DASHBOARD
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // ===== CONFIGURATION =====
+        const SACRIFICE_ADDRESS = 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3001' 
+            : 'https://klassik.99pace.space:8130';
+
+        // ===== STATE =====
+        let currentStep = 1;
+        let walletAddress = null;
+        let kaspaAddress = null;
+        let sacrificeData = null;
+
+        // ===== STEP MANAGEMENT =====
+        function setStep(step) {
+            currentStep = step;
+            
+            // Update progress bar
+            const progressPercent = (step / 4) * 100;
+            document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+            
+            // Update step indicators
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById(`step-${i}`);
+                stepEl.classList.remove('active', 'completed');
+                
+                if (i === step) {
+                    stepEl.classList.add('active');
+                } else if (i < step) {
+                    stepEl.classList.add('completed');
+                }
+            }
+            
+            // Update sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+                section.style.display = 'none';
+            });
+            
+            const sectionMap = {
+                1: 'section-connect',
+                2: 'section-sacrifice',
+                3: 'section-register',
+                4: 'section-success'
+            };
+            
+            const activeSection = document.getElementById(sectionMap[step]);
+            if (activeSection) {
+                activeSection.style.display = 'block';
+                setTimeout(() => activeSection.classList.add('active'), 10);
+            }
+        }
+
+        // ===== ALERTS =====
+        function showAlert(message, type = 'info') {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${message}`;
+            
+            container.innerHTML = '';
+            container.appendChild(alert);
+            
+            if (type !== 'error') {
+                setTimeout(() => alert.remove(), 5000);
+            }
+        }
+
+        // ===== COPY TO CLIPBOARD =====
+        function copyAddress() {
+            const address = SACRIFICE_ADDRESS;
+            navigator.clipboard.writeText(address).then(() => {
+                showAlert('✅ Address copied to clipboard!', 'success');
+            }).catch(err => {
+                const textArea = document.createElement('textarea');
+                textArea.value = address;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showAlert('✅ Address copied to clipboard!', 'success');
+            });
+        }
+
+        // ===== INFO MODAL =====
+        function showInfoModal() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                z-index: 10000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    border: 2px solid var(--neon-cyan);
+                    border-radius: 20px;
+                    padding: 2rem;
+                    max-width: 600px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    box-shadow: 0 0 50px var(--neon-cyan);
+                    position: relative;
+                ">
+                    <button onclick="this.closest('div').parentElement.remove()" style="
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background: transparent;
+                        border: 2px solid var(--neon-pink);
+                        color: var(--neon-pink);
+                        width: 35px;
+                        height: 35px;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        transition: all 0.3s;
+                    " onmouseover="this.style.background='var(--neon-pink)'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='var(--neon-pink)';">
+                        ×
+                    </button>
+                    
+                    <h2 style="color: var(--neon-cyan); margin-bottom: 1.5rem; font-size: 2rem; text-align: center;">
+                        🔥 HOW SACRIFICE WORKS 🔥
+                    </h2>
+                    
+                    <div style="color: #fff; line-height: 1.8; font-size: 1rem;">
+                        <div style="background: rgba(0, 243, 255, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid var(--neon-cyan);">
+                            <h3 style="color: var(--neon-green); margin-bottom: 0.5rem;">📝 STEP 1: Connect Your Wallet</h3>
+                            <p>Click "CONNECT METAMASK" and approve the connection. We'll check if you're already registered.</p>
+                        </div>
+                        
+                        <div style="background: rgba(255, 0, 255, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid var(--neon-pink);">
+                            <h3 style="color: var(--neon-green); margin-bottom: 0.5rem;">💎 STEP 2: Send KAS to Sacrifice Address</h3>
+                            <p>Send at least <strong>1,000 KAS</strong> to the sacrifice address:</p>
+                            <code style="background: #000; padding: 0.5rem; border-radius: 5px; display: block; margin-top: 0.5rem; word-break: break-all; color: var(--neon-cyan);">
+                                kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc
+                            </code>
+                            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--neon-yellow);">
+                                ⚠️ Use your personal Kaspa wallet (KasWare, Kaspium, etc.) to send the transaction.
+                            </p>
+                        </div>
+                        
+                        <div style="background: rgba(0, 255, 136, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid var(--neon-green);">
+                            <h3 style="color: var(--neon-green); margin-bottom: 0.5rem;">✅ STEP 3: Verify & Register</h3>
+                            <p>After sending, enter your Kaspa wallet address when prompted. We'll verify your transaction and calculate your points based on the tier:</p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li><strong>Bronze 🥉</strong>: 1K-9.9K KAS → 2,500 points/K</li>
+                                <li><strong>Silver 🥈</strong>: 10K-49.9K KAS → 3,750 points/K</li>
+                                <li><strong>Gold 🥇</strong>: 50K-99.9K KAS → 4,375 points/K</li>
+                                <li><strong>Diamond 💎</strong>: 100K+ KAS → 5,000 points/K</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: rgba(255, 255, 0, 0.1); padding: 1rem; border-radius: 10px; border-left: 4px solid var(--neon-yellow);">
+                            <h3 style="color: var(--neon-green); margin-bottom: 0.5rem;">🎉 STEP 4: Access the Platform</h3>
+                            <p>Once verified, choose a username and sign with MetaMask. You'll get instant access to the Klassik dashboard!</p>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                            <p style="color: var(--neon-pink); font-weight: bold;">
+                                ⚠️ WARNING: Sacrificed KAS is non-refundable and sent directly to the sacrifice address.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        // ===== STEP 1: CONNECT WALLET =====
+        document.getElementById('connectBtn').addEventListener('click', async function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Connecting...';
+            
+            try {
+                if (!window.ethereum) {
+                    showAlert('Please install MetaMask to continue!', 'error');
+                    window.open('https://metamask.io/download/', '_blank');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECT METAMASK';
+                    return;
+                }
+                
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                walletAddress = accounts[0];
+                
+                showAlert(`Connected: ${walletAddress.substring(0, 10)}...`, 'success');
+                
+                // Check if user exists
+                const response = await fetch(`${API_URL}/api/auth/check?address=${walletAddress}`);
+                const data = await response.json();
+                
+                if (data.registered) {
+                    showAlert(`Welcome back, ${data.user.username}! Logging you in...`, 'success');
+                    await loginUser(walletAddress, data.user);
+                } else {
+                    showAlert('New user detected. Please verify your sacrifice.', 'info');
+                    setStep(2);
+                }
+                
+            } catch (error) {
+                console.error('Wallet connection error:', error);
+                showAlert(error.message || 'Failed to connect wallet', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECT METAMASK';
+            }
+        });
+
+        // ===== LOGIN EXISTING USER =====
+        async function loginUser(address, user) {
+            try {
+                const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`);
+                const { nonce, message } = await nonceRes.json();
+                
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, address]
+                });
+                
+                const loginRes = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address, signature })
+                });
+                
+                if (!loginRes.ok) throw new Error('Login failed');
+                
+                const loginData = await loginRes.json();
+                
+                localStorage.setItem('klassik_token', loginData.token);
+                localStorage.setItem('klassik_user', JSON.stringify(loginData.user));
+                
+                showAlert('Login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'kaspa-explorerv5.21.html';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('Login failed: ' + error.message, 'error');
+            }
+        }
+
+        // ===== STEP 2: CHECK SACRIFICE =====
+        document.getElementById('checkSacrificeBtn').addEventListener('click', async function() {
+            const btn = this;
+            const input = document.getElementById('kaspaAddressInput');
+            kaspaAddress = input.value.trim();
+            
+            if (!kaspaAddress || !kaspaAddress.startsWith('kaspa:')) {
+                showAlert('Please enter a valid Kaspa address', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Verifying...';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/check-sacrifice`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        kaspaAddress: kaspaAddress,
+                        ethAddress: walletAddress
+                    })
+                });
+                
+                sacrificeData = await response.json();
+                
+                if (sacrificeData.eligible) {
+                    showAlert(`Sacrifice verified! ${sacrificeData.currentPoints} points earned.`, 'success');
+                    
+                    // Show sacrifice info
+                    document.getElementById('sacrifice-info').innerHTML = `
+                        <strong>✅ Sacrifice Verified!</strong><br>
+                        Amount: <strong>${sacrificeData.totalAmount} KAS</strong><br>
+                        Points Earned: <strong style="color: var(--neon-green);">${sacrificeData.currentPoints}</strong><br>
+                        Tier: <strong>${sacrificeData.tier}</strong>
+                    `;
+                    
+                    setStep(3);
+                } else {
+                    showAlert(`Sacrifice not found. Please send at least 1,000 KAS to: ${SACRIFICE_ADDRESS}`, 'error');
+                }
+                
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-search"></i> VERIFY SACRIFICE';
+                
+            } catch (error) {
+                console.error('Sacrifice check error:', error);
+                showAlert('Failed to verify sacrifice: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-search"></i> VERIFY SACRIFICE';
+            }
+        });
+
+        // ===== STEP 3: REGISTER =====
+        document.getElementById('registerBtn').addEventListener('click', async function() {
+            const btn = this;
+            const input = document.getElementById('usernameInput');
+            const username = input.value.trim();
+            
+            if (!username || username.length < 3) {
+                showAlert('Username must be at least 3 characters', 'error');
+                return;
+            }
+            
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                showAlert('Username can only contain letters, numbers, and underscores', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Registering...';
+            
+            try {
+                const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${walletAddress}`);
+                const { nonce, message } = await nonceRes.json();
+                
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, walletAddress]
+                });
+                
+                const registerRes = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ethAddress: walletAddress,
+                        kaspaAddress: kaspaAddress,
+                        username,
+                        signature,
+                        nonce
+                    })
+                });
+                
+                if (!registerRes.ok) {
+                    const error = await registerRes.json();
+                    throw new Error(error.error || 'Registration failed');
+                }
+                
+                const data = await registerRes.json();
+                
+                localStorage.setItem('klassik_token', data.token);
+                localStorage.setItem('klassik_user', JSON.stringify(data.user));
+                
+                document.getElementById('success-username').textContent = data.user.username;
+                document.getElementById('success-wallet').textContent = `${data.user.address.substring(0, 10)}...`;
+                document.getElementById('success-points').textContent = data.user.sacrifice_points || sacrificeData.currentPoints;
+                
+                setStep(4);
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                showAlert('Registration failed: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-check"></i> COMPLETE REGISTRATION';
+            }
+        });
+
+        // ===== PARTICLES =====
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80 },
+                color: { value: ['#00f3ff', '#ff00ff', '#00ff88'] },
+                shape: { type: 'circle' },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#00f3ff',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: 'none',
+                    random: true,
+                    out_mode: 'out'
+                }
+            },
+            interactivity: {
+                events: {
+                    onhover: { enable: true, mode: 'grab' },
+                    onclick: { enable: true, mode: 'push' }
+                }
+            }
+        });
+
+        // ===== INITIALIZATION =====
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('klassik_token');
+            const user = localStorage.getItem('klassik_user');
+            
+            if (token && user) {
+                const userData = JSON.parse(user);
+                showAlert(`Already logged in as ${userData.username}. Redirecting...`, 'success');
+                setTimeout(() => {
+                    window.location.href = 'kaspa-explorerv5.21.html';
+                }, 2000);
+            }
+        });
+
+        console.log('🚀 KaspaHub Sacrifice Dashboard LIVE');
+        console.log('📍 Sacrifice Address:', SACRIFICE_ADDRESS);
+    </script>
+</body>
+</html>
