@@ -2,7 +2,7 @@
   "apps": [
     {
       "name": "klassik-production",
-      "script": "./src/server.js",
+      "script": "./src/index.js",
       "cwd": "/opt/klassik/backend",
       "instances": 1,
       "exec_mode": "fork",
