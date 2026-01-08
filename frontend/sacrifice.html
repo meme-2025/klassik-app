@@ -526,19 +526,18 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script>
-        // ===== CONFIGURATION =====
+    <script>        // ===== GLOBAL CONFIGURATION (Must be first!) =====
         const SACRIFICE_ADDRESS = 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
         const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
             ? 'http://localhost:3001'
             : window.location.origin; // Use same origin in production (e.g. klassik.99pace.space)
 
-        // ===== STATE =====
+        // ===== GLOBAL STATE =====
         let currentStep = 1;
         let walletAddress = null;
         let kaspaAddress = null;
         let sacrificeData = null;
-
+        // ===== CONFIGURATION =====
         // ===== STEP MANAGEMENT =====
         function setStep(step) {
             currentStep = step;
