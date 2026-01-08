@@ -331,15 +331,6 @@ class BlockchainMonitor {
       console.error('Failed to process sacrifice:', error);
     }
   }
-        senderAddress,
-        amount,
-        timestamp: new Date().toISOString()
-      });
-      
-    } catch (error) {
-      console.error('Failed to process sacrifice:', error);
-    }
-  }
 
   /**
    * Process sacrifice transaction in database
