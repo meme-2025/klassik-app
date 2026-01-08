@@ -350,7 +350,7 @@ async function registerWithSacrifice(req, res) {
     }
 
     // Validate addresses
-    if (!ethers.utils.isAddress(ethAddress)) {
+    if (!ethers.isAddress(ethAddress)) {
       return res.status(400).json({ error: 'Invalid Ethereum address' });
     }
 
@@ -363,59 +363,85 @@ async function registerWithSacrifice(req, res) {
       return res.status(400).json({ error: 'Username can only contain letters, numbers and underscore' });
     }
 
-    // 1. ✅ Check sacrifice eligibility WITH BLOCKCHAIN VALIDATION
-    const sacrificeSystem = new SacrificeSystem();
-    console.log('🔍 Checking Kaspa blockchain for sacrifices from:', kaspaAddress);
-    const sacrificeData = await sacrificeSystem.checkSacrificeAmount(kaspaAddress);
+    // 1. ✅ Check sacrifice eligibility FROM DATABASE (BlockchainMonitor already populated it)
+    console.log('🔍 Checking database for sacrifices from:', kaspaAddress);
+    
+    const dbResult = await db.query(`
+      SELECT 
+        COUNT(*) as tx_count,
+        SUM(amount) as total_sompi,
+        SUM(points_earned) as total_points
+      FROM sacrifice_transactions
+      WHERE kaspa_address = $1 AND verified = true
+    `, [kaspaAddress]);
+    
+    const { tx_count, total_sompi, total_points } = dbResult.rows[0];
+    const totalPoints = parseInt(total_points) || 0;
+    const txCount = parseInt(tx_count) || 0;
+    const totalKAS = (parseInt(total_sompi) || 0) / 100000000;
+    
+    console.log('📊 Database sacrifice check:', { kaspaAddress, txCount, totalKAS, totalPoints });
     
     // ✅ KRITISCH: Mindestens MIN_POINTS_REQUIRED Punkte nötig
-    if (sacrificeData.totalPoints < MIN_POINTS_REQUIRED) {
+    if (totalPoints < MIN_POINTS_REQUIRED) {
       return res.status(403).json({
         error: 'Insufficient sacrifice',
         required: MIN_POINTS_REQUIRED,
-        current: sacrificeData.totalPoints,
-        missingKAS: ((MIN_POINTS_REQUIRED - sacrificeData.totalPoints) / POINTS_PER_KAS).toFixed(8),
+        current: totalPoints,
+        missingKAS: ((MIN_POINTS_REQUIRED - totalPoints) / POINTS_PER_KAS).toFixed(8),
         sacrificeAddress: SACRIFICE_ADDRESS,
-        message: `Send at least ${((MIN_POINTS_REQUIRED - sacrificeData.totalPoints) / POINTS_PER_KAS).toFixed(8)} KAS to ${SACRIFICE_ADDRESS}`
+        message: `Send at least ${((MIN_POINTS_REQUIRED - totalPoints) / POINTS_PER_KAS).toFixed(8)} KAS to ${SACRIFICE_ADDRESS}`
       });
     }
     
     // ✅ KRITISCH: Mindestens 1 ECHTE Transaktion muss existieren!
-    if (!sacrificeData.transactions || sacrificeData.transactions.length === 0) {
+    if (txCount === 0) {
       return res.status(403).json({
-        error: 'No sacrifice transactions found on blockchain',
+        error: 'No sacrifice transactions found',
         message: `Send at least ${(MIN_POINTS_REQUIRED / POINTS_PER_KAS).toFixed(2)} KAS to: ${SACRIFICE_ADDRESS}`,
         kaspaAddress,
-        explorerUrl: `https://explorer.kaspa.org/addresses/${kaspaAddress}`,
         required: MIN_POINTS_REQUIRED
       });
     }
     
     // 🔒 KRITISCH: KASPA ADDRESS OWNERSHIP VERIFICATION
     // Verhindert, dass jemand fremde Kaspa-Adressen "klaut"
-    // Die LETZTE Transaktion muss NACH der Nonce-Erstellung sein (Proof of Ownership)
-    const latestTx = sacrificeData.transactions.sort((a, b) => 
-      new Date(b.blockTime) - new Date(a.blockTime)
-    )[0];
+    // Die LETZTE Transaktion muss nicht zu alt sein (Proof of recent activity)
+    const latestTxResult = await db.query(`
+      SELECT created_at, tx_hash
+      FROM sacrifice_transactions
+      WHERE kaspa_address = $1 AND verified = true
+      ORDER BY created_at DESC
+      LIMIT 1
+    `, [kaspaAddress]);
     
-    // Check if latest transaction is recent (within last 24 hours)
-    const txTime = new Date(latestTx.blockTime);
+    if (latestTxResult.rows.length === 0) {
+      return res.status(403).json({
+        error: 'No verified transactions found',
+        message: `Please wait for BlockchainMonitor to verify your sacrifice`,
+        kaspaAddress
+      });
+    }
+    
+    const latestTx = latestTxResult.rows[0];
+    const txTime = new Date(latestTx.created_at);
     const hoursSinceTx = (Date.now() - txTime.getTime()) / (1000 * 60 * 60);
     
-    if (hoursSinceTx > 24) {
+    // Allow transactions within 7 days (more lenient than 24h)
+    if (hoursSinceTx > 168) {
       return res.status(403).json({
         error: 'Kaspa address ownership verification failed',
-        message: 'Please send a fresh sacrifice transaction (any amount) to verify ownership',
-        lastTransactionAge: `${hoursSinceTx.toFixed(1)} hours ago`,
-        requirementTime: '24 hours',
+        message: 'Please send a fresh sacrifice transaction to verify ownership',
+        lastTransactionAge: `${(hoursSinceTx / 24).toFixed(1)} days ago`,
+        requirementTime: '7 days',
         kaspaAddress,
         sacrificeAddress: SACRIFICE_ADDRESS,
         hint: 'Send at least 0.01 KAS to verify you own this address'
       });
     }
     
-    console.log(`✅ Ownership verified: Latest TX ${hoursSinceTx.toFixed(1)}h ago`);
-    console.log(`✅ Sacrifice verified: ${sacrificeData.totalSacrificed} KAS (${sacrificeData.totalPoints} points)`);
+    console.log(`✅ Ownership verified: Latest TX ${hoursSinceTx.toFixed(1)}h ago (${latestTx.tx_hash.substring(0, 12)}...)`);
+    console.log(`✅ Sacrifice verified: ${totalKAS} KAS (${totalPoints} points)`);
 
     // 2. Verify nonce and signature
     const nonceResult = await db.query(
@@ -432,7 +458,7 @@ async function registerWithSacrifice(req, res) {
     
     let recoveredAddress;
     try {
-      recoveredAddress = ethers.utils.verifyMessage(message, signature);
+      recoveredAddress = ethers.verifyMessage(message, signature);
     } catch (err) {
       return res.status(400).json({ error: 'Invalid signature' });
     }
@@ -466,12 +492,12 @@ async function registerWithSacrifice(req, res) {
         (address, kaspa_address, username, sacrifice_points, created_at, last_sacrifice_check)
         VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING id, address, kaspa_address, username, sacrifice_points
-      `, [ethAddress.toLowerCase(), kaspaAddress, username, sacrificeData.totalPoints]);
+      `, [ethAddress.toLowerCase(), kaspaAddress, username, totalPoints]);
 
       const user = userResult.rows[0];
 
-      // 6. Process sacrifice transactions
-      await sacrificeSystem.processSacrificeTransactions(kaspaAddress, sacrificeData);
+      // 6. Sacrifice transactions already in DB (processed by BlockchainMonitor)
+      // No need to re-process them here
 
       // 7. Initialize user points (if user_points table exists)
       try {
