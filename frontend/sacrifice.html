@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="KaspaHub Sacrifice - Join the revolution and earn exclusive rewards">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.kaspascan.io https://api.kaspa.org https://api.coingecko.com https://klassik.99pace.space http://localhost:3001 http://127.0.0.1:3001;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.kaspascan.io https://api.kaspa.org https://api.coingecko.com http://192.168.2.148:8130 http://localhost:8130 http://127.0.0.1:8130;">
     <title>🔥 SACRIFICE | Klassik Gate</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -531,7 +531,7 @@
         const SACRIFICE_ADDRESS = 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
             ? 'http://localhost:3001' 
-            : 'https://klassik.99pace.space';  // Reverse proxy routes /api/* to backend
+            : 'http://192.168.2.148:8130';  // Local server
 
         // ===== STATE =====
         let currentStep = 1;
