@@ -422,9 +422,6 @@ server.listen(PORT, HOST, async () => {
   // } catch (err) {
   //   console.error('❌ Sacrifice Watcher failed:', err.message);
   // }
-  } catch (err) {
-    console.error('❌ Sacrifice Watcher failed:', err.message);
-  }
   
   // Start blockchain watcher
   if (process.env.ENABLE_WATCHER !== 'false') {
