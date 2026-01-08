@@ -414,10 +414,14 @@ server.listen(PORT, HOST, async () => {
     console.error('❌ Game Engine failed:', err.message);
   }
   
-  try {
-    sacrificeWatcher.setIO(io);
-    await sacrificeWatcher.start();
-    console.log('✅ Sacrifice Watcher started (24/7 monitoring)');
+  // Sacrifice Watcher disabled - using BlockchainMonitor instead
+  // try {
+  //   sacrificeWatcher.setIO(io);
+  //   await sacrificeWatcher.start();
+  //   console.log('✅ Sacrifice Watcher started (24/7 monitoring)');
+  // } catch (err) {
+  //   console.error('❌ Sacrifice Watcher failed:', err.message);
+  // }
   } catch (err) {
     console.error('❌ Sacrifice Watcher failed:', err.message);
   }
