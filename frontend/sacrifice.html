@@ -527,6 +527,11 @@
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
+        // ===== CONFIGURATION =====
+        const SACRIFICE_ADDRESS = 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:3001'
+            : window.location.origin; // Use same origin in production (e.g. klassik.99pace.space)
 
         // ===== STATE =====
         let currentStep = 1;
@@ -795,6 +800,8 @@
             btn.innerHTML = '<span class="loading-spinner"></span> Verifying...';
             
             try {
+                console.log('🔍 Checking sacrifice for:', kaspaAddress, 'with wallet:', walletAddress);
+                
                 const response = await fetch(`${API_URL}/api/auth/check-sacrifice`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -804,7 +811,17 @@
                     })
                 });
                 
+                console.log('📡 Response status:', response.status);
+                console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ HTTP Error:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
                 sacrificeData = await response.json();
+                console.log('📊 Sacrifice data received:', sacrificeData);
                 
                 if (sacrificeData.eligible) {
                     showAlert(`Sacrifice verified! ${sacrificeData.currentPoints} points earned.`, 'success');
@@ -812,21 +829,24 @@
                     // Show sacrifice info
                     document.getElementById('sacrifice-info').innerHTML = `
                         <strong>✅ Sacrifice Verified!</strong><br>
-                        Amount: <strong>${sacrificeData.totalAmount} KAS</strong><br>
+                        Amount: <strong>${sacrificeData.totalSacrificed || sacrificeData.totalAmount} KAS</strong><br>
                         Points Earned: <strong style="color: var(--neon-green);">${sacrificeData.currentPoints}</strong><br>
-                        Tier: <strong>${sacrificeData.tier}</strong>
+                        Required: <strong>${sacrificeData.requiredPoints}</strong>
                     `;
                     
                     setStep(3);
                 } else {
-                    showAlert(`Sacrifice not found. Please send at least 1,000 KAS to: ${SACRIFICE_ADDRESS}`, 'error');
+                    const message = sacrificeData.message || `Sacrifice not found. Please send at least 1 KAS to: ${SACRIFICE_ADDRESS}`;
+                    showAlert(message, 'error');
+                    console.log('❌ Not eligible:', message);
                 }
                 
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-search"></i> VERIFY SACRIFICE';
                 
             } catch (error) {
-                console.error('Sacrifice check error:', error);
+                console.error('💥 Sacrifice check error:', error);
+                console.error('Error stack:', error.stack);
                 showAlert('Failed to verify sacrifice: ' + error.message, 'error');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-search"></i> VERIFY SACRIFICE';
