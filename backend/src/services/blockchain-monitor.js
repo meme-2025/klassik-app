@@ -94,20 +94,9 @@ class BlockchainMonitor {
    */
   async loadPendingPayments() {
     try {
-      const result = await db.query(`
-        SELECT o.id, o.deposit_address, kp.expected_amount, kp.payment_address
-        FROM orders o
-        JOIN kaspa_payments kp ON o.id = kp.order_id
-        WHERE o.status = 'awaiting_payment' AND o.payment_method = 'kaspa'
-      `);
-      
-      for (const payment of result.rows) {
-        this.pendingPayments.set(payment.payment_address, {
-          orderId: payment.id,
-          expectedAmount: parseFloat(payment.expected_amount),
-          address: payment.payment_address
-        });
-      }
+      // Disabled: kaspa_payments table doesn't exist
+      // Sacrifice monitoring doesn't need pending order tracking
+      console.log('ℹ️ Pending payment tracking disabled (sacrifice-only mode)');
       
     } catch (error) {
       console.error('Failed to load pending payments:', error);
