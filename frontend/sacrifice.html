@@ -531,7 +531,7 @@
         const SACRIFICE_ADDRESS = 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
             ? 'http://localhost:3001' 
-            : 'https://klassik.99pace.space/api';  // Use reverse proxy path instead of :8130
+            : 'https://klassik.99pace.space';  // Reverse proxy routes /api/* to backend
 
         // ===== STATE =====
         let currentStep = 1;
