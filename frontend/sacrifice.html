@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="KaspaHub Sacrifice - Join the revolution and earn exclusive rewards">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.kaspascan.io https://api.kaspa.org https://api.coingecko.com https://klassik.99pace.space http://klassik.99pace.space:8130 http://192.168.2.148:8130 http://localhost:8130 http://127.0.0.1:8130;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://cdn.socket.io https://cdn.ethers.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.kaspascan.io https://api.kaspa.org https://api.coingecko.com https://klassik.99pace.space http://klassik.99pace.space:8130 http://192.168.2.148:8130 http://localhost:8130 http://127.0.0.1:8130 wss://klassik.99pace.space ws://localhost:3000;">
     <title>🔥 SACRIFICE | Klassik Gate</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -750,6 +750,7 @@
             btn.innerHTML = '<span class="loading-spinner"></span> Connecting...';
             
             try {
+                // GUARD: Check MetaMask exists
                 if (!window.ethereum) {
                     showAlert('Please install MetaMask to continue!', 'error');
                     window.open('https://metamask.io/download/', '_blank');
@@ -758,104 +759,155 @@
                     return;
                 }
                 
+                // STEP 1: Request accounts
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                if (!accounts || accounts.length === 0) {
+                    throw new Error('No accounts returned from MetaMask');
+                }
+                
                 walletAddress = accounts[0];
+                console.log('✅ Wallet connected:', walletAddress);
                 
                 showAlert(`Connected: ${walletAddress.substring(0, 10)}...`, 'success');
                 
-                // ✅ FIXED: Korrekter API-Endpunkt (Backend hat /api/auth/check)
-                const response = await fetch(`${API_URL}/api/auth/check?address=${walletAddress}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
+                // STEP 2: Check if user exists (non-blocking, failures are OK)
+                try {
+                    const response = await fetch(`${API_URL}/api/auth/check?address=${walletAddress}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        if (data.registered && data.user) {
+                            console.log('✅ Existing user detected:', data.user.username);
+                            showAlert(`Welcome back, ${data.user.username}! Logging you in...`, 'success');
+                            
+                            // Attempt auto-login
+                            try {
+                                await loginUser(walletAddress, data.user);
+                                // If successful, loginUser will redirect
+                                return;
+                            } catch (loginError) {
+                                // Login failed, but that's OK - let user proceed to Step 2
+                                console.error('⚠️ Auto-login failed:', loginError);
+                                showAlert('Auto-login failed. Please register or try manual login.', 'info');
+                            }
+                        }
                     }
-                });
-                
-                if (!response.ok) {
-                    console.warn('⚠️ User check failed, assuming new user');
-                    showAlert('New user detected. Please verify your sacrifice.', 'info');
-                    setStep(2);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECTED';
-                    return;
+                } catch (checkError) {
+                    // User check failed, assume new user - that's fine
+                    console.warn('⚠️ User check failed (assuming new user):', checkError.message);
                 }
                 
-                const data = await response.json();
-                
-                if (data.registered && data.user) {
-                    showAlert(`Welcome back, ${data.user.username}! Logging you in...`, 'success');
-                    // ✅ FIXED: Ensure loginUser is awaited properly
-                    try {
-                        await loginUser(walletAddress, data.user);
-                    } catch (loginError) {
-                        console.error('Login error in connect flow:', loginError);
-                        showAlert('Login failed. Please try again.', 'error');
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECT METAMASK';
-                    }
-                } else {
-                    showAlert('New user detected. Please verify your sacrifice.', 'info');
-                    setStep(2);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECTED';
-                }
+                // Default: Proceed to Step 2 (sacrifice check)
+                showAlert('Please verify your sacrifice to continue.', 'info');
+                setStep(2);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECTED';
                 
             } catch (error) {
-                console.error('Wallet connection error:', error);
+                console.error('❌ Wallet connection error:', error);
                 showAlert(error.message || 'Failed to connect wallet. Please try again.', 'error');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-wallet"></i> CONNECT METAMASK';
             }
         });
 
-        // ===== LOGIN EXISTING USER =====
-        async function loginUser(address, user) {
+        // ===== LOGIN EXISTING USER (ROBUST VERSION) =====
+        async function loginUser(address, userData) {
+            console.log('🔐 Starting login for:', address);
+            
             try {
-                // ✅ FIXED: Backend-Endpunkt ist /api/auth/nonce
+                // GUARD: Validate inputs
+                if (!address || !window.ethereum) {
+                    throw new Error('Invalid address or MetaMask not available');
+                }
+                
+                // STEP 1: Get nonce from backend
+                console.log('📡 Fetching nonce from backend...');
                 const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`);
                 
                 if (!nonceRes.ok) {
-                    throw new Error('Failed to fetch nonce');
+                    const errorText = await nonceRes.text();
+                    console.error('❌ Nonce fetch failed:', nonceRes.status, errorText);
+                    throw new Error(`Failed to fetch nonce: ${nonceRes.status}`);
                 }
                 
-                const { nonce, message } = await nonceRes.json();
+                const nonceData = await nonceRes.json();
+                console.log('✅ Nonce received:', { nonce: nonceData.nonce, messageLength: nonceData.message?.length });
                 
-                const signature = await window.ethereum.request({
-                    method: 'personal_sign',
-                    params: [message, address]
-                });
+                if (!nonceData.nonce || !nonceData.message) {
+                    console.error('❌ Invalid nonce response:', nonceData);
+                    throw new Error('Backend returned invalid nonce data');
+                }
                 
-                // ✅ FIXED: Backend-Endpunkt ist /api/auth/login
+                // STEP 2: Sign message with MetaMask
+                console.log('✍️ Requesting signature from MetaMask...');
+                console.log('📝 Message to sign:', nonceData.message);
+                
+                let signature;
+                try {
+                    signature = await window.ethereum.request({
+                        method: 'personal_sign',
+                        params: [nonceData.message, address]
+                    });
+                    console.log('✅ Signature obtained:', signature.substring(0, 20) + '...');
+                } catch (signError) {
+                    console.error('❌ MetaMask signature error:', signError);
+                    throw new Error('User rejected signature or MetaMask error: ' + signError.message);
+                }
+                
+                // STEP 3: Send signature to backend
+                console.log('📤 Sending signature to backend...');
                 const loginRes = await fetch(`${API_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ address, signature })
+                    body: JSON.stringify({ 
+                        address: address,
+                        signature: signature
+                    })
                 });
                 
+                console.log('📡 Login response status:', loginRes.status);
+                
                 if (!loginRes.ok) {
-                    const errorData = await loginRes.json();
-                    throw new Error(errorData.error || 'Login failed');
+                    const errorData = await loginRes.json().catch(() => ({ error: 'Unknown error' }));
+                    console.error('❌ Login failed:', errorData);
+                    throw new Error(errorData.error || errorData.message || `Login failed (${loginRes.status})`);
                 }
                 
                 const loginData = await loginRes.json();
+                console.log('✅ Login successful:', { user: loginData.user?.username, hasToken: !!loginData.token });
+                
+                // STEP 4: Store token and user data
+                if (!loginData.token) {
+                    throw new Error('Backend did not return authentication token');
+                }
                 
                 localStorage.setItem('klassik_token', loginData.token);
                 localStorage.setItem('klassik_user', JSON.stringify(loginData.user));
                 
-                // ✅ Initialize WebSocket mit Token
-                initWebSocket(loginData.token);
+                // STEP 5: Initialize WebSocket (non-blocking)
+                try {
+                    initWebSocket(loginData.token);
+                } catch (wsError) {
+                    console.warn('⚠️ WebSocket init failed (non-critical):', wsError);
+                }
                 
-                showAlert('Login successful! Redirecting...', 'success');
+                // STEP 6: Success - redirect
+                showAlert('Login successful! Redirecting to dashboard...', 'success');
                 
-                // ✅ FIXED: Use setTimeout to ensure async completion
                 setTimeout(() => {
                     window.location.href = 'kaspa-explorerv5.21.html';
-                }, 2000);
+                }, 1500);
                 
             } catch (error) {
-                console.error('Login error:', error);
+                console.error('❌ Login error:', error);
                 showAlert('Login failed: ' + error.message, 'error');
-                throw error; // Re-throw to be caught by caller
+                throw error; // Re-throw for caller
             }
         }
 
