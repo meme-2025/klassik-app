@@ -381,7 +381,7 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, async () => {
   console.log('');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('  🎵 Klassik Backend Server');
