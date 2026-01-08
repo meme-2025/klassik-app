@@ -13,8 +13,8 @@
         "ENABLE_WATCHER": "false",
         "ENABLE_BLOCKCHAIN_MONITOR": "true",
         "ENABLE_KLASSIK": "false",
-        "KASPA_RPC_SERVER": "http://localhost:16110",
-        "KASPA_POLL_INTERVAL": "10000"
+        "KASPA_API_SERVER": "https://api.kaspa.org",
+        "KASPA_POLL_INTERVAL": "30000"
       },
       "error_file": "/var/log/klassik/error.log",
       "out_file": "/var/log/klassik/out.log",
