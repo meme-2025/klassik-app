@@ -193,7 +193,7 @@ router.post('/register-legacy', async (req, res) => {
       });
     }
 
-    if (!ethers.utils.isAddress(address)) {
+    if (!ethers.isAddress(address)) {
       return res.status(400).json({ error: 'Invalid Ethereum address' });
     }
 
@@ -321,7 +321,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    if (!ethers.utils.isAddress(address)) {
+    if (!ethers.isAddress(address)) {
       return res.status(400).json({ error: 'Invalid Ethereum address' });
     }
 
