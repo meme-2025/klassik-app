@@ -71,23 +71,18 @@ class BlockchainMonitor {
   }
 
   /**
-   * Initialize monitoring state from database
+   * Initialize monitoring state from database (DISABLED - not needed for UTXO polling)
    */
   async initializeState() {
     try {
-      // Get last processed block/transaction
-      const result = await db.query(`
-        SELECT MAX(block_height) as last_block 
-        FROM processed_blocks 
-        WHERE chain = 'kaspa'
-      `);
-      
-      this.lastProcessedBlock = result.rows[0]?.last_block || 0;
+      // Disabled: processed_blocks table doesn't exist in production
+      // UTXO polling handles state automatically via tx_hash uniqueness
+      this.lastProcessedBlock = 0;
       
       // Load pending payments
       await this.loadPendingPayments();
       
-      console.log(`📊 Monitor state initialized: Last block ${this.lastProcessedBlock}, ${this.pendingPayments.size} pending payments`);
+      console.log(`📊 Monitor initialized: ${this.pendingPayments.size} pending payments`);
       
     } catch (error) {
       console.warn('Failed to initialize monitor state:', error);
