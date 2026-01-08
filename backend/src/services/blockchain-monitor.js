@@ -337,30 +337,30 @@ class BlockchainMonitor {
   /**
    * Process sacrifice transaction in database
    */
-  async processSacrificeTransaction(txHash, senderAddress, amount, tx) {
+  async processSacrificeTransaction(txHash, senderAddress, amount, tx, blockTime) {
     const client = await db.getClient();
     
     try {
       await client.query('BEGIN');
       
-      const pointsAwarded = Math.floor(amount * 100); // 1 KAS = 100 points
-      const blockTime = new Date((tx.timestamp || tx.time || Date.now()) / 1000);
+      const pointsEarned = Math.floor(amount * 100); // 1 KAS = 100 points
+      const blockTimestamp = blockTime ? new Date(blockTime) : new Date();
       
-      // Insert sacrifice transaction
+      // Insert sacrifice transaction (using schema column names: amount, points_earned)
       await client.query(`
         INSERT INTO sacrifice_transactions 
-        (kaspa_address, tx_hash, amount_kas, points_awarded, block_time, processed_at)
-        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+        (kaspa_address, tx_hash, amount, points_earned, block_time, verified, confirmations)
+        VALUES ($1, $2, $3, $4, $5, true, 1)
         ON CONFLICT (tx_hash) DO NOTHING
-      `, [senderAddress, txHash, amount, pointsAwarded, blockTime]);
+      `, [senderAddress, txHash, amount, pointsEarned, blockTimestamp]);
       
-      // Update user points if user exists
+      // Update user points if user exists (but don't require last_sacrifice_check column)
       const userResult = await client.query(`
         UPDATE users 
-        SET sacrifice_points = sacrifice_points + $1, last_sacrifice_check = CURRENT_TIMESTAMP
+        SET sacrifice_points = COALESCE(sacrifice_points, 0) + $1
         WHERE kaspa_address = $2
         RETURNING id, username, sacrifice_points
-      `, [pointsAwarded, senderAddress]);
+      `, [pointsEarned, senderAddress]);
       
       if (userResult.rows.length > 0) {
         const user = userResult.rows[0];
@@ -372,9 +372,9 @@ class BlockchainMonitor {
           ON CONFLICT (user_id) DO UPDATE SET
             points_total = user_points.points_total + $2,
             points_weekly = user_points.points_weekly + $2
-        `, [user.id, pointsAwarded]);
+        `, [user.id, pointsEarned]);
         
-        console.log(`✅ Updated user ${user.username}: +${pointsAwarded} points (Total: ${user.sacrifice_points})`);
+        console.log(`✅ Updated user ${user.username}: +${pointsEarned} points (Total: ${user.sacrifice_points})`);
         
         // Notify user specifically
         this.io.emit('user:sacrifice:updated', {
