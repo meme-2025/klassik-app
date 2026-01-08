@@ -240,25 +240,57 @@ class SacrificeSystem {
   }
 
   /**
-   * Validate if user has enough points for registration
+   * Validate if user has enough points for registration (FROM DATABASE)
    */
   async validateRegistrationEligibility(kaspaAddress, ethAddress) {
-    const sacrificeData = await this.checkSacrificeAmount(kaspaAddress);
+    console.log('🔍 Checking eligibility from database for:', kaspaAddress);
     
-    const eligible = sacrificeData.totalPoints >= MIN_POINTS_REQUIRED;
-    
-    return {
-      eligible,
-      kaspaAddress,
-      ethAddress,
-      currentPoints: sacrificeData.totalPoints,
-      requiredPoints: MIN_POINTS_REQUIRED,
-      totalSacrificed: sacrificeData.totalSacrificed,
-      sacrificeAddress: SACRIFICE_ADDRESS,
-      message: eligible 
-        ? 'Eligible for registration' 
-        : `Need ${MIN_POINTS_REQUIRED - sacrificeData.totalPoints} more points (${((MIN_POINTS_REQUIRED - sacrificeData.totalPoints) / POINTS_PER_KAS).toFixed(8)} KAS)`
-    };
+    try {
+      // Query sacrifice_transactions table (populated by BlockchainMonitor)
+      const result = await db.query(`
+        SELECT 
+          COUNT(*) as tx_count,
+          SUM(amount) as total_sompi,
+          SUM(points_earned) as total_points
+        FROM sacrifice_transactions
+        WHERE kaspa_address = $1 AND verified = true
+      `, [kaspaAddress]);
+      
+      const data = result.rows[0];
+      const totalPoints = parseInt(data.total_points) || 0;
+      const totalSompi = parseInt(data.total_sompi) || 0;
+      const totalKAS = totalSompi / 100000000; // Sompi to KAS
+      const txCount = parseInt(data.tx_count) || 0;
+      
+      console.log('📊 Database result:', {
+        txCount,
+        totalSompi,
+        totalKAS,
+        totalPoints,
+        requiredPoints: MIN_POINTS_REQUIRED
+      });
+      
+      const eligible = totalPoints >= MIN_POINTS_REQUIRED;
+      
+      return {
+        eligible,
+        kaspaAddress,
+        ethAddress,
+        currentPoints: totalPoints,
+        requiredPoints: MIN_POINTS_REQUIRED,
+        totalSacrificed: totalKAS,
+        transactionCount: txCount,
+        sacrificeAddress: SACRIFICE_ADDRESS,
+        tier: totalPoints >= 10000 ? 'Gold' : totalPoints >= 1000 ? 'Silver' : 'Bronze',
+        message: eligible 
+          ? `Eligible! You have ${totalPoints} points from ${totalKAS} KAS` 
+          : `Need ${MIN_POINTS_REQUIRED - totalPoints} more points (send ${((MIN_POINTS_REQUIRED - totalPoints) / POINTS_PER_KAS).toFixed(2)} KAS to ${SACRIFICE_ADDRESS})`
+      };
+      
+    } catch (error) {
+      console.error('❌ Database query failed:', error);
+      throw error;
+    }
   }
 }
 
