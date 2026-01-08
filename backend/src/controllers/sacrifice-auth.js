@@ -507,14 +507,14 @@ async function registerWithSacrifice(req, res) {
         await client.query(`
           INSERT INTO user_points (user_id, points_total, points_weekly)
           VALUES ($1, $2, $2)
-        `, [user.id, sacrificeData.totalPoints]);
+        `, [user.id, totalPoints]);
       } catch (err) {
         // Table might not exist - ignore
         console.warn('user_points table not found, skipping...');
       }
 
       // 8. Delete used nonce
-      await client.query('DELETE FROM auth_nonces WHERE address = $1 AND nonce = $2', [ethAddress.toLowerCase(), nonce]);
+      await client.query('DELETE FROM nonces WHERE address = $1 AND nonce = $2', [ethAddress.toLowerCase(), nonce]);
 
       await client.query('COMMIT');
 
