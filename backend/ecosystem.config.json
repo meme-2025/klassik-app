@@ -9,7 +9,10 @@
       "env": {
         "NODE_ENV": "production",
         "PORT": 8130,
-        "HOST": "0.0.0.0"
+        "HOST": "0.0.0.0",
+        "ENABLE_WATCHER": "false",
+        "ENABLE_BLOCKCHAIN_MONITOR": "false",
+        "ENABLE_KLASSIK": "false"
       },
       "error_file": "/var/log/klassik/error.log",
       "out_file": "/var/log/klassik/out.log",
