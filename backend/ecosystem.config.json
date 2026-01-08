@@ -8,10 +8,12 @@
       "exec_mode": "fork",
       "env": {
         "NODE_ENV": "production",
-        "PORT": 3000,
-        "HOST": "0.0.0.0"
+        "PORT": 8130,
+        "HOST": "0.0.0.0",
+        "ENABLE_WATCHER": "false",
+        "ENABLE_BLOCKCHAIN_MONITOR": "false",
+        "ENABLE_KLASSIK": "false"
       },
-      "env_file": "/etc/klassik/klassik1.env",
       "error_file": "/var/log/klassik/error.log",
       "out_file": "/var/log/klassik/out.log",
       "log_date_format": "YYYY-MM-DD HH:mm:ss Z",

@@ -10,9 +10,9 @@ const router = express.Router();
  */
 
 const KASPA_APIs = {
-  restServer: process.env.KASPA_REST_SERVER || null,
-  primary: 'https://api.kaspa.org',
-  explorer: 'https://explorer.kaspa.org/api'
+  restServer: process.env.KASPA_REST_SERVER || 'http://localhost:16110',
+  primary: null,
+  explorer: null
 };
 
 class ExplorerSearch {

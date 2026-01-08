@@ -25,7 +25,7 @@ const rateLimit = require('./middleware/rateLimit');
 const { validateOrderRequest, validateProductRequest } = require('./middleware/validation');
 const { startWatcher } = require('./watcher');
 const debugRoutes = require('./routes/debug');
-const klassikService = require('./klassik/klassik');
+const klassikService = process.env.ENABLE_KLASSIK !== 'false' ? require('./klassik/klassik') : null;
 const BlockchainMonitor = require('./services/blockchain-monitor');
 const sacrificeWatcher = require('./services/sacrifice-watcher');
 const GameEngine = require('./services/game-engine');
@@ -56,8 +56,10 @@ const io = new Server(server, {
   }
 });
 
-// Initialize blockchain monitor with WebSocket
-const blockchainMonitor = new BlockchainMonitor(io);
+// Initialize blockchain monitor with WebSocket (only if enabled)
+const blockchainMonitor = process.env.ENABLE_BLOCKCHAIN_MONITOR !== 'false' 
+  ? new BlockchainMonitor(io) 
+  : null;
 const gameEngine = new GameEngine(io);
 
 // Setup community manager with WebSocket
@@ -428,7 +430,7 @@ server.listen(PORT, HOST, async () => {
   }
 
   // Start Klassik microservice
-  if (process.env.ENABLE_KLASSIK !== 'false') {
+  if (klassikService && process.env.ENABLE_KLASSIK !== 'false') {
     klassikService.start().catch(err => {
       console.error('Failed to start Klassik service:', err);
     });
@@ -436,7 +438,7 @@ server.listen(PORT, HOST, async () => {
   }
 
   // Start blockchain monitoring
-  if (process.env.ENABLE_BLOCKCHAIN_MONITOR !== 'false') {
+  if (blockchainMonitor && process.env.ENABLE_BLOCKCHAIN_MONITOR !== 'false') {
     blockchainMonitor.start().catch(err => {
       console.error('Failed to start blockchain monitor:', err);
     });

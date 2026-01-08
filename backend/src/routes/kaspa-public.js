@@ -11,7 +11,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-const KASPA_API_URL = process.env.KASPA_API_URL || 'https://api.kaspa.org';
+const KASPA_API_URL = process.env.KASPA_REST_SERVER || 'http://localhost:16110';
 
 // ===== ADDRESS SEARCH =====
 router.get('/address/:address', async (req, res) => {
