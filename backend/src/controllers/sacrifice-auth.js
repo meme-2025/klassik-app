@@ -38,16 +38,25 @@ class SacrificeSystem {
       // Get all transactions TO the sacrifice address FROM this address
       const transactions = await this.getAddressTransactions(kaspaAddress);
       
+      console.log(`🔍 Processing ${transactions.length} transactions for ${kaspaAddress}`);
+      
       let totalSacrificed = 0;
       const sacrificeTxs = [];
 
       for (const tx of transactions) {
         // Check if any output goes to sacrifice address
         const outputs = tx.outputs || [];
+        
         for (const output of outputs) {
-          if (output.address === SACRIFICE_ADDRESS) {
+          // Support both 'address' and 'scriptPublicKeyAddress' fields
+          const outputAddress = output.address || output.scriptPublicKeyAddress || output.script_public_key_address;
+          
+          if (outputAddress === SACRIFICE_ADDRESS) {
             const amount = parseFloat(output.value || output.amount || 0);
             totalSacrificed += amount;
+            
+            console.log(`✅ Found sacrifice: ${amount} KAS in TX ${tx.hash || tx.id}`);
+            
             sacrificeTxs.push({
               txHash: tx.hash || tx.id,
               amount: amount,
@@ -57,6 +66,8 @@ class SacrificeSystem {
           }
         }
       }
+      
+      console.log(`💰 Total sacrificed: ${totalSacrificed} KAS (${sacrificeTxs.length} transactions)`);
 
       const result = {
         kaspaAddress,
@@ -92,6 +103,8 @@ class SacrificeSystem {
    */
   async getAddressTransactions(address, limit = 100) {
     try {
+      console.log(`📡 Fetching transactions for ${address}`);
+      
       // Try local node first
       if (KASPA_APIs.restServer) {
         try {
@@ -99,9 +112,10 @@ class SacrificeSystem {
             params: { limit },
             timeout: 10000
           });
+          console.log(`✅ Local node returned ${response.data?.length || 0} transactions`);
           return response.data || [];
         } catch (nodeError) {
-          console.warn('Local node unavailable, using public API');
+          console.warn('⚠️ Local node unavailable, using public API');
         }
       }
 
@@ -111,10 +125,21 @@ class SacrificeSystem {
         timeout: 10000
       });
       
+      console.log(`✅ Public API returned ${response.data?.length || 0} transactions`);
+      
+      // Debug: Log first transaction structure if available
+      if (response.data && response.data.length > 0) {
+        console.log('📋 Sample transaction structure:', JSON.stringify(response.data[0], null, 2).substring(0, 500));
+      }
+      
       return response.data || [];
 
     } catch (error) {
-      console.warn('Failed to fetch transactions for', address, error.message);
+      console.error(`❌ Failed to fetch transactions for ${address}:`, error.message);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
       return [];
     }
   }
