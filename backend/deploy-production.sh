@@ -117,16 +117,39 @@ echo "✅ Dependencies installed"
 echo ""
 echo "🗄️ Setting up database..."
 
-# Create database user
-sudo -u postgres psql -c "CREATE USER klassik3_writer WITH PASSWORD 'CHANGE_ME_STRONG_PASSWORD';" || true
-sudo -u postgres psql -c "CREATE DATABASE klassik3_production OWNER klassik3_writer;" || true
+# Create database user and set password
+sudo -u postgres psql << EOF
+-- Create user if not exists
+DO \$\$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'klassik3_writer') THEN
+        CREATE USER klassik3_writer WITH PASSWORD 'CHANGE_ME_STRONG_PASSWORD';
+        RAISE NOTICE 'User klassik3_writer created';
+    ELSE
+        RAISE NOTICE 'User klassik3_writer already exists';
+    END IF;
+END
+\$\$;
+
+-- Create database if not exists
+SELECT 'CREATE DATABASE klassik3_production OWNER klassik3_writer'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'klassik3_production')\gexec
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON DATABASE klassik3_production TO klassik3_writer;
+EOF
 
 echo "✅ Database created"
 
 # Run migrations
 echo "Running database migrations..."
-cd /home/klassik/backend
-sudo -u klassik psql -U klassik3_writer -d klassik3_production -f ../db/production-state-management.sql
+if [ -f /home/klassik/db/production-state-management.sql ]; then
+    sudo -u postgres psql -d klassik3_production -f /home/klassik/db/production-state-management.sql
+elif [ -f ../db/production-state-management.sql ]; then
+    sudo -u postgres psql -d klassik3_production -f ../db/production-state-management.sql
+else
+    echo "⚠️ Migration file not found, skipping migrations"
+fi
 
 echo "✅ Migrations complete"
 
