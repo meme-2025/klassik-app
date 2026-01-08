@@ -157,6 +157,17 @@
             }
         }
 
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
         .card-content {
             position: relative;
             z-index: 1;
@@ -392,8 +403,15 @@
                 </div>
 
                 <div class="info-section">
-                    <strong>📍 Sacrifice Address:</strong><br>
-                    <code style="color: var(--neon-cyan); word-break: break-all;">kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc</code><br><br>
+                    <strong>📍 Sacrifice Address:</strong>
+                    <button onclick="copyAddress()" style="margin-left: 10px; background: rgba(0, 243, 255, 0.2); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 0.3rem 0.6rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem;">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <br>
+                    <code id="sacrificeAddressCode" style="color: var(--neon-cyan); word-break: break-all; cursor: pointer;" onclick="copyAddress()">kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc</code><br><br>
+                    <button class="btn" onclick="showInfoModal()" style="background: rgba(255, 255, 0, 0.2); border: 2px solid var(--neon-yellow); color: var(--neon-yellow); margin-top: 1rem;">
+                        <i class="fas fa-info-circle"></i> HOW IT WORKS
+                    </button><br><br>
                     <strong>💎 Tiers:</strong> Bronze (1K-9.9K), Silver (10K-49.9K), Gold (50K-99.9K), Diamond (100K+)<br>
                     <strong>⚠️ Warning:</strong> Sacrificed KAS will be permanently sent to the address above.
                 </div>
@@ -408,7 +426,7 @@
             // Auto-detect API URL based on environment
             API_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
                 ? 'http://localhost:3001' 
-                : 'http://klassik.99pace.space:8130',
+                : 'https://klassik.99pace.space:8130',
             SACRIFICE_ADDRESS: 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc',
             SOMPI_PER_KAS: 100000000,
             TIERS: {
@@ -631,7 +649,6 @@
                 }
 
                 document.getElementById('totalSacrificed').textContent = formatNumber(total);
-                document.getElementById('totalParticipants').textContent = addresses.size;
                 document.getElementById('yourPoints').textContent = formatNumber(userPoints);
             } catch (error) {
                 console.error('Stats error:', error);
@@ -964,6 +981,123 @@
                 btn.textContent = 'Try Again';
                 btn.disabled = false;
             }
+        }
+
+        // ===== COPY TO CLIPBOARD =====
+        function copyAddress() {
+            const address = CONFIG.SACRIFICE_ADDRESS;
+            navigator.clipboard.writeText(address).then(() => {
+                showAlert('✅ Address copied to clipboard!', 'success');
+            }).catch(err => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = address;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showAlert('✅ Address copied to clipboard!', 'success');
+            });
+        }
+
+        // ===== INFO MODAL =====
+        function showInfoModal() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                z-index: 10000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    border: 2px solid var(--neon-cyan);
+                    border-radius: 20px;
+                    padding: 2rem;
+                    max-width: 600px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    box-shadow: 0 0 50px var(--neon-cyan);
+                    position: relative;
+                ">
+                    <button onclick="this.closest('div').parentElement.remove()" style="
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background: transparent;
+                        border: 2px solid var(--neon-pink);
+                        color: var(--neon-pink);
+                        width: 35px;
+                        height: 35px;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        transition: all 0.3s;
+                    " onmouseover="this.style.background='var(--neon-pink)'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='var(--neon-pink)';">
+                        ×
+                    </button>
+                    
+                    <h2 style="color: var(--neon-cyan); margin-bottom: 1.5rem; font-size: 2rem; text-align: center;">
+                        🔥 HOW SACRIFICE WORKS 🔥
+                    </h2>
+                    
+                    <div style="color: #fff; line-height: 1.8; font-size: 1rem;">
+                        <div style="background: rgba(0, 243, 255, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid var(--neon-cyan);">
+                            <h3 style="color: var(--neon-green); margin-bottom: 0.5rem;">📝 STEP 1: Connect Your Wallet</h3>
+                            <p>Click "CONNECT WALLET" and approve the MetaMask connection. We'll check if you're already registered.</p>
+                        </div>
+                        
+                        <div style="background: rgba(255, 0, 255, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid var(--neon-pink);">
+                            <h3 style="color: var(--neon-green); margin-bottom: 0.5rem;">💎 STEP 2: Send KAS to Sacrifice Address</h3>
+                            <p>Send at least <strong>1,000 KAS</strong> to the sacrifice address:</p>
+                            <code style="background: #000; padding: 0.5rem; border-radius: 5px; display: block; margin-top: 0.5rem; word-break: break-all; color: var(--neon-cyan);">
+                                kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc
+                            </code>
+                            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--neon-yellow);">
+                                ⚠️ Use your personal Kaspa wallet (KasWare, Kaspium, etc.) to send the transaction.
+                            </p>
+                        </div>
+                        
+                        <div style="background: rgba(0, 255, 136, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid var(--neon-green);">
+                            <h3 style="color: var(--neon-green); margin-bottom: 0.5rem;">✅ STEP 3: Verify & Register</h3>
+                            <p>After sending, enter your Kaspa wallet address when prompted. We'll verify your transaction and calculate your points based on the tier:</p>
+                            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                <li><strong>Bronze 🥉</strong>: 1K-9.9K KAS → 2,500 points/K</li>
+                                <li><strong>Silver 🥈</strong>: 10K-49.9K KAS → 3,750 points/K</li>
+                                <li><strong>Gold 🥇</strong>: 50K-99.9K KAS → 4,375 points/K</li>
+                                <li><strong>Diamond 💎</strong>: 100K+ KAS → 5,000 points/K</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: rgba(255, 255, 0, 0.1); padding: 1rem; border-radius: 10px; border-left: 4px solid var(--neon-yellow);">
+                            <h3 style="color: var(--neon-green); margin-bottom: 0.5rem;">🎉 STEP 4: Access the Platform</h3>
+                            <p>Once verified, choose a username and sign with MetaMask. You'll get instant access to the Klassik dashboard!</p>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                            <p style="color: var(--neon-pink); font-weight: bold;">
+                                ⚠️ WARNING: Sacrificed KAS is non-refundable and sent directly to the sacrifice address.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
         }
 
         // ===== EVENT LISTENERS =====
