@@ -11,31 +11,13 @@ const liveMonitor = require('../middleware/live-monitor');
  * - WebSocket notifications for users
  */
 
-const KASPA_RPC = {
-  server: process.env.KASPA_RPC_SERVER || 'http://localhost:16110'
+const KASPA_API = {
+  server: process.env.KASPA_API_SERVER || 'https://api.kaspa.org'
 };
 
-const POLL_INTERVAL = parseInt(process.env.KASPA_POLL_INTERVAL || '10000'); // 10 seconds
+const POLL_INTERVAL = parseInt(process.env.KASPA_POLL_INTERVAL || '30000'); // 30 seconds
 const SACRIFICE_ADDRESS = process.env.KASPA_SACRIFICE_ADDRESS || 'kaspa:qr25pe5pfa4mhs8slw3dvxud4x55zx73tkz4xnpfyudnf7j8czzlsvf3vksdc';
-
-/**
- * Make JSON-RPC call to Kaspa node
- */
-async function kaspaRPC(method, params = {}) {
-  try {
-    const response = await axios.post(KASPA_RPC.server, {
-      method,
-      params
-    }, {
-      timeout: 10000,
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
-    return response.data;
-  } catch (error) {
-    throw new Error(`Kaspa RPC ${method} failed: ${error.message}`);
-  }
-}
+const SOMPI_PER_KAS = 100000000; // 1 KAS = 100M Sompi
 
 class BlockchainMonitor {
   constructor(io) {
@@ -201,21 +183,21 @@ class BlockchainMonitor {
   }
 
   /**
-   * Process new transactions from Kaspa blockchain
+   * Process new transactions (UTXOs) from Kaspa blockchain
    */
   async processNewTransactions() {
     try {
-      const transactions = await this.getRecentTransactions();
+      const utxos = await this.getRecentTransactions();
       
-      for (const tx of transactions) {
-        const txHash = tx.hash || tx.id || tx.transaction_id;
+      for (const utxo of utxos) {
+        const txid = utxo.outpoint?.transactionId;
         
-        if (!txHash || this.processedTxs.has(txHash)) {
+        if (!txid || this.processedTxs.has(txid)) {
           continue; // Skip duplicates
         }
         
-        await this.processSingleTransaction(tx);
-        this.processedTxs.add(txHash);
+        await this.processSingleUTXO(utxo);
+        this.processedTxs.add(txid);
         
         // Limit processed tx cache size
         if (this.processedTxs.size > 10000) {
@@ -230,32 +212,20 @@ class BlockchainMonitor {
   }
 
   /**
-   * Process a single transaction
+   * Process a single UTXO (represents a payment to sacrifice address)
    */
-  async processSingleTransaction(tx) {
+  async processSingleUTXO(utxo) {
     try {
-      const txHash = tx.hash || tx.id || tx.transaction_id;
-      const outputs = tx.outputs || tx.vout || [];
+      const txid = utxo.outpoint?.transactionId;
+      const amount = parseInt(utxo.utxoEntry?.amount || 0);
       
-      for (const output of outputs) {
-        const address = output.address || output.scriptPubKey?.addresses?.[0];
-        const amount = parseFloat(output.value || output.amount || 0);
-        
-        if (!address || amount <= 0) continue;
-        
-        // Check if this is a payment
-        if (this.pendingPayments.has(address)) {
-          await this.processPaymentReceived(txHash, address, amount, tx);
-        }
-        
-        // Check if this is a sacrifice
-        if (address === SACRIFICE_ADDRESS) {
-          await this.processSacrificeReceived(txHash, tx, amount);
-        }
-      }
+      if (!txid || amount <= 0) return;
+      
+      // This UTXO is to the sacrifice address, so process it
+      await this.processSacrificeReceived(txid, null, amount);
       
     } catch (error) {
-      console.error('Failed to process single transaction:', error);
+      console.error('Failed to process UTXO:', error);
     }
   }
 
@@ -314,38 +284,53 @@ class BlockchainMonitor {
   }
 
   /**
-   * Process sacrifice transaction
+   * Process sacrifice transaction with sender address from change output
    */
   async processSacrificeReceived(txHash, tx, amount) {
     try {
-      const inputs = tx.inputs || tx.vin || [];
-      
-      // Determine sender address
-      let senderAddress = null;
-      for (const input of inputs) {
-        const addr = input.address || input.scriptSig?.addresses?.[0];
-        if (addr) {
-          senderAddress = addr;
-          break;
-        }
+      // Get full transaction to find sender
+      let fullTx = tx;
+      if (!tx.outputs || !tx.outputs.length) {
+        fullTx = await this.getTransaction(txHash);
       }
       
-      if (!senderAddress) {
-        console.warn('Could not determine sender for sacrifice transaction:', txHash);
+      if (!fullTx) {
+        console.warn('Could not load full transaction:', txHash);
         return;
       }
       
-      console.log(`🔥 Sacrifice detected: ${amount} KAS from ${senderAddress}`);
+      // Get sender from change output (non-sacrifice address)
+      const senderAddress = this.getSenderAddress(fullTx);
+      
+      if (!senderAddress) {
+        console.warn('Could not determine sender for sacrifice:', txHash);
+        return;
+      }
+      
+      // Convert sompi to KAS
+      const amountKAS = amount / SOMPI_PER_KAS;
+      const blockTime = fullTx.block_time || fullTx.accepting_block_time || Date.now();
+      
+      console.log(`🔥 Sacrifice detected: ${amountKAS} KAS from ${senderAddress} (tx: ${txHash})`);
       
       // Process sacrifice
-      await this.processSacrificeTransaction(txHash, senderAddress, amount, tx);
+      await this.processSacrificeTransaction(txHash, senderAddress, amountKAS, fullTx, blockTime);
       
       // Track in live monitor
-      liveMonitor.trackWalletTransaction(txHash, amount, senderAddress, 'sacrifice');
+      liveMonitor.trackWalletTransaction(txHash, amountKAS, senderAddress, 'sacrifice');
       
       // Notify via WebSocket
       this.io.emit('sacrifice:received', {
         txHash,
+        sender: senderAddress,
+        amount: amountKAS,
+        timestamp: blockTime
+      });
+      
+    } catch (error) {
+      console.error('Failed to process sacrifice:', error);
+    }
+  }
         senderAddress,
         amount,
         timestamp: new Date().toISOString()
@@ -490,34 +475,63 @@ class BlockchainMonitor {
   }
 
   /**
-   * Get UTXOs (transactions) for specific address using Kaspa JSON-RPC
+   * Get UTXOs (transactions) for address using Kaspa REST API
    */
   async getAddressTransactions(address) {
     try {
-      const result = await kaspaRPC('getUtxosByAddresses', {
-        addresses: [address]
-      });
+      const url = `${KASPA_API.server}/addresses/${address}/utxos`;
+      const response = await axios.get(url, { timeout: 10000 });
       
-      return result.entries || [];
+      // Response is array of UTXOs: [{address, outpoint: {transactionId, index}, utxoEntry: {amount, blockDaaScore, ...}}]
+      return response.data || [];
     } catch (error) {
-      console.warn('❌ Failed to get address transactions:', error.message);
-      console.warn('   Make sure Kaspa node is running on', KASPA_RPC.server);
+      console.warn('❌ Failed to get address UTXOs:', error.message);
       return [];
     }
   }
 
   /**
-   * Get balance for specific address using Kaspa JSON-RPC
+   * Get full transaction details including sender address
+   */
+  async getTransaction(txid) {
+    try {
+      const url = `${KASPA_API.server}/transactions/${txid}`;
+      const response = await axios.get(url, { timeout: 10000 });
+      
+      // Response: {transaction_id, inputs: [...], outputs: [{script_public_key_address, amount}, ...], block_time, ...}
+      return response.data || null;
+    } catch (error) {
+      console.warn(`❌ Failed to get transaction ${txid}:`, error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Extract sender address from transaction (finds non-sacrifice output address = change address = sender)
+   */
+  getSenderAddress(tx) {
+    if (!tx || !tx.outputs) return null;
+    
+    // Find the output that is NOT the sacrifice address (that's the sender's change address)
+    const senderOutput = tx.outputs.find(out => 
+      out.script_public_key_address && 
+      out.script_public_key_address !== SACRIFICE_ADDRESS
+    );
+    
+    return senderOutput ? senderOutput.script_public_key_address : null;
+  }
+
+  /**
+   * Get balance for specific address using Kaspa REST API
    */
   async getAddressBalance(address) {
     try {
-      const result = await kaspaRPC('getBalanceByAddress', {
-        address: address
-      });
+      const url = `${KASPA_API.server}/addresses/${address}/balance`;
+      const response = await axios.get(url, { timeout: 5000 });
       
-      // Balance is in sompi (1 KAS = 100,000,000 sompi)
-      const balanceSompi = parseInt(result.balance || 0);
-      const balanceKAS = balanceSompi / 100000000;
+      // Response: {address: "...", balance: "200000000"} in Sompi
+      const balanceSompi = parseInt(response.data.balance || 0);
+      const balanceKAS = balanceSompi / SOMPI_PER_KAS;
       
       return balanceKAS;
     } catch (error) {
@@ -527,11 +541,10 @@ class BlockchainMonitor {
   }
 
   /**
-   * Get recent transactions (monitor UTXO changes for sacrifice address)
+   * Get recent transactions (UTXOs for sacrifice address)
    */
   async getRecentTransactions(limit = 100) {
     try {
-      // Get UTXOs for sacrifice address
       const utxos = await this.getAddressTransactions(SACRIFICE_ADDRESS);
       return utxos.slice(0, limit);
     } catch (error) {
