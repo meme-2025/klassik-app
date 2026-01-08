@@ -2,6 +2,7 @@ const axios = require('axios');
 const db = require('../db');
 const { SacrificeSystem } = require('../controllers/sacrifice-auth');
 const { KaspaPaymentProcessor } = require('../controllers/kaspa-payments');
+const liveMonitor = require('../middleware/live-monitor');
 
 /**
  * Comprehensive Blockchain Monitoring System
@@ -259,6 +260,14 @@ class BlockchainMonitor {
         // Remove from pending
         this.pendingPayments.delete(paymentAddress);
         
+        // Track in live monitor
+        liveMonitor.trackPayment({
+          orderId: pendingPayment.orderId,
+          amount,
+          currency: 'KAS',
+          txHash
+        });
+        
         // Notify via WebSocket
         this.io.emit('payment:confirmed', {
           orderId: pendingPayment.orderId,
@@ -313,6 +322,9 @@ class BlockchainMonitor {
       
       // Process sacrifice
       await this.processSacrificeTransaction(txHash, senderAddress, amount, tx);
+      
+      // Track in live monitor
+      liveMonitor.trackWalletTransaction(txHash, amount, senderAddress, 'sacrifice');
       
       // Notify via WebSocket
       this.io.emit('sacrifice:received', {

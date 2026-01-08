@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔥 Klassik Live Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <style>
+    body { 
+      background: #0a0a0a; 
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+    .pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .5; }
+    }
+    .event-item {
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(-10px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .metric-card {
+      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+      border: 1px solid #2a2a3e;
+    }
+    .status-online { color: #10b981; }
+    .status-offline { color: #ef4444; }
+    .status-idle { color: #f59e0b; }
+  </style>
+</head>
+<body class="text-gray-100 p-6">
+  
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-4xl font-bold mb-2">🔥 Klassik Live Monitor</h1>
+        <p class="text-gray-400">Echtzeit-Überwachung aller Backend-Events</p>
+      </div>
+      <div class="text-right">
+        <div id="connectionStatus" class="text-2xl pulse">🔴 Connecting...</div>
+        <div class="text-sm text-gray-500" id="timestamp">--:--:--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- Active Visitors -->
+    <div class="metric-card rounded-lg p-6">
+      <div class="text-gray-400 text-sm mb-2">🌐 Live Besucher</div>
+      <div class="text-4xl font-bold" id="activeVisitors">0</div>
+      <div class="text-xs text-gray-500 mt-2">online jetzt</div>
+    </div>
+
+    <!-- Total Requests -->
+    <div class="metric-card rounded-lg p-6">
+      <div class="text-gray-400 text-sm mb-2">📊 API Requests</div>
+      <div class="text-4xl font-bold" id="totalRequests">0</div>
+      <div class="text-xs text-red-400 mt-2">Fehler: <span id="totalErrors">0</span></div>
+    </div>
+
+    <!-- Active Games -->
+    <div class="metric-card rounded-lg p-6">
+      <div class="text-gray-400 text-sm mb-2">🎮 Aktive Games</div>
+      <div class="text-4xl font-bold" id="activeGames">0</div>
+      <div class="text-xs text-gray-500 mt-2">Sessions laufend</div>
+    </div>
+
+    <!-- Payments Today -->
+    <div class="metric-card rounded-lg p-6">
+      <div class="text-gray-400 text-sm mb-2">💰 Zahlungen</div>
+      <div class="text-4xl font-bold" id="totalPayments">0</div>
+      <div class="text-xs text-green-400 mt-2">Registrierungen: <span id="totalRegistrations">0</span></div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Live Events Feed -->
+    <div class="lg:col-span-2">
+      <div class="metric-card rounded-lg p-6">
+        <h2 class="text-xl font-bold mb-4">📡 Live Event Stream</h2>
+        <div id="eventsFeed" class="space-y-2 max-h-96 overflow-y-auto">
+          <div class="text-gray-500 text-center py-8">Warte auf Events...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Visitors -->
+    <div>
+      <div class="metric-card rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">👥 Live Besucher</h2>
+        <div id="visitorsList" class="space-y-3 max-h-48 overflow-y-auto">
+          <div class="text-gray-500 text-sm">Keine Besucher</div>
+        </div>
+      </div>
+
+      <!-- Active Games -->
+      <div class="metric-card rounded-lg p-6">
+        <h2 class="text-xl font-bold mb-4">🎮 Game Sessions</h2>
+        <div id="gamesList" class="space-y-3 max-h-48 overflow-y-auto">
+          <div class="text-gray-500 text-sm">Keine aktiven Games</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top API Endpoints -->
+  <div class="mt-6">
+    <div class="metric-card rounded-lg p-6">
+      <h2 class="text-xl font-bold mb-4">📈 Top API Endpoints</h2>
+      <div id="topEndpoints" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="text-gray-500 text-sm">Keine Daten</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Connect to WebSocket
+    const socket = io({
+      auth: {
+        // Monitor-Zugang ohne User-Token (kann später mit Admin-Token gesichert werden)
+        token: 'MONITOR_ACCESS'
+      }
+    });
+
+    // State
+    let eventsCount = 0;
+
+    // Connection Status
+    socket.on('connect', () => {
+      document.getElementById('connectionStatus').innerHTML = '🟢 Connected';
+      document.getElementById('connectionStatus').classList.remove('pulse');
+      console.log('✅ Monitor connected to backend');
+      
+      // Join monitor room
+      socket.emit('join:monitor');
+    });
+
+    socket.on('disconnect', () => {
+      document.getElementById('connectionStatus').innerHTML = '🔴 Disconnected';
+      document.getElementById('connectionStatus').classList.add('pulse');
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('Connection error:', err.message);
+      document.getElementById('connectionStatus').innerHTML = '⚠️ Error';
+    });
+
+    // Update timestamp
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('timestamp').textContent = now.toLocaleTimeString('de-DE');
+    }, 1000);
+
+    // Listen for events
+    socket.on('event', (event) => {
+      addEventToFeed(event);
+    });
+
+    socket.on('visitors:update', (data) => {
+      updateVisitors(data);
+    });
+
+    socket.on('games:update', (data) => {
+      updateGames(data);
+    });
+
+    socket.on('stats:update', (stats) => {
+      updateStats(stats);
+    });
+
+    socket.on('monitor:state', (state) => {
+      // Initial load
+      console.log('Initial state received:', state);
+      updateStats(state.stats);
+      updateVisitors({ visitors: state.visitors, count: state.visitors.length });
+      updateGames({ sessions: state.games, count: state.games.length });
+      
+      // Add recent events
+      state.recentEvents.forEach(event => {
+        addEventToFeed(event, false);
+      });
+    });
+
+    // Functions
+    function addEventToFeed(event, animate = true) {
+      const feed = document.getElementById('eventsFeed');
+      
+      // Clear placeholder
+      if (feed.querySelector('.text-gray-500')) {
+        feed.innerHTML = '';
+      }
+
+      const eventEl = document.createElement('div');
+      eventEl.className = `event-item p-3 rounded bg-gray-800 border-l-4 ${getEventColor(event.type)} ${animate ? '' : 'opacity-70'}`;
+      
+      eventEl.innerHTML = `
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-lg">${getEventIcon(event.type)}</span>
+              <span class="font-semibold">${getEventTitle(event.type)}</span>
+              <span class="text-xs text-gray-500">${formatTime(event.timestamp)}</span>
+            </div>
+            <div class="text-sm text-gray-400">${formatEventDetails(event)}</div>
+          </div>
+        </div>
+      `;
+
+      feed.insertBefore(eventEl, feed.firstChild);
+
+      // Keep only last 50 events
+      while (feed.children.length > 50) {
+        feed.removeChild(feed.lastChild);
+      }
+
+      eventsCount++;
+    }
+
+    function updateVisitors(data) {
+      document.getElementById('activeVisitors').textContent = data.count;
+      
+      const list = document.getElementById('visitorsList');
+      if (data.visitors.length === 0) {
+        list.innerHTML = '<div class="text-gray-500 text-sm">Keine Besucher</div>';
+        return;
+      }
+
+      list.innerHTML = data.visitors.map(v => `
+        <div class="p-2 bg-gray-800 rounded text-sm">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-mono text-xs">${v.id}</span>
+            <span class="${v.isLoggedIn ? 'status-online' : 'status-idle'}">
+              ${v.isLoggedIn ? '🟢' : '🟡'}
+            </span>
+          </div>
+          <div class="text-xs text-gray-400">📍 ${v.location}</div>
+          <div class="text-xs text-gray-500 truncate">🌐 ${v.currentPath}</div>
+          ${v.userId ? `<div class="text-xs text-green-400">👤 User ${v.userId}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function updateGames(data) {
+      document.getElementById('activeGames').textContent = data.count;
+      
+      const list = document.getElementById('gamesList');
+      if (data.sessions.length === 0) {
+        list.innerHTML = '<div class="text-gray-500 text-sm">Keine aktiven Games</div>';
+        return;
+      }
+
+      list.innerHTML = data.sessions.map(s => `
+        <div class="p-2 bg-gray-800 rounded text-sm">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-semibold">👤 User ${s.userId}</span>
+            <span class="status-online">🟢</span>
+          </div>
+          <div class="text-xs text-gray-400">🎮 ${s.gameType}</div>
+          <div class="text-xs text-gray-500">⏱️ ${formatDuration(s.duration)}</div>
+        </div>
+      `).join('');
+    }
+
+    function updateStats(stats) {
+      document.getElementById('totalRequests').textContent = stats.totalRequests || 0;
+      document.getElementById('totalErrors').textContent = stats.totalErrors || 0;
+      document.getElementById('totalPayments').textContent = stats.payments || 0;
+      document.getElementById('totalRegistrations').textContent = stats.registrations || 0;
+
+      // Update top endpoints
+      if (stats.topEndpoints && stats.topEndpoints.length > 0) {
+        const container = document.getElementById('topEndpoints');
+        container.innerHTML = stats.topEndpoints.map(e => `
+          <div class="p-3 bg-gray-800 rounded">
+            <div class="text-sm font-mono mb-1 truncate">${e.endpoint}</div>
+            <div class="text-2xl font-bold text-blue-400">${e.count}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Helper functions
+    function getEventIcon(type) {
+      const icons = {
+        'user_registered': '✅',
+        'user_login': '🔐',
+        'game_started': '🎮',
+        'game_ended': '🏁',
+        'payment_received': '💰',
+        'wallet_transaction': '🔗',
+        'api_request': '📡',
+        'error': '❌'
+      };
+      return icons[type] || '📌';
+    }
+
+    function getEventTitle(type) {
+      const titles = {
+        'user_registered': 'Neue Registrierung',
+        'user_login': 'User Login',
+        'game_started': 'Game gestartet',
+        'game_ended': 'Game beendet',
+        'payment_received': 'Zahlung eingegangen',
+        'wallet_transaction': 'Blockchain TX',
+        'api_request': 'API Request',
+        'error': 'Fehler'
+      };
+      return titles[type] || type;
+    }
+
+    function getEventColor(type) {
+      const colors = {
+        'user_registered': 'border-green-500',
+        'user_login': 'border-blue-500',
+        'game_started': 'border-purple-500',
+        'game_ended': 'border-gray-500',
+        'payment_received': 'border-yellow-500',
+        'wallet_transaction': 'border-orange-500',
+        'api_request': 'border-cyan-500',
+        'error': 'border-red-500'
+      };
+      return colors[type] || 'border-gray-500';
+    }
+
+    function formatEventDetails(event) {
+      switch(event.type) {
+        case 'user_registered':
+          return `User: ${event.email} | Wallet: ${event.address?.substring(0, 10)}...`;
+        case 'user_login':
+          return `User: ${event.email}`;
+        case 'game_started':
+          return `User ${event.userId} | Game: ${event.gameType}`;
+        case 'game_ended':
+          return `User ${event.userId} | Dauer: ${formatDuration(event.duration)}`;
+        case 'payment_received':
+          return `Order ${event.orderId} | ${event.amount} ${event.currency || 'KAS'}`;
+        case 'wallet_transaction':
+          return `${event.amount} KAS | TX: ${event.txHash?.substring(0, 16)}...`;
+        case 'api_request':
+          return `${event.method} ${event.path} | ${event.status} | ${event.duration}ms`;
+        default:
+          return JSON.stringify(event).substring(0, 100);
+      }
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString('de-DE');
+    }
+
+    function formatDuration(ms) {
+      if (!ms) return '0s';
+      const seconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(seconds / 60);
+      if (minutes > 0) {
+        return `${minutes}m ${seconds % 60}s`;
+      }
+      return `${seconds}s`;
+    }
+
+    // Request initial state on load
+    setTimeout(() => {
+      socket.emit('monitor:request-state');
+    }, 1000);
+  </script>
+
+</body>
+</html>

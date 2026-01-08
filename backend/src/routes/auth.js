@@ -20,6 +20,7 @@ const crypto = require('crypto');
 const db = require('../db');
 const { ethers } = require('ethers');
 const sacrificeAuth = require('../controllers/sacrifice-auth');
+const liveMonitor = require('../middleware/live-monitor');
 
 const router = express.Router();
 
@@ -270,6 +271,9 @@ router.post('/register-legacy', async (req, res) => {
 
     console.log(`✅ Wallet registered: ${normalized} → ${username}`);
 
+    // Track registration in live monitor
+    liveMonitor.trackRegistration(user.id, username, user.address);
+
     res.status(201).json({
       message: 'Registration successful',
       user: {
@@ -390,6 +394,9 @@ router.post('/login', async (req, res) => {
     }
 
     console.log(`✅ Wallet login: ${user.username} (${normalized})`);
+
+    // Track login in live monitor
+    liveMonitor.trackLogin(user.id, user.username);
 
     res.json({
       message: 'Login successful',

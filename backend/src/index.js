@@ -28,6 +28,8 @@ const debugRoutes = require('./routes/debug');
 const klassikService = require('./klassik/klassik');
 const BlockchainMonitor = require('./services/blockchain-monitor');
 const healthController = require('./controllers/health');
+const liveMonitor = require('./middleware/live-monitor');
+const diagnosticRoutes = require('./routes/diagnostic');
 
 // ✅ NEW: Enhanced middleware imports
 const {
@@ -58,6 +60,9 @@ const blockchainMonitor = new BlockchainMonitor(io);
 // Setup community manager with WebSocket
 communityManager.setWebSocket(io);
 
+// Initialize Live Monitor
+liveMonitor.init(io);
+
 // ✅ CORS configuration - SECURED
 const ALLOWED_ORIGINS = [
   'https://klassik.99pace.space',
@@ -83,6 +88,9 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
+
+// Live monitoring middleware (tracks all requests)
+app.use(liveMonitor.trackRequest());
 
 // Request logging middleware (development)
 if (process.env.NODE_ENV === 'development') {
@@ -134,6 +142,9 @@ app.use('/api/events', eventsRoutes);
 
 // Debug routes (protected by ADMIN_TOKEN header)
 app.use('/api/debug', debugRoutes);
+
+// Diagnostic routes (system health & troubleshooting)
+app.use('/api/diagnostic', diagnosticRoutes);
 
 // Bookings routes (protected)
 app.use('/api/bookings', bookingsRoutes);
@@ -218,6 +229,13 @@ io.use(async (socket, next) => {
   try {
     const token = socket.handshake.auth.token;
     
+    // Allow monitor access without user token
+    if (token === 'MONITOR_ACCESS') {
+      socket.isMonitor = true;
+      console.log('📊 Monitor dashboard connecting...');
+      return next();
+    }
+    
     if (!token) {
       console.warn('❌ WebSocket connection without token');
       return next(new Error('Authentication required'));
@@ -236,7 +254,22 @@ io.use(async (socket, next) => {
 });
 
 // WebSocket connection handling (NOW SECURED)
-io.on('connection', (socket) => {
+io// Monitor room (special access - könnte später gesichert werden)
+  socket.on('join:monitor', () => {
+    socket.join('monitor');
+    console.log(`📊 Monitor dashboard connected: ${socket.id}`);
+    
+    // Send current state
+    const state = liveMonitor.getCurrentState();
+    socket.emit('monitor:state', state);
+  });
+  
+  socket.on('monitor:request-state', () => {
+    const state = liveMonitor.getCurrentState();
+    socket.emit('monitor:state', state);
+  });
+  
+  .on('connection', (socket) => {
   console.log(`🔌 Authenticated client connected: ${socket.id} (User: ${socket.userId})`);
   
   socket.on('subscribe:payments', async (orderId) => {
