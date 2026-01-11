@@ -502,7 +502,12 @@ async function registerWithSacrifice(req, res) {
       // 6. Sacrifice transactions already in DB (processed by BlockchainMonitor)
       // No need to re-process them here
 
-      // 7. Initialize user points (if user_points table exists)
+      // 7. Delete used nonce
+      await client.query('DELETE FROM nonces WHERE address = $1 AND nonce = $2', [ethAddress.toLowerCase(), nonce]);
+
+      await client.query('COMMIT');
+
+      // 8. Initialize user points (if user_points table exists) - after commit to avoid transaction abort
       try {
         await client.query(`
           INSERT INTO user_points (user_id, points_total, points_weekly)
@@ -512,11 +517,6 @@ async function registerWithSacrifice(req, res) {
         // Table might not exist - ignore
         console.warn('user_points table not found, skipping...');
       }
-
-      // 8. Delete used nonce
-      await client.query('DELETE FROM nonces WHERE address = $1 AND nonce = $2', [ethAddress.toLowerCase(), nonce]);
-
-      await client.query('COMMIT');
 
       // 9. Generate JWT token
       const token = require('jsonwebtoken').sign(
