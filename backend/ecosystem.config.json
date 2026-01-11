@@ -14,7 +14,8 @@
         "ENABLE_BLOCKCHAIN_MONITOR": "true",
         "ENABLE_KLASSIK": "false",
         "KASPA_API_SERVER": "https://api.kaspa.org",
-        "KASPA_POLL_INTERVAL": "30000"
+        "KASPA_POLL_INTERVAL": "30000",
+        "JWT_SECRET": "a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
       },
       "error_file": "/var/log/klassik/error.log",
       "out_file": "/var/log/klassik/out.log",

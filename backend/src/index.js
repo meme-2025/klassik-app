@@ -48,6 +48,10 @@ const jwt = require('jsonwebtoken'); // For WebSocket auth
 const app = express();
 const server = http.createServer(app);
 
+// If behind a reverse proxy (nginx/load-balancer), enable trust proxy
+// so express and rate-limit can read the real client IP from X-Forwarded-For.
+app.set('trust proxy', true);
+
 // WebSocket setup for real-time notifications
 const io = new Server(server, {
   cors: {
