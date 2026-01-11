@@ -130,7 +130,6 @@ router.get('/stats', async (req, res) => {
         marketcap,
         coinGeckoExtended  // Add extended CoinGecko data for ATH, 24h volume
       ] = await Promise.allSettled([
-      ] = await Promise.allSettled([
         callKaspaAPI('/info/virtual-chain-blue-score'),
         callKaspaAPI('/info/network'),
         callKaspaAPI('/info/blockdag'),
@@ -203,6 +202,10 @@ router.get('/stats', async (req, res) => {
         })
       ]);
 
+      // Debug: Log price and marketcap responses
+      console.log('🔍 DEBUG - Price response:', JSON.stringify(price.value).substring(0, 200));
+      console.log('🔍 DEBUG - Marketcap response:', JSON.stringify(marketcap.value).substring(0, 200));
+
       const result = {
         timestamp: new Date().toISOString(),
         isLive: true,
@@ -213,32 +216,51 @@ router.get('/stats', async (req, res) => {
         virtualDaaScore: blueScore.status === 'fulfilled' ? blueScore.value.blueScore : null,
         
         // Network Data
-        hashrate: hashrate.status === 'fulfilled' ? hashrate.value.hashrate : null,
+        hashrate: hashrate.status === 'fulfilled' && hashrate.value.hashrate
+          ? parseFloat(hashrate.value.hashrate)
+          : null,
         difficulty: blockdag.status === 'fulfilled' ? blockdag.value.difficulty : null,
-        networkName: network.status === 'fulfilled' ? network.value.network : 'kaspa-mainnet',
+        networkName: network.status === 'fulfilled' 
+          ? (network.value.networkName || network.value.network || 'kaspa-mainnet')
+          : 'kaspa-mainnet',
         
-        // Supply Data
-        totalSupply: coinSupply.status === 'fulfilled' ? coinSupply.value.totalSupply : null,
-        circulatingSupply: coinSupply.status === 'fulfilled' ? coinSupply.value.circulatingSupply : null,
-        maxSupply: 28704026601.692,
-        mineableRemaining: coinSupply.status === 'fulfilled' 
-          ? (28704026601.692 - coinSupply.value.totalSupply).toFixed(2)
+        // Supply Data (REST-Server gibt bereits KAS zurück, keine Konvertierung nötig)
+        totalSupply: coinSupply.status === 'fulfilled' && coinSupply.value.circulatingKAS
+          ? Math.floor(parseFloat(coinSupply.value.circulatingKAS))
+          : null,
+        circulatingSupply: coinSupply.status === 'fulfilled' && coinSupply.value.circulatingKAS
+          ? Math.floor(parseFloat(coinSupply.value.circulatingKAS))
+          : null,
+        maxSupply: coinSupply.status === 'fulfilled' && coinSupply.value.maxKAS
+          ? Math.floor(parseFloat(coinSupply.value.maxKAS))
+          : 28704026601,
+        mineableRemaining: coinSupply.status === 'fulfilled' && coinSupply.value.remainingKAS
+          ? Math.floor(parseFloat(coinSupply.value.remainingKAS))
           : null,
         
-        // Reward & Halving
-        blockReward: blockReward.status === 'fulfilled' ? blockReward.value.blockreward : null,
-        nextHalving: halving.status === 'fulfilled' ? halving.value.nextHalvingDate : null,
-        nextHalvingAmount: halving.status === 'fulfilled' ? halving.value.nextHalvingAmount : null,
+        // Reward & Halving (REST-Server gibt bereits KAS zurück)
+        blockReward: blockReward.status === 'fulfilled' && blockReward.value.blockrewardKAS
+          ? parseFloat(blockReward.value.blockrewardKAS)
+          : null,
+        nextHalving: halving.status === 'fulfilled' && halving.value.countdown
+          ? `${halving.value.countdown.days}d ${halving.value.countdown.hours}h ${halving.value.countdown.minutes}m`
+          : null,
+        nextHalvingAmount: halving.status === 'fulfilled' 
+          ? (halving.value.blocksUntilHalving || halving.value.nextHalvingAmount)
+          : null,
+        bps: blockdag.status === 'fulfilled' && blockdag.value.bps
+          ? parseFloat(blockdag.value.bps)
+          : null,
         
-        // Market Data - Extract from nested structures + CoinGecko extended
-        price: price.status === 'fulfilled' && price.value.price 
+        // Market Data - CoinGecko gibt { kaspa: { usd, usd_24h_change, ... } } zurück
+        price: price.status === 'fulfilled' && price.value.kaspa 
           ? {
-              usd: price.value.price.usd || price.value.price,
-              usd_24h_change: price.value.price.usd_24h_change || 
+              usd: price.value.kaspa.usd,
+              usd_24h_change: price.value.kaspa.usd_24h_change || 
                              (coinGeckoExtended.status === 'fulfilled' && coinGeckoExtended.value 
                                ? coinGeckoExtended.value.price_change_percentage_24h 
                                : null),
-              usd_24h_vol: price.value.price.usd_24h_vol || 
+              usd_24h_vol: price.value.kaspa.usd_24h_vol || 
                           (coinGeckoExtended.status === 'fulfilled' && coinGeckoExtended.value 
                             ? coinGeckoExtended.value.total_volume?.usd 
                             : null),
@@ -247,12 +269,12 @@ router.get('/stats', async (req, res) => {
                    : null
             }
           : null,
-        marketCap: marketcap.status === 'fulfilled' && marketcap.value.marketcap
+        marketCap: marketcap.status === 'fulfilled' && marketcap.value.kaspa
           ? {
-              usd: marketcap.value.marketcap.usd || marketcap.value.marketcap
+              usd: marketcap.value.kaspa.usd_market_cap || marketcap.value.kaspa.usd
             }
-          : (price.status === 'fulfilled' && price.value.price?.usd_market_cap 
-              ? { usd: price.value.price.usd_market_cap }
+          : (price.status === 'fulfilled' && price.value.kaspa?.usd_market_cap 
+              ? { usd: price.value.kaspa.usd_market_cap }
               : null),
         
         // Performance
