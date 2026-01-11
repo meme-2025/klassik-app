@@ -554,6 +554,13 @@ async function registerWithSacrifice(req, res) {
         console.warn('⚠️ Failed to create session tracking:', sessionErr.message);
       }
 
+      // Log before sending response and ensure logging can't break the flow
+      try {
+        console.log(`✅ New user registered: ${username} (${ethAddress}) with ${totalPoints} sacrifice points`);
+      } catch (logErr) {
+        console.warn('⚠️ Logging failed:', logErr.message);
+      }
+
       res.status(201).json({
         message: 'Registration successful',
         user: {
@@ -568,10 +575,26 @@ async function registerWithSacrifice(req, res) {
         expiresIn: process.env.JWT_EXPIRY || '7d'
       });
 
-      console.log(`✅ New user registered: ${username} (${ethAddress}) with ${eligibility.currentPoints} sacrifice points`);
-
     } catch (error) {
       await client.query('ROLLBACK');
+
+      // Handle Postgres unique constraint (duplicate) errors gracefully
+      if (error && error.code === '23505') {
+        const detail = error.detail || '';
+
+        if (detail.includes('users_address') || detail.toLowerCase().includes('address')) {
+          return res.status(409).json({ error: 'Ethereum address already registered' });
+        }
+        if (detail.includes('kaspa_address') || detail.toLowerCase().includes('kaspa')) {
+          return res.status(409).json({ error: 'Kaspa address already registered' });
+        }
+        if (detail.includes('username') || detail.toLowerCase().includes('username')) {
+          return res.status(409).json({ error: 'Username already taken' });
+        }
+
+        return res.status(409).json({ error: 'Conflict: duplicate registration' });
+      }
+
       throw error;
     } finally {
       client.release();
