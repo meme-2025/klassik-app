@@ -140,29 +140,54 @@ router.get('/stats', async (req, res) => {
         callKaspaAPI('/info/blockreward'),
         callKaspaAPI('/info/halving'),
         callKaspaAPI('/info/hashrate'),
-        callKaspaAPI('/info/price').catch(() => {
+        callKaspaAPI('/info/price').catch(async () => {
           // Fallback: Fetch directly from CoinGecko if kaspa-rest-server doesn't have it
-          return axios.get(`${KASPA_APIS.coingecko}/simple/price`, {
-            params: {
-              ids: 'kaspa',
-              vs_currencies: 'usd',
-              include_24hr_change: true,
-              include_24hr_vol: true,
-              include_market_cap: true
-            },
-            timeout: 5000
-          }).then(res => ({ price: res.data.kaspa }));
+          try {
+            const cgResponse = await axios.get(`https://api.coingecko.com/api/v3/simple/price`, {
+              params: {
+                ids: 'kaspa',
+                vs_currencies: 'usd',
+                include_24hr_change: true,
+                include_24hr_vol: true,
+                include_market_cap: true,
+                include_market_cap_rank: true,
+                include_last_updated_at: true
+              },
+              timeout: 5000
+            });
+            return {
+              price: {
+                usd: cgResponse.data.kaspa?.usd || null,
+                usd_24h_change: cgResponse.data.kaspa?.usd_24h_change || null,
+                usd_24h_vol: cgResponse.data.kaspa?.usd_24h_vol || null,
+                usd_market_cap: cgResponse.data.kaspa?.usd_market_cap || null
+              }
+            };
+          } catch (err) {
+            console.error('CoinGecko price fetch failed:', err.message);
+            return { price: null };
+          }
         }),
-        callKaspaAPI('/info/marketcap').catch(() => {
+        callKaspaAPI('/info/marketcap').catch(async () => {
           // Fallback: Already included in CoinGecko response above
-          return axios.get(`${KASPA_APIS.coingecko}/simple/price`, {
-            params: {
-              ids: 'kaspa',
-              vs_currencies: 'usd',
-              include_market_cap: true
-            },
-            timeout: 5000
-          }).then(res => ({ marketcap: res.data.kaspa }));
+          try {
+            const cgResponse = await axios.get(`https://api.coingecko.com/api/v3/simple/price`, {
+              params: {
+                ids: 'kaspa',
+                vs_currencies: 'usd',
+                include_market_cap: true
+              },
+              timeout: 5000
+            });
+            return {
+              marketcap: {
+                usd: cgResponse.data.kaspa?.usd_market_cap || null
+              }
+            };
+          } catch (err) {
+            console.error('CoinGecko marketcap fetch failed:', err.message);
+            return { marketcap: null };
+          }
         })
       ]);
 
@@ -193,9 +218,21 @@ router.get('/stats', async (req, res) => {
         nextHalving: halving.status === 'fulfilled' ? halving.value.nextHalvingDate : null,
         nextHalvingAmount: halving.status === 'fulfilled' ? halving.value.nextHalvingAmount : null,
         
-        // Market Data
-        price: price.status === 'fulfilled' ? price.value.price : null,
-        marketCap: marketcap.status === 'fulfilled' ? marketcap.value.marketcap : null,
+        // Market Data - Extract from nested structures
+        price: price.status === 'fulfilled' && price.value.price 
+          ? {
+              usd: price.value.price.usd || price.value.price,
+              usd_24h_change: price.value.price.usd_24h_change || null,
+              usd_24h_vol: price.value.price.usd_24h_vol || null
+            }
+          : null,
+        marketCap: marketcap.status === 'fulfilled' && marketcap.value.marketcap
+          ? {
+              usd: marketcap.value.marketcap.usd || marketcap.value.marketcap
+            }
+          : (price.status === 'fulfilled' && price.value.price?.usd_market_cap 
+              ? { usd: price.value.price.usd_market_cap }
+              : null),
         
         // Performance
         avgBlockTime: 1.0, // Kaspa target: 1 block/second

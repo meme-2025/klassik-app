@@ -176,6 +176,11 @@ class UpdateRateController {
             if (window.realtimeManager) {
                 window.realtimeManager.disableLiveMode();
             }
+            
+            // Update the main refresh timer if it exists
+            if (typeof startRefreshTimer === 'function') {
+                startRefreshTimer();
+            }
         }
         
         // Update timer display

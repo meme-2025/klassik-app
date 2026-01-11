@@ -712,17 +712,16 @@ async function fetchNetworkInfo() {
         console.log('💰 Price field:', statsData?.price);
         console.log('📈 Marketcap field:', statsData?.marketCap);
         
-        // Backend structure: { price: {...}, marketCap: {...} }
-        // where price/marketCap could be the final objects or wrapped
+        // Backend structure: { price: {usd, usd_24h_change, ...}, marketCap: {usd} }
         const priceData = statsData?.price || {};
         const marketCapData = statsData?.marketCap || statsData?.marketcap || {};
         
         state.price = {
-            current: priceData?.usd || priceData?.price || priceData?.kaspa?.usd || null,
-            change24h: priceData?.usd_24h_change || priceData?.change24h || null,
-            change7d: priceData?.usd_7d_change || priceData?.change7d || null,
-            marketCap: marketCapData?.usd || marketCapData?.marketcap || null,
-            volume24h: priceData?.usd_24h_vol || priceData?.volume24h || null,
+            current: priceData?.usd || null,
+            change24h: priceData?.usd_24h_change || null,
+            change7d: priceData?.usd_7d_change || null,
+            marketCap: marketCapData?.usd || null,
+            volume24h: priceData?.usd_24h_vol || null,
             ath: priceData?.ath || null,
             athDate: priceData?.ath_date || null,
             rank: priceData?.market_cap_rank || priceData?.rank || 'N/A'
@@ -2195,8 +2194,12 @@ function startRefreshTimer() {
         clearInterval(state.timerInterval);
     }
     
-    // Reset to 10 seconds
-    state.refreshTimer = 10;
+    // Get current rate from bandwidth monitor
+    const currentRate = window.bandwidthMonitor ? window.bandwidthMonitor.getRate() : 10;
+    
+    // Reset to current rate seconds (default 10)
+    state.refreshTimer = currentRate;
+    state.refreshTimerMax = currentRate; // Store max for percentage calculation
     updateTimerDisplay();
     
     // Update every second
@@ -2207,7 +2210,7 @@ function startRefreshTimer() {
         // When timer hits 0, refresh and restart
         if (state.refreshTimer <= 0) {
             refreshAllData();
-            state.refreshTimer = 10;
+            state.refreshTimer = state.refreshTimerMax || 10;
         }
     }, 1000);
 }
@@ -2221,9 +2224,9 @@ function updateTimerDisplay() {
         timerText.textContent = state.refreshTimer;
     }
     
-    if (timerProgress) {
-        // Calculate percentage (10s = 100%, countdown to 0)
-        const percentage = (state.refreshTimer / 10) * 100;
+    if (timerProgress && state.refreshTimerMax) {
+        // Calculate percentage based on current max timer value
+        const percentage = (state.refreshTimer / state.refreshTimerMax) * 100;
         timerProgress.setAttribute('stroke-dasharray', `${percentage}, 100`);
     }
 }
