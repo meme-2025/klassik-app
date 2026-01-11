@@ -97,7 +97,7 @@ const paymentLimiter = rateLimit({
  */
 const blockchainLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 Minute
-  max: 3000, // Max 3000 Anfragen = 50/Sekunde (erhöht für Live Mode)
+  max: 12000, // Max 12000 Anfragen = 200/Sekunde (für Live Mode mit parallelen Requests)
   message: {
     error: 'Blockchain API rate limit exceeded',
     retryAfter: 'Please reduce request frequency'
@@ -108,7 +108,7 @@ const blockchainLimiter = rateLimit({
     console.warn(`⚠️ Blockchain API limit exceeded: ${req.ip}`);
     res.status(429).json({
       error: 'Rate limit exceeded',
-      message: 'Too many blockchain queries. Maximum 3000 requests per minute.',
+      message: 'Too many blockchain queries. Maximum 12000 requests per minute.',
       retryAfter: Math.ceil(req.rateLimit.resetTime.getTime() / 1000)
     });
   }

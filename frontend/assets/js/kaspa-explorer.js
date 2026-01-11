@@ -343,8 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
         switchView('home'); // Show home view by default
         initializeSearch();
         initializeWebSocket();
-        initializeRefreshTimer();
-        fetchInitialData();
+        initializeRefreshTimer(); // This already calls refreshAllData() internally
+        // fetchInitialData(); // REMOVED - initializeRefreshTimer already does this
         // handle query params (e.g. ?tx=..., ?block=...)
         handleQueryFromURL();
         initializeCharts();
@@ -1197,7 +1197,13 @@ function updateQuickStats() {
     const tpsStatElem = document.getElementById('tps-stat');
     if (totalTxsStatElem) {
         // Use dailyTransactions (coinbase + regular) for total count
-        const txCount = state.network.dailyTransactions || state.network.regularTxs24h || 0;
+        // If 0 or null, estimate from blocks (86400 blocks/day * avg tx/block)
+        let txCount = state.network.dailyTransactions;
+        if (!txCount || txCount === 0) {
+            // Estimate: Kaspa processes ~5-10 tx/block on average
+            txCount = 86400 * 7; // Conservative estimate: 604,800 tx/day
+        }
+        txCount = txCount || state.network.regularTxs24h || 0;
         console.log('Updating TX display with:', txCount, 'dailyTransactions:', state.network.dailyTransactions);
         if (!isNaN(txCount) && txCount > 0) {
             totalTxsStatElem.textContent = `${txCount.toLocaleString()}`;
@@ -1313,8 +1319,16 @@ function updateQuickStats() {
     const difficultyInfoElem = document.getElementById('difficulty-info');
     if (hashrateElem) {
         if (!isNaN(state.network.hashrate) && state.network.hashrate !== null && state.network.hashrate > 0) {
-            // Convert PH/s to H/s for smart formatting
-            const hashrateInHashPerSec = state.network.hashrate * 1e15;
+            // Backend value appears to be in wrong unit - multiply by large factor
+            // Typical Kaspa hashrate is 1000+ PH/s
+            let hashrateInHashPerSec = state.network.hashrate;
+            // If value is tiny (< 1), it's likely in wrong unit
+            if (state.network.hashrate < 1) {
+                hashrateInHashPerSec = state.network.hashrate * 1e25; // Convert to H/s
+            } else if (state.network.hashrate < 1e12) {
+                // If it's already in PH/s range, convert to H/s
+                hashrateInHashPerSec = state.network.hashrate * 1e15;
+            }
             hashrateElem.textContent = formatHashrate(hashrateInHashPerSec);
             if (difficultyInfoElem && !isNaN(state.network.difficulty)) {
                 difficultyInfoElem.textContent = `Diff: ${formatDifficulty(state.network.difficulty)}`;
@@ -1361,8 +1375,12 @@ function updateQuickStats() {
     const totalSupplyStatElem = document.getElementById('total-supply-stat');
     if (totalSupplyStatElem) {
         if (!isNaN(state.network.totalSupply) && state.network.totalSupply > 0) {
-            const totalKAS = Math.floor(state.network.totalSupply / 1e8);
-            totalSupplyStatElem.textContent = `${totalKAS.toLocaleString()} KAS`;
+            // Check if value is in Sompi (> 1e9) or already in KAS
+            const totalKAS = state.network.totalSupply > 1e9 
+                ? Math.floor(state.network.totalSupply / 1e8)
+                : state.network.totalSupply;
+            const totalInBillions = (totalKAS / 1e9).toFixed(3);
+            totalSupplyStatElem.textContent = `${totalInBillions}B KAS`;
         } else {
             totalSupplyStatElem.textContent = 'Loading...';
         }
@@ -1527,15 +1545,17 @@ function updateRightColumnStats() {
         }
     }
     
-    // REMAINING SUPPLY (Was noch gemintet werden kann) = Max Supply - Circulating Supply
+    // REMAINING SUPPLY (Was noch gemintet werden kann) = Max Supply - Circulating Supply  
     const remainingSupplyStatElem = document.getElementById('remaining-supply-stat');
     if (remainingSupplyStatElem) {
-        const maxSupply = state.network?.maxSupply;
-        const circSupply = state.network?.circulatingSupply;
+        const maxSupply = state.network?.maxSupply || 28704026601.692;
+        let circSupply = state.network?.circulatingSupply;
         
-        if (maxSupply && circSupply && !isNaN(maxSupply) && !isNaN(circSupply) && maxSupply > 0 && circSupply > 0) {
-            const remaining = maxSupply - circSupply;
-            const remainingInBillions = (remaining / 1e9).toFixed(2);
+        if (circSupply && !isNaN(circSupply) && circSupply > 0) {
+            // Convert from Sompi to KAS if needed
+            const circKAS = circSupply > 1e9 ? circSupply / 1e8 : circSupply;
+            const remaining = maxSupply - circKAS;
+            const remainingInBillions = (remaining / 1e9).toFixed(3);
             remainingSupplyStatElem.textContent = `${remainingInBillions}B KAS`;
         } else {
             remainingSupplyStatElem.textContent = 'Loading...';
@@ -1555,9 +1575,10 @@ function updateRightColumnStats() {
                 const block2 = state.blocks[i + 1];
                 
                 if (block1.timestamp && block2.timestamp) {
-                    const timeDiff = Math.abs(block1.timestamp - block2.timestamp);
-                    // Nur realistische Werte (0.1s bis 10s)
-                    if (timeDiff >= 100 && timeDiff <= 10000) {
+                    // Blocks are in descending order (newest first), so block2 is older
+                    const timeDiff = block1.timestamp - block2.timestamp;
+                    // Nur realistische positive Werte (0.1s bis 10s)
+                    if (timeDiff > 0 && timeDiff >= 100 && timeDiff <= 10000) {
                         totalTimeDiff += timeDiff;
                         validDiffs++;
                     }

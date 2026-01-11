@@ -188,16 +188,9 @@ class UpdateRateController {
     }
     
     startRefresh(intervalMs) {
-        this.refreshInterval = setInterval(() => {
-            if (this.refreshCallback) {
-                this.refreshCallback();
-            } else {
-                // Default: call global refresh function
-                if (typeof refreshAllData === 'function') {
-                    refreshAllData();
-                }
-            }
-        }, intervalMs);
+        // Don't create a separate refresh interval - kaspa-explorer.js handles this
+        // This just updates the timer and triggers the main timer restart
+        // The actual refresh is handled by startRefreshTimer() in kaspa-explorer.js
     }
     
     setCallback(callback) {
@@ -205,14 +198,9 @@ class UpdateRateController {
     }
     
     updateTimerDisplay() {
-        const timerText = document.getElementById('timer-text');
-        if (timerText) {
-            if (this.currentRate < 1) {
-                timerText.textContent = `${(this.currentRate * 1000).toFixed(0)}ms`;
-            } else {
-                timerText.textContent = `${this.currentRate}s`;
-            }
-        }
+        // Don't update the timer text - kaspa-explorer.js handles the countdown
+        // This function is kept for compatibility but doesn't modify the display
+        // The actual countdown is managed by startRefreshTimer() in kaspa-explorer.js
     }
     
     getRate() {

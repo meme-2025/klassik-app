@@ -88,8 +88,13 @@ class RealtimeDataManager {
             if (!this.isLiveMode) return;
             
             try {
-                // Fetch nur neueste Blocks (schnell!)
-                const response = await fetch(`${API.BACKEND}${API.ENDPOINTS.BLOCKS}/latest?limit=5`);
+                // Fetch nur neueste Blocks (schnell!) - mit Auth Token
+                const token = localStorage.getItem('klassik_token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                
+                const response = await fetch(`${API.BACKEND}${API.ENDPOINTS.BLOCKS}/latest?limit=5`, {
+                    headers
+                });
                 if (response.ok) {
                     const blocks = await response.json();
                     this.updateLiveBlocks(blocks);

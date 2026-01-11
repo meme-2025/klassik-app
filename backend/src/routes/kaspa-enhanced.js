@@ -11,14 +11,10 @@ const { getCachedOrFetch, cacheMiddleware } = require('../cache/redis-cache');
 // ✅ Kaspa REST-API Server Configuration (localhost-first, dann Fallback)
 const KASPA_REST_CONFIG = {
   // Lokaler kaspa-rest-server (wenn verfügbar)
-  local: process.env.KASPA_REST_SERVER || 'http://localhost:8080',
+  local: process.env.KASPA_REST_SERVER || 'http://localhost:8082',
   
-  // Public Fallback APIs
-  public: [
-    'https://api.kaspa.org',
-    'https://api.kas.pa',
-    'https://kaspa-rest.example.com'  // Weitere Fallbacks
-  ],
+  // Public Fallback APIs - DISABLED per user request (only CoinGecko for price data)
+  public: [],
   
   // API Timeouts
   timeout: 5000,
@@ -131,7 +127,9 @@ router.get('/stats', async (req, res) => {
         halving,
         hashrate,
         price,
-        marketcap
+        marketcap,
+        coinGeckoExtended  // Add extended CoinGecko data for ATH, 24h volume
+      ] = await Promise.allSettled([
       ] = await Promise.allSettled([
         callKaspaAPI('/info/virtual-chain-blue-score'),
         callKaspaAPI('/info/network'),
@@ -188,6 +186,20 @@ router.get('/stats', async (req, res) => {
             console.error('CoinGecko marketcap fetch failed:', err.message);
             return { marketcap: null };
           }
+        }),
+        // Extended CoinGecko data for ATH, 24h Volume, etc.
+        axios.get(`https://api.coingecko.com/api/v3/coins/kaspa`, {
+          params: {
+            localization: false,
+            tickers: false,
+            market_data: true,
+            community_data: false,
+            developer_data: false
+          },
+          timeout: 5000
+        }).then(res => res.data.market_data).catch(err => {
+          console.error('CoinGecko extended data fetch failed:', err.message);
+          return null;
         })
       ]);
 
@@ -218,12 +230,21 @@ router.get('/stats', async (req, res) => {
         nextHalving: halving.status === 'fulfilled' ? halving.value.nextHalvingDate : null,
         nextHalvingAmount: halving.status === 'fulfilled' ? halving.value.nextHalvingAmount : null,
         
-        // Market Data - Extract from nested structures
+        // Market Data - Extract from nested structures + CoinGecko extended
         price: price.status === 'fulfilled' && price.value.price 
           ? {
               usd: price.value.price.usd || price.value.price,
-              usd_24h_change: price.value.price.usd_24h_change || null,
-              usd_24h_vol: price.value.price.usd_24h_vol || null
+              usd_24h_change: price.value.price.usd_24h_change || 
+                             (coinGeckoExtended.status === 'fulfilled' && coinGeckoExtended.value 
+                               ? coinGeckoExtended.value.price_change_percentage_24h 
+                               : null),
+              usd_24h_vol: price.value.price.usd_24h_vol || 
+                          (coinGeckoExtended.status === 'fulfilled' && coinGeckoExtended.value 
+                            ? coinGeckoExtended.value.total_volume?.usd 
+                            : null),
+              ath: coinGeckoExtended.status === 'fulfilled' && coinGeckoExtended.value 
+                   ? coinGeckoExtended.value.ath?.usd 
+                   : null
             }
           : null,
         marketCap: marketcap.status === 'fulfilled' && marketcap.value.marketcap
@@ -241,9 +262,9 @@ router.get('/stats', async (req, res) => {
       };
 
       // Log errors
-      [blueScore, network, blockdag, coinSupply, blockReward, halving, hashrate, price, marketcap].forEach((promise, index) => {
+      [blueScore, network, blockdag, coinSupply, blockReward, halving, hashrate, price, marketcap, coinGeckoExtended].forEach((promise, index) => {
         if (promise.status === 'rejected') {
-          const endpoints = ['/blueScore', '/network', '/blockdag', '/coinSupply', '/blockReward', '/halving', '/hashrate', '/price', '/marketcap'];
+          const endpoints = ['/blueScore', '/network', '/blockdag', '/coinSupply', '/blockReward', '/halving', '/hashrate', '/price', '/marketcap', '/coinGeckoExtended'];
           result.errors.push(`${endpoints[index]}: ${promise.reason.message}`);
         }
       });

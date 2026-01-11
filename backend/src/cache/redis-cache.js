@@ -14,26 +14,19 @@ const redis = require('redis');
 
 // Redis Client Configuration
 const redisConfig = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT) || 6379,
+  socket: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT) || 6379,
+    reconnectStrategy: (retries) => {
+      if (retries > 10) {
+        console.error('❌ Too many Redis retry attempts');
+        return new Error('Too many retries');
+      }
+      return Math.min(retries * 100, 3000);
+    }
+  },
   password: process.env.REDIS_PASSWORD || undefined,
-  db: parseInt(process.env.REDIS_DB) || 0,
-  retry_strategy: (options) => {
-    if (options.error && options.error.code === 'ECONNREFUSED') {
-      console.error('❌ Redis connection refused');
-      return new Error('Redis server refused connection');
-    }
-    if (options.total_retry_time > 1000 * 60 * 60) {
-      console.error('❌ Redis retry time exhausted');
-      return new Error('Retry time exhausted');
-    }
-    if (options.attempt > 10) {
-      console.error('❌ Too many Redis retry attempts');
-      return undefined; // Stop retrying
-    }
-    // Reconnect after
-    return Math.min(options.attempt * 100, 3000);
-  }
+  database: parseInt(process.env.REDIS_DB) || 0
 };
 
 // Create Redis Client
@@ -51,7 +44,7 @@ async function initRedis() {
   
   try {
     console.log('🔄 Connecting to Redis...');
-    console.log(`   Host: ${redisConfig.host}:${redisConfig.port}`);
+    console.log(`   Host: ${redisConfig.socket.host}:${redisConfig.socket.port}`);
     
     client = redis.createClient(redisConfig);
     
@@ -94,6 +87,11 @@ async function initRedis() {
  * ✅ Get cached data
  */
 async function get(key) {
+  // Auto-initialize Redis on first access
+  if (!client && !isConnected) {
+    await initRedis();
+  }
+  
   if (!client || !isConnected) {
     console.warn('⚠️  Redis not available, cache miss:', key);
     return null;
