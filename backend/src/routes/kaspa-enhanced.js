@@ -252,15 +252,15 @@ router.get('/stats', async (req, res) => {
           ? parseFloat(blockdag.value.bps)
           : null,
         
-        // Market Data - CoinGecko gibt { kaspa: { usd, usd_24h_change, ... } } zurück
-        price: price.status === 'fulfilled' && price.value.kaspa 
+        // Market Data - Support both REST server {price: value} and CoinGecko {kaspa: {usd: value}} formats
+        price: price.status === 'fulfilled' && price.value
           ? {
-              usd: price.value.kaspa.usd,
-              usd_24h_change: price.value.kaspa.usd_24h_change || 
+              usd: price.value.price || price.value.kaspa?.usd || null,
+              usd_24h_change: price.value.kaspa?.usd_24h_change || 
                              (coinGeckoExtended.status === 'fulfilled' && coinGeckoExtended.value 
                                ? coinGeckoExtended.value.price_change_percentage_24h 
                                : null),
-              usd_24h_vol: price.value.kaspa.usd_24h_vol || 
+              usd_24h_vol: price.value.kaspa?.usd_24h_vol || 
                           (coinGeckoExtended.status === 'fulfilled' && coinGeckoExtended.value 
                             ? coinGeckoExtended.value.total_volume?.usd 
                             : null),
@@ -269,11 +269,11 @@ router.get('/stats', async (req, res) => {
                    : null
             }
           : null,
-        marketCap: marketcap.status === 'fulfilled' && marketcap.value.kaspa
+        marketCap: marketcap.status === 'fulfilled' && marketcap.value
           ? {
-              usd: marketcap.value.kaspa.usd_market_cap || marketcap.value.kaspa.usd
+              usd: marketcap.value.marketcap || marketcap.value.kaspa?.usd_market_cap || marketcap.value.kaspa?.usd || null
             }
-          : (price.status === 'fulfilled' && price.value.kaspa?.usd_market_cap 
+          : (price.status === 'fulfilled' && price.value?.kaspa?.usd_market_cap 
               ? { usd: price.value.kaspa.usd_market_cap }
               : null),
         
