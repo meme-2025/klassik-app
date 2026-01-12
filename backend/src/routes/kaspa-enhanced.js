@@ -215,38 +215,38 @@ router.get('/stats', async (req, res) => {
         blockHeight: blueScore.status === 'fulfilled' ? blueScore.value.blueScore : null,
         virtualDaaScore: blueScore.status === 'fulfilled' ? blueScore.value.blueScore : null,
         
-        // Network Data
+        // Network Data (Hashrate in TH/s, convert to PH/s)
         hashrate: hashrate.status === 'fulfilled' && hashrate.value.hashrate
-          ? parseFloat(hashrate.value.hashrate)
+          ? parseFloat(hashrate.value.hashrate) / 1000
           : null,
         difficulty: blockdag.status === 'fulfilled' ? blockdag.value.difficulty : null,
         networkName: network.status === 'fulfilled' 
           ? (network.value.networkName || network.value.network || 'kaspa-mainnet')
           : 'kaspa-mainnet',
         
-        // Supply Data (REST-Server gibt bereits KAS zurück, keine Konvertierung nötig)
-        totalSupply: coinSupply.status === 'fulfilled' && coinSupply.value.circulatingKAS
-          ? Math.floor(parseFloat(coinSupply.value.circulatingKAS))
+        // Supply Data (Official REST-Server returns SOMPI, convert to KAS)
+        totalSupply: coinSupply.status === 'fulfilled' && coinSupply.value.circulatingSupply
+          ? Math.floor(parseFloat(coinSupply.value.circulatingSupply) / 100000000)
           : null,
-        circulatingSupply: coinSupply.status === 'fulfilled' && coinSupply.value.circulatingKAS
-          ? Math.floor(parseFloat(coinSupply.value.circulatingKAS))
+        circulatingSupply: coinSupply.status === 'fulfilled' && coinSupply.value.circulatingSupply
+          ? Math.floor(parseFloat(coinSupply.value.circulatingSupply) / 100000000)
           : null,
-        maxSupply: coinSupply.status === 'fulfilled' && coinSupply.value.maxKAS
-          ? Math.floor(parseFloat(coinSupply.value.maxKAS))
+        maxSupply: coinSupply.status === 'fulfilled' && coinSupply.value.maxSupply
+          ? Math.floor(parseFloat(coinSupply.value.maxSupply) / 100000000)
           : 28704026601,
-        mineableRemaining: coinSupply.status === 'fulfilled' && coinSupply.value.remainingKAS
-          ? Math.floor(parseFloat(coinSupply.value.remainingKAS))
+        mineableRemaining: coinSupply.status === 'fulfilled' && coinSupply.value.circulatingSupply && coinSupply.value.maxSupply
+          ? Math.floor((parseFloat(coinSupply.value.maxSupply) - parseFloat(coinSupply.value.circulatingSupply)) / 100000000)
           : null,
         
-        // Reward & Halving (REST-Server gibt bereits KAS zurück)
-        blockReward: blockReward.status === 'fulfilled' && blockReward.value.blockrewardKAS
-          ? parseFloat(blockReward.value.blockrewardKAS)
+        // Reward & Halving (Official REST-Server format)
+        blockReward: blockReward.status === 'fulfilled' && blockReward.value.blockreward
+          ? parseFloat(blockReward.value.blockreward) / 100000000
           : null,
-        nextHalving: halving.status === 'fulfilled' && halving.value.countdown
-          ? `${halving.value.countdown.days}d ${halving.value.countdown.hours}h ${halving.value.countdown.minutes}m`
+        nextHalving: halving.status === 'fulfilled' && halving.value.nextHalvingDate
+          ? halving.value.nextHalvingDate
           : null,
-        nextHalvingAmount: halving.status === 'fulfilled' 
-          ? (halving.value.blocksUntilHalving || halving.value.nextHalvingAmount)
+        nextHalvingAmount: halving.status === 'fulfilled' && halving.value.nextHalvingAmount
+          ? parseFloat(halving.value.nextHalvingAmount)
           : null,
         bps: blockdag.status === 'fulfilled' && blockdag.value.bps
           ? parseFloat(blockdag.value.bps)
