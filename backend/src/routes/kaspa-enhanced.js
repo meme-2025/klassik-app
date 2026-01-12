@@ -8,10 +8,10 @@ const router = express.Router();
 // ✅ Redis Cache Integration
 const { getCachedOrFetch, cacheMiddleware } = require('../cache/redis-cache');
 
-// ✅ Kaspa REST-API Server Configuration (localhost-first, dann Fallback)
+// ✅ Kaspa REST-API Server Configuration (localhost ONLY - official Python server)
 const KASPA_REST_CONFIG = {
-  // Lokaler kaspa-rest-server (wenn verfügbar)
-  local: process.env.KASPA_REST_SERVER || 'http://localhost:8082',
+  // Lokaler kaspa-rest-server (official Python server mit direkter kaspad Verbindung)
+  local: process.env.KASPA_REST_SERVER || 'http://localhost:8083',
   
   // Public Fallback APIs - DISABLED per user request (only CoinGecko for price data)
   public: [],
