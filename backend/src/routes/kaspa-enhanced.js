@@ -215,7 +215,7 @@ router.get('/stats', async (req, res) => {
         blockHeight: blueScore.status === 'fulfilled' ? blueScore.value.blueScore : null,
         virtualDaaScore: blueScore.status === 'fulfilled' ? blueScore.value.blueScore : null,
         
-        // Network Data (Hashrate in TH/s, convert to PH/s)
+        // Network Data (Hashrate already in TH/s from official server, convert to PH/s)
         hashrate: hashrate.status === 'fulfilled' && hashrate.value.hashrate
           ? parseFloat(hashrate.value.hashrate) / 1000
           : null,
@@ -238,9 +238,9 @@ router.get('/stats', async (req, res) => {
           ? Math.floor((parseFloat(coinSupply.value.maxSupply) - parseFloat(coinSupply.value.circulatingSupply)) / 100000000)
           : null,
         
-        // Reward & Halving (Official REST-Server format)
+        // Reward & Halving (Official REST-Server returns KAS directly)
         blockReward: blockReward.status === 'fulfilled' && blockReward.value.blockreward
-          ? parseFloat(blockReward.value.blockreward) / 100000000
+          ? parseFloat(blockReward.value.blockreward)
           : null,
         nextHalving: halving.status === 'fulfilled' && halving.value.nextHalvingDate
           ? halving.value.nextHalvingDate
