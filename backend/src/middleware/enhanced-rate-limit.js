@@ -93,14 +93,18 @@ const paymentLimiter = rateLimit({
 
 /**
  * ✅ Blockchain Query Rate Limiter
- * Schutz der Blockchain-API-Calls
+ * DEAKTIVIERT für authentifizierte Benutzer - nur lokale kaspad, kein externes API Limit
  */
 const blockchainLimiter = rateLimit({
+  skip: (req) => {
+    // Skip rate limiting für alle authentifizierten Benutzer (haben JWT)
+    return req.headers.authorization && req.headers.authorization.startsWith('Bearer ');
+  },
   windowMs: 10 * 1000, // 10 Sekunden
-  max: 10000, // Max 10000 Anfragen pro 10 Sekunden = 1000/Sekunde (für Live Mode 100ms polling)
+  max: 100000, // Max 100000 Anfragen pro 10 Sekunden für nicht-authentifizierte
   message: {
     error: 'Blockchain API rate limit exceeded',
-    retryAfter: 'Please reduce request frequency'
+    retryAfter: 'Please authenticate to remove rate limits'
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -108,7 +112,7 @@ const blockchainLimiter = rateLimit({
     console.warn(`⚠️ Blockchain API limit exceeded: ${req.ip}`);
     res.status(429).json({
       error: 'Rate limit exceeded',
-      message: 'Too many blockchain queries. Maximum 10000 requests per 10 seconds.',
+      message: 'Please authenticate to access blockchain data without limits.',
       retryAfter: Math.ceil(req.rateLimit.resetTime.getTime() / 1000)
     });
   }

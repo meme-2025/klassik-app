@@ -62,6 +62,143 @@ const API = {
 };
 
 // ============================================
+// 🚀 RATE LIMITER & CACHE SYSTEM
+// ============================================
+
+/**
+ * Centralized Rate Limiter with Request Cache
+ * Prevents API spam, implements exponential backoff, and caches responses
+ */
+class RateLimiter {
+    constructor() {
+        // Tracking last API call times
+        this.lastCalls = new Map();
+        
+        // Response cache with TTL
+        this.cache = new Map();
+        
+        // Configuration
+        this.config = {
+            minInterval: 5000,        // Minimum 5s between identical calls
+            cacheExpiry: 10000,       // Cache expires after 10s
+            maxCacheSize: 100,        // Maximum cached responses
+            enabled: true              // Can be disabled for testing
+        };
+        
+        console.log('✅ RateLimiter initialized:', this.config);
+    }
+    
+    /**
+     * Throttle API calls with automatic caching
+     * @param {string} key - Unique identifier for the request
+     * @param {Function} fetchFn - Async function to execute
+     * @param {Object} options - Custom config { cacheTTL, forceRefresh }
+     * @returns {Promise} Cached or fresh data
+     */
+    async throttle(key, fetchFn, options = {}) {
+        const now = Date.now();
+        const cacheTTL = options.cacheTTL || this.config.cacheExpiry;
+        const forceRefresh = options.forceRefresh || false;
+        
+        // Check cache first (unless force refresh)
+        if (!forceRefresh && this.cache.has(key)) {
+            const cached = this.cache.get(key);
+            const age = now - cached.timestamp;
+            
+            if (age < cacheTTL) {
+                console.log(`💾 Cache HIT [${key}] - Age: ${(age / 1000).toFixed(1)}s`);
+                return cached.data;
+            } else {
+                console.log(`⏰ Cache EXPIRED [${key}] - Age: ${(age / 1000).toFixed(1)}s`);
+                this.cache.delete(key);
+            }
+        }
+        
+        // Check rate limit
+        const lastCall = this.lastCalls.get(key) || 0;
+        const timeSinceLastCall = now - lastCall;
+        
+        if (timeSinceLastCall < this.config.minInterval) {
+            const waitTime = this.config.minInterval - timeSinceLastCall;
+            console.warn(`⚠️ Rate limit [${key}] - Waiting ${(waitTime / 1000).toFixed(1)}s`);
+            
+            // Return cached data if available, otherwise wait
+            if (this.cache.has(key)) {
+                console.log(`💾 Returning stale cache during rate limit [${key}]`);
+                return this.cache.get(key).data;
+            }
+            
+            // Wait before making request
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+        
+        try {
+            // Execute fetch function
+            const data = await fetchFn();
+            
+            // Update timestamps
+            this.lastCalls.set(key, Date.now());
+            
+            // Cache the result
+            this.cacheResponse(key, data);
+            
+            console.log(`✅ Fresh data [${key}] - Cached for ${cacheTTL / 1000}s`);
+            return data;
+            
+        } catch (error) {
+            console.error(`❌ RateLimiter error [${key}]:`, error);
+            
+            // Return stale cache on error if available
+            if (this.cache.has(key)) {
+                console.log(`💾 Returning stale cache after error [${key}]`);
+                return this.cache.get(key).data;
+            }
+            
+            throw error;
+        }
+    }
+    
+    /**
+     * Cache a response with timestamp
+     */
+    cacheResponse(key, data) {
+        // Enforce max cache size (LRU-like)
+        if (this.cache.size >= this.config.maxCacheSize) {
+            const firstKey = this.cache.keys().next().value;
+            this.cache.delete(firstKey);
+            console.log(`🗑️ Cache full - Removed oldest entry: ${firstKey}`);
+        }
+        
+        this.cache.set(key, {
+            data: data,
+            timestamp: Date.now()
+        });
+    }
+    
+    /**
+     * Clear all cached data
+     */
+    clearCache() {
+        this.cache.clear();
+        console.log('🗑️ Cache cleared');
+    }
+    
+    /**
+     * Get cache statistics
+     */
+    getStats() {
+        return {
+            cacheSize: this.cache.size,
+            trackedEndpoints: this.lastCalls.size,
+            config: this.config
+        };
+    }
+}
+
+// Global rate limiter instance
+const rateLimiter = new RateLimiter();
+
+// ============================================
 // 🔐 AUTHENTICATION HELPERS
 // ============================================
 
@@ -651,12 +788,12 @@ async function fetchInitialData() {
 
 async function fetchNetworkInfo() {
     try {
-        // Backend liefert ALLE Daten: Network + CoinGecko Price Data
-        let statsData = null;
-        try {
-            statsData = await fetchWithRetry(async () => {
+        // 🚀 USE RATE LIMITER - Cache for 10s, prevent spam
+        let statsData = await rateLimiter.throttle('network-stats', async () => {
+            return await fetchWithRetry(async () => {
                 const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.STATS}`, {
-                    headers: getAuthHeaders()
+                    headers: getAuthHeaders(),
+                    signal: AbortSignal.timeout(10000) // 10s timeout
                 });
                 
                 // Handle authentication errors
@@ -665,20 +802,37 @@ async function fetchNetworkInfo() {
                     throw new Error('Authentication required');
                 }
                 
+                if (backendRes.status === 429) {
+                    throw new Error('429 Rate limit exceeded');
+                }
+                
                 if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
                 return await backendRes.json();
             });
-            console.log('✅ Backend Stats (inkl. CoinGecko):', statsData);
-        } catch (backendError) {
-            // If auth error, don't continue
-            if (backendError.message === 'Authentication required') {
-                return;
-            }
-            console.error('❌ Backend nicht erreichbar:', backendError.message);
-            showUserNotification('Backend unavailable, using fallback data', 'error');
+        }, { cacheTTL: 10000 }); // Cache for 10 seconds
+        
+        console.log('✅ Backend Stats (inkl. CoinGecko):', statsData);
+        
+    } catch (backendError) {
+        // If auth error, don't continue
+        if (backendError.message === 'Authentication required') {
+            return;
+        }
+        console.error('❌ Backend nicht erreichbar:', backendError.message);
+        showUserNotification('Backend unavailable, using cached/fallback data', 'error');
+        
+        // Try to use cached data from rate limiter before fallback
+        const cachedData = rateLimiter.cache.get('network-stats');
+        if (cachedData) {
+            console.log('💾 Using stale cached data from rate limiter');
+            statsData = cachedData.data;
+        } else {
             await fetchNetworkInfoFallback();
             return;
         }
+    }
+    
+    try {
         
         // Kaspa Konstanten
         const maxSupply = 28704026601;
@@ -841,13 +995,12 @@ async function findBlueScoreForTimestamp(targetTimestamp) {
 
 async function fetchLatestBlocks() {
     try {
-        let blocksData = null;
-        
-        // Backend mit Retry Logic
-        try {
-            blocksData = await fetchWithRetry(async () => {
+        // 🚀 USE RATE LIMITER - Cache for 5s
+        let blocksData = await rateLimiter.throttle('latest-blocks', async () => {
+            return await fetchWithRetry(async () => {
                 const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.BLOCKS}/latest?limit=20`, {
-                    headers: getAuthHeaders()
+                    headers: getAuthHeaders(),
+                    signal: AbortSignal.timeout(8000) // 8s timeout
                 });
                 
                 // Handle authentication errors
@@ -856,17 +1009,34 @@ async function fetchLatestBlocks() {
                     throw new Error('Authentication required');
                 }
                 
+                if (backendRes.status === 429) {
+                    throw new Error('429 Rate limit exceeded');
+                }
+                
                 if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
                 return await backendRes.json();
             });
-            console.log('✅ Backend Blocks (20 Blocks für bessere Statistik):', blocksData);
-        } catch (backendError) {
-            if (backendError.message === 'Authentication required') {
-                return;
-            }
-            console.error('❌ Backend blocks error:', backendError.message);
-            showUserNotification('Failed to load blocks data', 'error');
+        }, { cacheTTL: 5000 }); // Cache for 5 seconds
+        
+        console.log('✅ Backend Blocks (20 Blocks für bessere Statistik):', blocksData);
+        
+    } catch (backendError) {
+        if (backendError.message === 'Authentication required') {
+            return;
         }
+        console.error('❌ Backend blocks error:', backendError.message);
+        showUserNotification('Failed to load blocks, using cached data', 'warning');
+        
+        // Try cached data
+        const cachedData = rateLimiter.cache.get('latest-blocks');
+        if (cachedData) {
+            blocksData = cachedData.data;
+        } else {
+            return; // No data available
+        }
+    }
+    
+    try {
         
         // Handle both array and object responses
         let blocksArray = Array.isArray(blocksData) ? blocksData : 
@@ -952,13 +1122,12 @@ function calculateDailyTransactions() {
 
 async function fetchLatestTransactions() {
     try {
-        let txData = null;
-        
-        // Backend mit Retry Logic
-        try {
-            txData = await fetchWithRetry(async () => {
+        // 🚀 USE RATE LIMITER - Cache for 5s
+        let txData = await rateLimiter.throttle('latest-transactions', async () => {
+            return await fetchWithRetry(async () => {
                 const backendRes = await fetch(`${API.BACKEND}${API.ENDPOINTS.TRANSACTIONS}/latest?limit=20`, {
-                    headers: getAuthHeaders()
+                    headers: getAuthHeaders(),
+                    signal: AbortSignal.timeout(8000) // 8s timeout
                 });
                 
                 // Handle authentication errors
@@ -967,17 +1136,34 @@ async function fetchLatestTransactions() {
                     throw new Error('Authentication required');
                 }
                 
+                if (backendRes.status === 429) {
+                    throw new Error('429 Rate limit exceeded');
+                }
+                
                 if (!backendRes.ok) throw new Error(`HTTP ${backendRes.status}`);
                 return await backendRes.json();
             });
-            console.log('✅ Backend Transactions:', txData);
-        } catch (backendError) {
-            if (backendError.message === 'Authentication required') {
-                return;
-            }
-            console.error('❌ Backend transactions error:', backendError.message);
-            showUserNotification('Failed to load transactions', 'error');
+        }, { cacheTTL: 5000 }); // Cache for 5 seconds
+        
+        console.log('✅ Backend Transactions:', txData);
+        
+    } catch (backendError) {
+        if (backendError.message === 'Authentication required') {
+            return;
         }
+        console.error('❌ Backend transactions error:', backendError.message);
+        showUserNotification('Failed to load transactions, using cached data', 'warning');
+        
+        // Try cached data
+        const cachedData = rateLimiter.cache.get('latest-transactions');
+        if (cachedData) {
+            txData = cachedData.data;
+        } else {
+            return; // No data available
+        }
+    }
+    
+    try {
         
         // Handle different response structures
         let txArray = Array.isArray(txData) ? txData :
@@ -1069,62 +1255,148 @@ async function fetchTransactionStats() {
 // UI Updates
 // ============================================
 
-// Block Reward (1R) + Halving Info
+// ============================================
+// 🔥 IMPROVED: Block Reward & Halving Calculation
+// ============================================
+
+/**
+ * Calculate next halving based on block height
+ * Kaspa halving occurs every ~12 months (chromatic period)
+ */
+function calculateNextHalving(currentBlockHeight) {
+    // Kaspa halving constants
+    const CHROMATIC_PHASE_DURATION = 31_536_000; // ~12 months in blocks (1 block/second)
+    const INITIAL_REWARD = 500; // Starting block reward
+    const CURRENT_PHASE = Math.floor(currentBlockHeight / CHROMATIC_PHASE_DURATION);
+    
+    // Calculate current and next reward
+    const currentReward = INITIAL_REWARD / Math.pow(2, CURRENT_PHASE);
+    const nextReward = currentReward / 2;
+    
+    // Calculate blocks until next halving
+    const nextHalvingBlock = (CURRENT_PHASE + 1) * CHROMATIC_PHASE_DURATION;
+    const blocksUntilHalving = nextHalvingBlock - currentBlockHeight;
+    
+    // Estimate time (1 block per second on average)
+    const secondsUntilHalving = blocksUntilHalving;
+    const halvingDate = new Date(Date.now() + secondsUntilHalving * 1000);
+    
+    return {
+        currentPhase: CURRENT_PHASE,
+        currentReward: currentReward,
+        nextReward: nextReward,
+        blocksUntilHalving: blocksUntilHalving,
+        nextHalvingBlock: nextHalvingBlock,
+        halvingDate: halvingDate,
+        halvingTimestamp: Math.floor(halvingDate.getTime() / 1000),
+        daysUntilHalving: Math.floor(secondsUntilHalving / 86400)
+    };
+}
+
+/**
+ * Format halving date for display
+ */
+function formatHalvingDate(halvingInfo) {
+    if (!halvingInfo || !halvingInfo.halvingDate) return 'Calculating...';
+    
+    const date = halvingInfo.halvingDate;
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
+
+/**
+ * Format countdown to halving
+ */
+function formatHalvingCountdown(halvingInfo) {
+    if (!halvingInfo) return 'Calculating...';
+    
+    const now = Math.floor(Date.now() / 1000);
+    const diff = halvingInfo.halvingTimestamp - now;
+    
+    if (diff <= 0) return 'Halving occurred!';
+    
+    const days = Math.floor(diff / 86400);
+    const hours = Math.floor((diff % 86400) / 3600);
+    const minutes = Math.floor((diff % 3600) / 60);
+    
+    return `${days}d ${hours}h ${minutes}m`;
+}
+
+// Block Reward + Halving Info
 async function updateBlockReward() {
-    // Block Reward (optional, falls benötigt)
     try {
-        const rewardRes = await fetch('https://api.kaspa.org/info/blockreward');
-        const rewardData = await rewardRes.json();
-        const blockRewardElem = document.getElementById('block-reward');
-        if(blockRewardElem) {
-            blockRewardElem.textContent = rewardData.reward + ' KAS';
-        }
-    } catch (e) {
-        const blockRewardElem = document.getElementById('block-reward');
-        if(blockRewardElem) {
-            blockRewardElem.textContent = 'Error';
-        }
-    }
-    // Halving Info
-    try {
-        const halvingRes = await fetch('https://api.kaspa.org/info/halving');
-        const halvingData = await halvingRes.json();
-        const halvingAmountElem = document.getElementById('halving-amount');
-        if (halvingAmountElem) {
-            halvingAmountElem.textContent = `${halvingData.nextHalvingAmount} KAS`;
+        // Get current block height from state
+        const currentBlockHeight = state.network.blockCount || state.network.daaScore;
+        
+        if (!currentBlockHeight) {
+            console.warn('⚠️ Block height not available yet for halving calculation');
+            return;
         }
         
+        // Calculate halving info
+        const halvingInfo = calculateNextHalving(currentBlockHeight);
+        console.log('🔥 Halving Info:', halvingInfo);
+        
+        // Update block reward display
+        const blockRewardElem = document.getElementById('block-reward');
+        if (blockRewardElem) {
+            blockRewardElem.textContent = `${halvingInfo.currentReward.toFixed(2)} KAS`;
+        }
+        
+        // Update block-reward-stat if exists
+        const blockRewardStatElem = document.getElementById('block-reward-stat');
+        if (blockRewardStatElem) {
+            blockRewardStatElem.textContent = `${halvingInfo.currentReward.toFixed(2)} KAS`;
+        }
+        
+        // Update halving amount
+        const halvingAmountElem = document.getElementById('halving-amount');
+        if (halvingAmountElem) {
+            halvingAmountElem.textContent = `${halvingInfo.nextReward.toFixed(2)} KAS`;
+        }
+        
+        // Update next-halving-stat
+        const nextHalvingStatElem = document.getElementById('next-halving-stat');
+        if (nextHalvingStatElem) {
+            nextHalvingStatElem.textContent = formatHalvingDate(halvingInfo);
+        }
+        
+        // Update halving countdown with live timer
         const halvingCountdownElem = document.getElementById('halving-countdown');
-        if (halvingCountdownElem && halvingData.nextHalvingTimestamp) {
+        if (halvingCountdownElem) {
             function updateCountdown() {
-                const now = Math.floor(Date.now() / 1000);
-                const diff = halvingData.nextHalvingTimestamp - now;
-                if (diff > 0) {
-                    const d = Math.floor(diff / 86400);
-                    const h = Math.floor((diff % 86400) / 3600);
-                    const m = Math.floor((diff % 3600) / 60);
-                    const s = diff % 60;
-                    if (halvingCountdownElem) {
-                        halvingCountdownElem.textContent = `in ${d}d ${h}h ${m}m ${s}s`;
-                    }
-                } else {
-                    if (halvingCountdownElem) {
-                        halvingCountdownElem.textContent = 'Halving!';
-                    }
-                }
+                halvingCountdownElem.textContent = formatHalvingCountdown(halvingInfo);
             }
             updateCountdown();
-            setInterval(updateCountdown, 1000);
+            // Update countdown every minute (not every second to save CPU)
+            setInterval(updateCountdown, 60000);
         }
-    } catch (e) {
+        
+        // Store in state for later use
+        state.network.blockReward = halvingInfo.currentReward;
+        state.network.nextHalvingDate = formatHalvingDate(halvingInfo);
+        state.network.nextHalvingAmount = halvingInfo.nextReward;
+        
+        console.log('✅ Halving calculation complete:', {
+            currentReward: halvingInfo.currentReward,
+            nextReward: halvingInfo.nextReward,
+            daysUntilHalving: halvingInfo.daysUntilHalving,
+            halvingDate: formatHalvingDate(halvingInfo)
+        });
+        
+    } catch (error) {
+        console.error('❌ Error calculating halving:', error);
+        
+        // Fallback error display
+        const blockRewardElem = document.getElementById('block-reward');
         const halvingAmountElem = document.getElementById('halving-amount');
         const halvingCountdownElem = document.getElementById('halving-countdown');
-        if (halvingAmountElem) {
-            halvingAmountElem.textContent = 'Error';
-        }
-        if (halvingCountdownElem) {
-            halvingCountdownElem.textContent = 'Error';
-        }
+        const nextHalvingStatElem = document.getElementById('next-halving-stat');
+        
+        if (blockRewardElem) blockRewardElem.textContent = 'Error';
+        if (halvingAmountElem) halvingAmountElem.textContent = 'Error';
+        if (halvingCountdownElem) halvingCountdownElem.textContent = 'Error';
+        if (nextHalvingStatElem) nextHalvingStatElem.textContent = 'Error';
     }
 }
 
