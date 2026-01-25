@@ -1,0 +1,107 @@
+version: '3.8'
+
+# Offizielle Kaspa-Infrastruktur basierend auf:
+# https://github.com/supertypo/simply-kaspa-indexer/blob/main/docker-compose-example.yaml
+
+volumes:
+  kaspa_db_data:
+    driver: local
+
+services:
+  # PostgreSQL Datenbank
+  kaspa_db:
+    container_name: kaspa_db
+    image: postgres:16-alpine
+    restart: unless-stopped
+    shm_size: 4G
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - kaspa_db_data:/var/lib/postgresql/data/
+
+  # Kaspa Indexer - füllt die Datenbank
+  simply_kaspa_indexer:
+    container_name: kaspa_indexer
+    image: supertypo/simply-kaspa-indexer:latest
+    restart: unless-stopped
+    command: >
+      -u -s ws://host.docker.internal:17110 
+      -d postgresql://postgres:postgres@kaspa_db:5432/postgres
+    depends_on:
+      - kaspa_db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # WebSocket Server für Explorer
+  simply_kaspa_socket_server:
+    container_name: kaspa_socket_server
+    image: supertypo/simply-kaspa-socket-server:unstable
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    command: -x 20 -s ws://host.docker.internal:17110
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Kaspa REST API Server
+  kaspa_rest_server:
+    container_name: kaspa_rest_server
+    image: kaspanet/kaspa-rest-server:latest
+    restart: unless-stopped
+    environment:
+      KASPAD_HOST_1: host.docker.internal:16110
+      SQL_URI: postgresql+asyncpg://postgres:postgres@kaspa_db:5432/postgres
+      NETWORK_TYPE: mainnet
+      BPS: "10"
+      DEBUG: "false"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kaspa_db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Kaspa Explorer Frontend (Professionell)
+  kaspa_explorer_pro:
+    container_name: kaspa_explorer_pro
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx/explorer.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - kaspa_rest_server
+      - simply_kaspa_socket_server
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+
+  # Monitoring (optional)
+  prometheus:
+    container_name: kaspa_prometheus
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  grafana:
+    container_name: kaspa_grafana
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro

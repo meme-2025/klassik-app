@@ -1,0 +1,185 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "kaspa-overview",
+    "title": "Kaspa Full-Stack Overview",
+    "tags": ["kaspa", "blockchain"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "type": "graph",
+        "title": "Block Processing Rate (10 BPS Target)",
+        "targets": [
+          {
+            "expr": "rate(blocks_processed_total[1m])",
+            "legendFormat": "Blocks/sec",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Blocks/sec", "min": 0, "max": 15},
+          {"format": "short"}
+        ],
+        "thresholds": [
+          {"value": 10, "color": "green", "line": true}
+        ]
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "type": "graph",
+        "title": "API Response Time (p95)",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "p50",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Response Time"},
+          {"format": "short"}
+        ],
+        "thresholds": [
+          {"value": 0.05, "color": "red", "line": true}
+        ]
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 8},
+        "type": "stat",
+        "title": "WebSocket Connections",
+        "targets": [
+          {
+            "expr": "websocket_connections",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "orientation": "auto"
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 8},
+        "type": "stat",
+        "title": "Cache Hit Rate",
+        "targets": [
+          {
+            "expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) * 100",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "unit": "percent",
+          "colorMode": "value"
+        }
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 8},
+        "type": "stat",
+        "title": "Database Connections",
+        "targets": [
+          {
+            "expr": "pg_stat_database_numbackends{datname=\"kaspa_mainnet\"}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 8},
+        "type": "stat",
+        "title": "System Memory Usage",
+        "targets": [
+          {
+            "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "unit": "percent",
+          "thresholds": [
+            {"value": 80, "color": "yellow"},
+            {"value": 90, "color": "red"}
+          ]
+        }
+      },
+      {
+        "id": 7,
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 14},
+        "type": "graph",
+        "title": "Database Query Performance",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(db_query_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(db_query_duration_seconds_bucket[5m]))",
+            "legendFormat": "p99",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Query Duration"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 8,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 22},
+        "type": "graph",
+        "title": "CPU Usage",
+        "targets": [
+          {
+            "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+            "legendFormat": "{{instance}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percent", "max": 100, "min": 0},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 9,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 22},
+        "type": "graph",
+        "title": "Network I/O",
+        "targets": [
+          {
+            "expr": "rate(node_network_receive_bytes_total[5m])",
+            "legendFormat": "RX {{device}}",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(node_network_transmit_bytes_total[5m])",
+            "legendFormat": "TX {{device}}",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "Bps", "label": "Bytes/sec"},
+          {"format": "short"}
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}

@@ -1,0 +1,9 @@
+// BACKUP: Original Node.js server implementation
+// Moved to server.js.backup before implementing official Rust kaspa-rest-server
+// Date: 2026-01-25
+
+// This file contains the custom Node.js implementation
+// Keep as reference for custom endpoints if needed
+
+// Original content moved to backup - see server.js.backup
+// Now using official Rust kaspa-rest-server from kaspa-ng

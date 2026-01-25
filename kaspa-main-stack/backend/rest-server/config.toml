@@ -1,0 +1,73 @@
+# Kaspa REST Server Configuration
+# 10 BPS Optimized Settings
+
+[server]
+host = "0.0.0.0"
+port = 8081
+workers = 4
+max_connections = 1000
+
+[kaspad]
+# Your kaspad node (accessible from Docker network)
+rpc_host = "${KASPAD_HOST}"
+rpc_port = ${KASPAD_RPC_PORT}
+grpc_timeout_seconds = 30
+max_grpc_message_size = 52428800  # 50MB
+
+[database]
+url = "${DATABASE_URL}"
+max_connections = 50
+min_connections = 10
+connection_timeout_seconds = 30
+idle_timeout_seconds = 600
+max_lifetime_seconds = 1800
+
+[redis]
+url = "${REDIS_URL}"
+pool_size = 20
+cache_ttl_seconds = 300
+
+[indexer]
+# 10 BPS specific optimizations
+enabled = true
+batch_size = 50  # Process 50 blocks per batch (5 seconds @ 10 BPS)
+batch_interval_ms = 5000
+worker_threads = 4
+start_from_genesis = false
+sync_blocks_parallel = 10
+
+# Memory management
+max_memory_mb = 4096
+gc_interval_seconds = 300
+
+[api]
+enable_cors = true
+cors_origins = ["https://klassik.99pace.space", "http://localhost:3000"]
+rate_limit_per_minute = 100
+enable_compression = true
+compression_level = 6
+
+[metrics]
+enabled = true
+prometheus_port = 9091
+export_interval_seconds = 15
+
+[logging]
+level = "info"
+json_format = true
+log_file = "/app/logs/rest-server.log"
+max_log_size_mb = 100
+max_log_files = 10
+
+[performance]
+# Stream compression for gRPC
+enable_grpc_compression = true
+grpc_compression_algorithm = "gzip"
+
+# Connection pooling
+tcp_keepalive_seconds = 60
+tcp_nodelay = true
+
+# Buffer sizes
+read_buffer_size = 65536
+write_buffer_size = 65536

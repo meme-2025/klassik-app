@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klassik - Kaspa Explorer</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: #0d1117; 
+            color: #c9d1d9; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 40px; 
+        }
+        .header h1 { 
+            color: #58a6ff; 
+            font-size: 3em; 
+            margin-bottom: 10px; 
+        }
+        .status { 
+            background: #21262d; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+        }
+        .status-ok { 
+            border-left: 5px solid #2ea043; 
+        }
+        .status-error { 
+            border-left: 5px solid #da3633; 
+        }
+        .stats { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 20px; 
+        }
+        .stat-card { 
+            background: #21262d; 
+            padding: 20px; 
+            border-radius: 10px; 
+            text-align: center; 
+        }
+        .stat-value { 
+            font-size: 2em; 
+            font-weight: bold; 
+            color: #58a6ff; 
+        }
+        .stat-label { 
+            margin-top: 5px; 
+            color: #8b949e; 
+        }
+        .loading { 
+            text-align: center; 
+            color: #58a6ff; 
+        }
+        .api-links {
+            background: #21262d;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .api-links h3 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+        }
+        .api-links a {
+            display: inline-block;
+            background: #238636;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        .api-links a:hover {
+            background: #2ea043;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Klassik</h1>
+            <p>Kaspa Blockchain Explorer</p>
+        </div>
+        
+        <div id="status" class="status loading">
+            <h3>Loading system status...</h3>
+        </div>
+        
+        <div class="api-links">
+            <h3>🔗 API Endpoints</h3>
+            <a href="/api/health" target="_blank">/api/health</a>
+            <a href="/api/info" target="_blank">/api/info</a>
+            <a href="/api/network/info" target="_blank">/api/network/info</a>
+            <a href="/api/blocks/latest" target="_blank">/api/blocks/latest</a>
+            <a href="/api/stats" target="_blank">/api/stats</a>
+        </div>
+        
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stat-card">
+                <div id="blockHeight" class="stat-value">-</div>
+                <div class="stat-label">Current Block Height</div>
+            </div>
+            <div class="stat-card">
+                <div id="difficulty" class="stat-value">-</div>
+                <div class="stat-label">Difficulty</div>
+            </div>
+            <div class="stat-card">
+                <div id="hashrate" class="stat-value">-</div>
+                <div class="stat-label">Network Hashrate</div>
+            </div>
+            <div class="stat-card">
+                <div id="connections" class="stat-value">-</div>
+                <div class="stat-label">Peer Connections</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                const statusDiv = document.getElementById('status');
+                if (data.status === 'healthy' || data.status === 'ok') {
+                    statusDiv.className = 'status status-ok';
+                    statusDiv.innerHTML = '<h3>✅ System Status: Healthy</h3><p>Kaspa node: ' + (data.kaspad?.connected ? 'Connected' : 'Disconnected') + '</p>';
+                    document.getElementById('stats').style.display = 'grid';
+                    loadStats();
+                } else {
+                    statusDiv.className = 'status status-error';
+                    statusDiv.innerHTML = '<h3>❌ System Status: Error</h3>';
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status status-error';
+                statusDiv.innerHTML = '<h3>❌ System Status: Connection Error</h3><p>Cannot connect to API</p>';
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const endpoints = ['/api/info', '/api/network/info', '/api/stats'];
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(endpoint);
+                        if (response.ok) {
+                            const data = await response.json();
+                            updateStats(data);
+                            return;
+                        }
+                    } catch (e) {
+                        continue;
+                    }
+                }
+                
+                // Fallback: show API available message
+                document.getElementById('blockHeight').textContent = 'API';
+                document.getElementById('difficulty').textContent = 'Available';
+                document.getElementById('hashrate').textContent = 'Ready';
+                document.getElementById('connections').textContent = '✓';
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function updateStats(data) {
+            if (data.blockHeight || data.currentHeight) {
+                document.getElementById('blockHeight').textContent = (data.blockHeight || data.currentHeight || '-');
+            }
+            if (data.difficulty) {
+                document.getElementById('difficulty').textContent = formatNumber(data.difficulty);
+            }
+            if (data.hashrate) {
+                document.getElementById('hashrate').textContent = formatHashrate(data.hashrate);
+            }
+            if (data.peerCount || data.connections) {
+                document.getElementById('connections').textContent = (data.peerCount || data.connections || '-');
+            }
+        }
+
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toString();
+        }
+
+        function formatHashrate(hashrate) {
+            if (hashrate >= 1e12) return (hashrate / 1e12).toFixed(2) + ' TH/s';
+            if (hashrate >= 1e9) return (hashrate / 1e9).toFixed(2) + ' GH/s';
+            if (hashrate >= 1e6) return (hashrate / 1e6).toFixed(2) + ' MH/s';
+            return hashrate + ' H/s';
+        }
+
+        // Initialize
+        checkStatus();
+        
+        // Refresh every 30 seconds
+        setInterval(checkStatus, 30000);
+    </script>
+</body>
+</html>

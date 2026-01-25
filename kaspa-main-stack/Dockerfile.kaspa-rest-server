@@ -1,0 +1,50 @@
+# Official Kaspa REST Server (Python) - kaspa-ng
+FROM python:3.12-slim as builder
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install poetry
+RUN pip install poetry
+
+# Clone official kaspa-rest-server
+RUN git clone https://github.com/kaspa-ng/kaspa-rest-server.git .
+
+# Configure poetry
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-root --no-interaction
+
+# Runtime stage
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy application and dependencies
+COPY --from=builder /app /app
+COPY --from=builder /usr/local /usr/local
+
+# Create user
+RUN useradd -r -s /bin/false kaspa
+
+# Switch to non-root user
+USER kaspa
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/info/health || exit 1
+
+EXPOSE 8000
+
+# Start with gunicorn
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "main:app"]

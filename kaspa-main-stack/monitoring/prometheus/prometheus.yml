@@ -1,0 +1,58 @@
+# Prometheus Configuration for Kaspa Stack
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'kaspa-mainnet'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter (system metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          instance: 'kaspa-server'
+
+  # Kaspa Middleware
+  - job_name: 'kaspa-middleware'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['middleware:8080']
+    metrics_path: '/metrics'
+
+  # PostgreSQL Exporter (if installed)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    metrics_path: '/metrics'
+
+  # Redis Exporter (if installed)  
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics'
+
+  # Kaspa REST Server
+  - job_name: 'kaspa-rest-server'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['kaspa-rest-server:9091']
+    metrics_path: '/metrics'
+
+# Recording rules for aggregations
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
