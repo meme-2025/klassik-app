@@ -1,0 +1,53 @@
+# Prometheus Configuration for Kaspa Full-Stack Monitoring
+# Optimized for high-frequency blockchain monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'kaspa-production'
+    environment: 'production'
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+
+  # Kaspa Backend/Middleware
+  - job_name: 'kaspa-backend'
+    static_configs:
+      - targets: ['kaspa-backend:8080']
+        labels:
+          service: 'kaspa-backend'
+    scrape_interval: 10s  # High frequency for blockchain metrics
+    metrics_path: '/metrics'
+    scrape_timeout: 10s
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['kaspa-node-exporter:9100']
+        labels:
+          service: 'system'
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+
+  # PostgreSQL Exporter (if available)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'database'
+    scrape_interval: 30s
+
+  # Redis Exporter (if available)  
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'cache'
+    scrape_interval: 30s
