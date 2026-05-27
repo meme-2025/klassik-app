@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Klassik on Kaspa - Beyond The Block. Exchange, Smart Contracts, and Blockchain Explorer for the Kaspa Network">
+    <title>Klassik | Kaspa Network Platform</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Resource hints for common CDNs -->
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="assets/css/kaspa.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/wallet-auth.css">
+    <link rel="stylesheet" href="assets/css/modern-enhancements.css">
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="gradient-bg-kaspa"></div>
+    <div id="particles-js"></div>
+    <canvas id="blockdag-canvas" class="blockdag-bg"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-icon-kaspa">
+                    <div class="dag-node"></div>
+                    <div class="dag-node"></div>
+                    <div class="dag-node"></div>
+                </div>
+                <span class="logo-text">klassik<span class="logo-accent">.kaspa</span></span>
+            </div>
+            
+            <div class="nav-links">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="api.html" class="nav-link">Dashboard</a>
+                <a href="api.html" class="nav-link">Mining</a>
+                <a href="api.html" class="nav-link">API Explorer</a>
+                <a href="exchange.html" class="nav-link">Exchange</a>
+                <a href="merch.html" class="nav-link">Merch</a>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="btn-ghost" id="loginBtn">
+                    <i class="fas fa-user"></i>
+                    <span>Login</span>
+                </button>
+                <button class="btn-kaspa" id="registerBtn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register</span>
+                </button>
+                
+                <!-- User Menu (shown when logged in) -->
+                <div id="userMenu" class="user-menu" style="display: none;">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="userName">User</span>
+                    </div>
+                    <button class="btn-ghost" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Actions (shown only on mobile) -->
+            <div class="mobile-actions">
+                <button class="btn-mobile-login" id="mobileLoginBtn">
+                    <i class="fas fa-user"></i>
+                </button>
+                
+                <!-- Profile Button (shown when logged in on mobile) -->
+                <div class="mobile-profile-wrapper" id="mobileProfileWrapper" style="display: none;">
+                    <button class="btn-mobile-profile" id="mobileProfileBtn">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    <div class="profile-hover-card" id="profileHoverCard">
+                        <div class="profile-hover-header">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="profileHoverName">User Name</span>
+                        </div>
+                        <div class="profile-hover-info">
+                            <div class="profile-info-item">
+                                <i class="fas fa-wallet"></i>
+                                <span id="profileHoverWallet">kaspa:...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-kaspa">
+        <div class="hero-content" style="text-align: center; max-width: 800px; margin: 0 auto; padding: 6rem 2rem;">
+            <h1 class="hero-title fade-in-up" style="font-size: 3.5rem; margin-bottom: 1.5rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0; font-family: 'Space Grotesk', sans-serif;">
+                <span>Klassi</span>
+                <svg style="width: 6rem; height: 6rem; margin-left: -1rem;" viewBox="0 0 197.1 196.9" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="98.6" cy="97.8" r="40.8"/>
+                    <path fill="#FFFFFF" d="M149.4,76.3c-2.8-6.8-7.2-13-12.3-18.1s-11.6-8.9-18.4-11.7c-6.5-2.7-13.8-4.1-21.3-4.1s-15.2,0.3-21.7,3c-6.8,2.8-12.4,8.1-17.5,13.2s-11,10.5-13.8,17.3c-2.7,6.5-1.8,14.5-1.8,22s0.5,14.8,3.3,21.4c2.8,6.8,8.5,11.5,13.6,16.6c5.1,5.1,9.7,11.2,16.5,14c6.5,2.7,14,4.6,21.5,4.6s14.9-2.2,21.4-4.9c6.8-2.8,12.9-7.2,18-12.3c5.1-5.1,9.2-11.3,12-18.1c2.7-6.5,5.8-13.8,5.8-21.3S152.1,82.9,149.4,76.3L149.4,76.3z M113.2,129.8l-11.9-1.8l3.4-23l-24.9,19.2l-7.3-9.6l21.8-16.8L72.5,81.1l7.3-9.6l24.9,19.2l-3.4-23l11.9-1.8l4.7,32L113.2,129.8L113.2,129.8z"/>
+                </svg>
+            </h1>
+            
+            <p class="hero-subtitle fade-in-up delay-150" style="font-size: 1.25rem; color: rgba(255,255,255,0.8); margin-bottom: 3rem; line-height: 1.6;">
+                Klassik is your gateway to live Kaspa data, KAS tools, and new ways to participate in the ecosystem.
+            </p>
+            
+            <div class="hero-cta fade-in-up delay-200" style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;">
+                
+                <button class="btn-hero-kaspa glow-on-hover" onclick="launchApp()" style="width: 100%; max-width: 400px;">
+                    <span>Launch App Suite</span>
+                    <i class="fas fa-game"></i>
+                </button>
+                <button class="btn-outline-kaspa hover-lift" onclick="window.location.href='landing.html'" style="width: 100%; max-width: 400px;">
+                    <i class="fas fa-cube"></i>
+                    <span>View API Explorer</span>
+                </button>
+                <button class="btn-outline-kaspa hover-lift" onclick="window.location.href='index-v0.3.html'" style="width: 100%; max-width: 400px;">
+                    <i class="fas fa-rocket"></i>
+                    <span>Join the Journey</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Footer -->
+    <footer class="footer-kaspa">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <div class="logo-icon-kaspa">
+                            <div class="dag-node"></div>
+                            <div class="dag-node"></div>
+                            <div class="dag-node"></div>
+                        </div>
+                        <span class="logo-text">klassik<span class="logo-accent">.kaspa</span></span>
+                    </div>
+                    <p style="margin: 1rem 0; line-height: 1.6;">Klassik is an independent project building infrastructure and experimental mechanisms on Kaspa.</p>
+                    <p style="margin: 1rem 0; font-size: 0.85rem; line-height: 1.6; color: rgba(255,255,255,0.5);">
+                        Nothing on this site constitutes financial, legal, or tax advice. Interacting with blockchain systems involves risk, including potential loss of funds. Do your own research and consult qualified professionals where appropriate.
+                    </p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <a href="#vision">Vision</a>
+                    <a href="#why-klassik">Why Klassik</a>
+                    <a href="#products">App Suite</a>
+                    <a href="#roadmap">Roadmap</a>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <a href="api.html">API Explorer</a>
+                    <a href="#">Documentation</a>
+                    <a href="#security">Security</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Community</h4>
+                    <a href="#">Discord</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Telegram</a>
+                    <a href="#">GitHub</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Klassik. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Disclaimer</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <!-- Login Modal - Wallet Only -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content glass">
+            <button class="modal-close" onclick="AnimationHelpers.closeModal('loginModal')">&times;</button>
+            <h2>🔐 Connect Your Wallet</h2>
+            
+            <div style="text-align: center; margin: 2rem 0;">
+                <p style="color: rgba(255,255,255,0.8); margin-bottom: 1.5rem;">
+                    Secure wallet-based authentication with MetaMask
+                </p>
+                
+                <button type="button" class="btn-hero-kaspa btn-block" id="walletLoginBtn" style="font-size: 1.1rem; padding: 1.2rem;">
+                    <i class="fas fa-wallet"></i>
+                    <span>Connect MetaMask</span>
+                </button>
+                
+                <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,217,197,0.05); border-radius: 12px; border: 1px solid rgba(0,217,197,0.2);">
+                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin: 0;">
+                        <i class="fas fa-info-circle"></i>
+                        No email or password needed. Sign with your wallet to login or create an account.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts (deferred to avoid render-blocking) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/tsparticles@3.1.0/tsparticles.bundle.min.js"></script>
+    <script defer src="assets/js/ethers.umd.min.js"></script>
+    <script defer src="assets/js/tsparticles-config.js?v=3.0"></script>
+    <script defer src="assets/js/hero-stats-live.js?v=3.0"></script>
+    <script defer src="assets/js/animations.js?v=3.0"></script>
+    <script defer src="assets/js/modern-interactions.js?v=1.0.0"></script>
+    <script defer src="assets/js/wallet-auth-fixed.js?v=1.0.2"></script>
+    <script defer src="assets/js/kaspa-blockdag.js?v=3.0"></script>
+    <script defer src="assets/js/app.js?v=3.0"></script>
+    
+    <!-- Debug: Verify mobile menu initialization -->
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const menuBtn = document.querySelector('.mobile-menu-btn');
+                const navLinks = document.querySelector('.nav-links');
+                if (menuBtn && navLinks) {
+                    console.log('✅ Mobile menu elements found');
+                } else {
+                    console.error('❌ Mobile menu elements missing:', { menuBtn, navLinks });
+                }
+            }, 500);
+        });
+    </script>
+    
+    <!-- Rotating Keywords Animation -->
+    <script>
+        (function() {
+            const keywords = document.querySelectorAll('.keyword');
+            if (keywords.length === 0) return;
+            
+            let currentIndex = 0;
+
+            function rotateKeywords() {
+                keywords[currentIndex].classList.remove('active');
+                keywords[currentIndex].classList.add('exit');
+                
+                setTimeout(() => {
+                    keywords[currentIndex].classList.remove('exit');
+                }, 500);
+                
+                currentIndex = (currentIndex + 1) % keywords.length;
+                keywords[currentIndex].classList.add('active');
+            }
+
+            setInterval(rotateKeywords, 2500);
+        })();
+    </script>
+    
+    <!-- Stats Counter Animation -->
+    <script>
+        (function() {
+            const statValues = document.querySelectorAll('.stat-value[data-count]');
+            
+            function animateValue(element, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const current = Math.floor(progress * (end - start) + start);
+                    element.textContent = current;
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+            
+            // Start animation after page load
+            setTimeout(() => {
+                statValues.forEach(stat => {
+                    const targetValue = parseInt(stat.getAttribute('data-count'));
+                    animateValue(stat, 0, targetValue, 2000);
+                });
+            }, 500);
+        })();
+        
+        // Smart App Launcher - Auto-detects Production vs Development
+        function launchApp() {
+            const APP_URLS = {
+                production: 'https://app.klassik.99pace.space',  // Production URL
+                development: 'http://localhost:3000'              // Local Development
+            };
+            
+            // Auto-detect environment based on hostname
+            const hostname = window.location.hostname;
+            const isDevelopment = hostname === 'localhost' || hostname === '127.0.0.1';
+            const appUrl = isDevelopment ? APP_URLS.development : APP_URLS.production;
+            
+            // Open in new window/tab - full screen
+            const width = screen.availWidth;
+            const height = screen.availHeight;
+            const features = `width=${width},height=${height},left=0,top=0,resizable=yes,scrollbars=yes,status=yes`;
+            
+            window.open(appUrl, 'KaspaRush', features);
+        }
+    </script>
+</body>
+</html>
